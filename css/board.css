@@ -14,6 +14,8 @@
 .celebration{background:radial-gradient(circle at 50% 35%,#fff7cf22,transparent 44%)}
 .celebration-message{font-size:30px;padding:22px 34px;border:2px solid #f0bb31;box-shadow:0 0 0 6px #fff8d955,0 14px 60px #d58c2d55;text-shadow:0 1px #fff;animation-duration:6.5s}
 .firework-spark{width:11px;height:11px;box-shadow:0 0 6px var(--spark),0 0 16px var(--spark),0 0 26px var(--spark);animation-duration:2.6s}
+.celebration{background:rgba(15,24,48,.68);backdrop-filter:blur(4px)}
+.celebration-message{top:28%;background:linear-gradient(145deg,#fffef4,#fff5c7);color:#6d4310;border:3px solid #ffbd2e;box-shadow:0 0 0 8px #ffcf4c44,0 18px 70px #0009,0 0 45px #ffd24c99;transform:translateX(-50%) scale(1.04);}
 @media(max-width:700px){.celebration-message{font-size:23px;padding:18px 23px}.firework-spark{width:8px;height:8px}}
 @media(max-width:700px){
   .home-board{grid-template-columns:1fr;width:calc(100% - 22px);margin-left:auto;margin-right:auto;gap:9px}
