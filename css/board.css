@@ -20,7 +20,7 @@
 @media(max-width:700px){
   .home-board{grid-template-columns:1fr;width:calc(100% - 22px);margin-left:auto;margin-right:auto;gap:9px}
   .board-heading{width:calc(100% + 22px);margin-left:-11px}
-  .subject-summary{height:108px;min-height:108px;padding:12px 14px;border-radius:16px}
-  .summary-count{margin:6px 0}.summary-bottom{margin-top:1px}
+  .subject-summary{height:132px;min-height:132px;padding:13px 14px;border-radius:16px}
+  .summary-count{margin:8px 0}.summary-count>span{line-height:1.2}.summary-bottom{margin-top:2px}
   .board-heading .board-actions>span{font-size:11px}
 }
