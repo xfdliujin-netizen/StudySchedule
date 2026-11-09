@@ -1,0 +1,8 @@
+export const subjects = [{id:'chinese',name:'语文',icon:'📖',color:'#fff0dc'},{id:'math',name:'数学',icon:'🧮',color:'#e7e5ff'},{id:'english',name:'英语',icon:'🔤',color:'#dff4ef'}];
+export function today(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+export const dayNumber=d=>Date.parse(d+'T00:00:00Z')/86400000;
+export const shiftDate=(d,n)=>new Date((dayNumber(d)+n)*86400000).toISOString().slice(0,10);
+export function occurs(t,date){if(t.deleted||!t.enabled||date<t.startDate||(t.endDate&&date>t.endDate))return false;const r=t.repeatRule;return r.type==='daily'||(r.type==='once'&&date===t.startDate)||(r.type==='weekly'&&r.days.includes(new Date(date+'T00:00:00Z').getUTCDay()))||(r.type==='interval'&&(dayNumber(date)-dayNumber(t.startDate))%r.interval===0);}
+export const key=(id,date)=>`${id}@${date}`;
+export function instances(data,date,overdue=true){const out=[];for(const t of Object.values(data.tasks)){if(t.deleted)continue;let start=overdue?t.startDate:date;for(let d=start;d<=date;d=shiftDate(d,1)){const k=key(t.id,d),e=data.exceptions[k];if((occurs(t,d)||e?.override)&&!e?.deleted){const c=data.completions[k];if(d===date||!c?.status)out.push({...t,...e?.override,id:t.id,date,key:k,done:!!c?.status,completedAt:c?.completedAt});}}}return out.sort((a,b)=>a.date.localeCompare(b.date)||(a.reminderTime||'').localeCompare(b.reminderTime||''));}
+export function repeatLabel(r){return {once:'仅一次',daily:'每天',weekly:'每周 '+(r.days||[]).map(d=>'日一二三四五六'[d]).join('、'),interval:`每隔 ${r.interval} 天`}[r.type];}
