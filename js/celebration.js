@@ -12,16 +12,16 @@ export function fireworks(){
   document.body.append(layer);
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(!reduced){
-    for(let burst=0;burst<7;burst++){
-      const x=15+Math.random()*70,y=15+Math.random()*55;
-      for(let i=0;i<26;i++){
-        const spark=document.createElement('i'),angle=i/26*Math.PI*2,radius=55+Math.random()*95;
+    for(let burst=0;burst<11;burst++){
+      const x=10+Math.random()*80,y=10+Math.random()*52;
+      for(let i=0;i<34;i++){
+        const spark=document.createElement('i'),angle=i/34*Math.PI*2,radius=70+Math.random()*125;
         spark.className='firework-spark';
-        spark.style.cssText=`left:${x}%;top:${y}%;--dx:${Math.cos(angle)*radius}px;--dy:${Math.sin(angle)*radius}px;--spark:${['#ffbc38','#f47187','#7b73f3','#35cdb0','#4bb7fb'][i%5]};animation-delay:${burst*.32}s`;
+        spark.style.cssText=`left:${x}%;top:${y}%;--dx:${Math.cos(angle)*radius}px;--dy:${Math.sin(angle)*radius}px;--spark:${['#ffb000','#ff3f68','#6557ff','#10b995','#168dff','#fff'][i%6]};animation-delay:${burst*.22}s`;
         layer.append(spark);
       }
     }
   }
-  const timer=setTimeout(()=>{layer.remove();active=null;},4500);
+  const timer=setTimeout(()=>{layer.remove();active=null;},6500);
   active=()=>{clearTimeout(timer);layer.remove();};
 }
