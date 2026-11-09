@@ -27,6 +27,19 @@
   .task{min-height:63px}
 }
 
+/* Subject pages now flow directly into the restored task title. */
+.subject-workspace .section-head{margin-top:8px}
+.subject-workspace .section-head h2{font-size:29px;line-height:1.2;color:var(--deep);letter-spacing:.2px}
+.subject-workspace .section-head p{font-size:14px}
+.board-actions{display:flex;align-items:center;gap:10px}
+.board-actions button{display:none;color:var(--accent);background:var(--soft);font-size:13px;padding:6px 10px;border-radius:9px}
+@media(max-width:700px){
+  .subject-workspace .section-head{margin-top:2px}
+  .subject-workspace .section-head h2{font-size:23px}
+  .board-actions{gap:7px}
+  .board-actions button{display:inline-flex;align-items:center;white-space:nowrap}
+}
+
 /* Compact phone layout: subject pages use the themed hero as the only top context. */
 @media(max-width:700px){
   main>header{display:none}
