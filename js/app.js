@@ -28,6 +28,7 @@ function render(){
  document.querySelectorAll('[data-sub]').forEach(b=>b.onclick=()=>{subject=b.dataset.sub;screen='tasks';filter='all';render();});
  document.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{filter=b.dataset.filter;screen='tasks';render();});
  document.querySelectorAll('[data-date]').forEach(b=>b.onclick=()=>{date=b.dataset.date;filter='all';render();});
+ document.querySelectorAll('.mobile-nav [data-sub]').forEach(b=>{const id=b.dataset.sub;if(id!=='all'){const n=learningView(data,id,date).pending;if(n){const badge=document.createElement('b');badge.className='mobile-badge';badge.textContent=n;b.append(badge);}}});
  $('#settings').onclick=$('#mobile-settings').onclick=()=>{screen='settings';render();};$('#sync').onclick=sync;
  if(screen==='settings')bindSettings();else{
   if($('#add'))$('#add').onclick=()=>edit();$('#date').onchange=e=>{if(e.target.value){date=e.target.value;filter='all';render();}};
