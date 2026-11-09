@@ -40,6 +40,23 @@
   .board-actions button{display:inline-flex;align-items:center;white-space:nowrap}
 }
 
+/* Keep the subject identity visible without bringing back the oversized banner. */
+.compact-subject-hero{height:78px;min-height:78px;margin-bottom:4px;padding:8px 18px;border-radius:15px;background:linear-gradient(105deg,var(--soft) 0%,color-mix(in srgb,var(--soft) 64%,white) 58%,transparent 100%);border-color:transparent}
+.compact-subject-hero>div:first-child{display:flex;align-items:center;gap:12px;position:relative;z-index:1}
+.compact-subject-hero .subject-index{font-size:10px;letter-spacing:.5px}
+.compact-subject-hero h1{font-size:29px;line-height:1;margin:0}
+.compact-subject-hero h1 span{font-size:14px;margin-left:8px}
+.compact-subject-hero p{margin:0;font-size:11px;white-space:nowrap}
+.compact-subject-hero .subject-art{height:58px;transform:scale(.58);transform-origin:right center;opacity:.86}
+@media(max-width:700px){
+  .compact-subject-hero{height:62px;min-height:62px;margin-bottom:1px;padding:7px 11px;border-radius:12px;background:linear-gradient(105deg,var(--soft),color-mix(in srgb,var(--soft) 70%,white))}
+  .compact-subject-hero .subject-index{display:none}
+  .compact-subject-hero h1{font-size:24px}
+  .compact-subject-hero h1 span{font-size:13px;margin-left:6px}
+  .compact-subject-hero p{display:none}
+  .compact-subject-hero .subject-art{right:0;top:-19px;transform:scale(.43);opacity:.78}
+}
+
 /* Compact phone layout: subject pages use the themed hero as the only top context. */
 @media(max-width:700px){
   main>header{display:none}
