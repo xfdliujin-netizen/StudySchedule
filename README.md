@@ -1,5 +1,13 @@
 # 小小学习家 · Kids Study Planner
 
+## 自动同步
+
+项目根目录现直接关联 GitHub。后台脚本在文件停止变动 20 秒后，运行测试和 JavaScript 语法检查，自动 commit / push，由已有 GitHub Actions 部署网站。只同步项目源码、资源、文档及启动脚本；`.local`、浏览器数据、环境文件和 `.deploy-repo` 不会上传。Git 操作不调用 AI，不消耗模型 token。
+
+双击「启动自动同步.cmd」启动 / 恢复；双击「暂停自动同步.cmd」暂停。日志在 `.local/auto-sync.log`。断网会保留本地提交并每分钟重试，远程分支有冲突时拒绝推送，不会强制覆盖。Git 登录失效需通过 Git Credential Manager 重新登录。请不要手动暂存其他内容；自动同步脚本会提交 Git 暂存区。
+
+本机登录启动项会启动该后台脚本。需要长期暂停时，可在 Windows「启动应用」中禁用 StudySchedule Auto Sync，并使用暂停脚本。
+
 根据 [planner.md](planner.md) 实现的纯 HTML / CSS / JavaScript 学习计划应用，无运行时依赖。
 
 ## 本地运行
