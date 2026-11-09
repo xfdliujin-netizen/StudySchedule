@@ -10,6 +10,11 @@
 @media(max-width:1000px){.home-board{grid-template-columns:repeat(2,minmax(0,1fr))}.subject-summary{min-height:190px;padding:20px}}
 @media(max-width:700px){.home-board{gap:11px}.subject-summary{min-height:170px;padding:16px 15px;border-radius:19px}.summary-top>strong{font-size:23px}.summary-percent{font-size:15px}.summary-count{margin:19px 0;font-size:13px}.summary-count>strong{font-size:29px}.summary-count>span{font-size:12px;margin-top:3px}.summary-bottom{font-size:12px;gap:6px}.summary-bottom .board-icon{width:25px;height:25px;font-size:17px}.summary-bottom .board-arrow{width:25px;height:25px;font-size:19px}}
 @media(prefers-reduced-motion:reduce){.subject-summary,.subject-card-fill{transition:none}}
+/* Celebration is intentionally prominent after the final task. */
+.celebration{background:radial-gradient(circle at 50% 35%,#fff7cf22,transparent 44%)}
+.celebration-message{font-size:30px;padding:22px 34px;border:2px solid #f0bb31;box-shadow:0 0 0 6px #fff8d955,0 14px 60px #d58c2d55;text-shadow:0 1px #fff;animation-duration:6.5s}
+.firework-spark{width:11px;height:11px;box-shadow:0 0 6px var(--spark),0 0 16px var(--spark),0 0 26px var(--spark);animation-duration:2.6s}
+@media(max-width:700px){.celebration-message{font-size:23px;padding:18px 23px}.firework-spark{width:8px;height:8px}}
 @media(max-width:700px){
   .home-board{grid-template-columns:1fr;width:calc(100% - 22px);margin-left:auto;margin-right:auto;gap:9px}
   .board-heading{width:calc(100% + 22px);margin-left:-11px}
