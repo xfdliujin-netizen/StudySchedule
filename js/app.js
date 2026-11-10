@@ -42,7 +42,7 @@ function show(content){dialog.innerHTML=content;dialog.showModal();dialog.queryS
 function edit(t){const initial=t||{subjectId:subject==='all'?'chinese':subject,title:'',description:'',startDate:date,endDate:'',durationMinutes:20,reminderTime:'',enabled:true,repeatRule:{type:'daily',days:[1,3,5],interval:2}};show(`<form id="task-form"><div class="modal-head"><h2>${t?'编辑学习计划':'添加学习任务'}</h2><button type="button" data-close aria-label="关闭">✕</button></div><label>任务名称<input name="title" required maxlength="100" value="${esc(initial.title)}" placeholder="例如：课外阅读 20 分钟"></label><div class="form-row"><label>科目<select name="subjectId">${subjects.map(s=>`<option value="${s.id}" ${s.id===initial.subjectId?'selected':''}>${s.name}</option>`).join('')}</select></label></div><label>学习内容<textarea name="description" maxlength="2000" rows="3" placeholder="今天准备学习什么？">${esc(initial.description)}</textarea></label><div class="form-row"><label>重复方式<select id="repeat" name="repeat">${[['once','仅一次'],['daily','每天'],['weekly','每周（自定义）'],['interval','每隔 N 天']].map(([v,n])=>`<option value="${v}" ${v===initial.repeatRule.type?'selected':''}>${n}</option>`).join('')}</select></label></div><div id="weekly" class="weekdays">${[0,1,2,3,4,5,6].map(d=>`<label><input type="checkbox" name="days" value="${d}" ${initial.repeatRule.days?.includes(d)?'checked':''}><span>${'日一二三四五六'[d]}</span></label>`).join('')}</div><label id="interval">间隔天数<input name="interval" type="number" min="1" max="3650" value="${initial.repeatRule.interval||2}"></label><label class="inline"><input name="enabled" type="checkbox" ${initial.enabled?'checked':''}> 启用此计划</label>${t?'<label>修改范围<select name="scope"><option value="day">仅修改此执行日</option><option value="future">此执行日及以后的计划</option></select></label>':''}<button class="primary full">保存学习计划</button></form>`);
 const update=()=>{$('#weekly').hidden=$('#repeat').value!=='weekly';$('#interval').hidden=$('#repeat').value!=='interval';};$('#repeat').onchange=update;update();$('#task-form').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target),rule={type:f.get('repeat'),days:f.getAll('days').map(Number),interval:Number(f.get('interval'))};if(rule.type==='weekly'&&!rule.days.length)return toast('请至少选择一个星期');if(rule.type==='interval'&&(!Number.isInteger(rule.interval)||rule.interval<1))return toast('请输入有效的间隔天数');saveTask(data,{title:f.get('title').trim(),description:f.get('description'),subjectId:f.get('subjectId'),startDate:initial.startDate,endDate:initial.endDate||'',reminderTime:initial.reminderTime||'',durationMinutes:initial.durationMinutes||20,repeatRule:rule,enabled:f.has('enabled')},t,t?.date,f.get('scope'));await persist();dialog.close();};}
 function remove(t){show(`<form id="delete-form"><div class="modal-head"><h2>删除学习任务</h2><button type="button" data-close>✕</button></div><p>确定删除「${esc(t.title)}」？历史完成记录会保留。</p><label>删除范围<select name="scope"><option value="day">仅删除此执行日</option><option value="future">终止此执行日及后续计划</option><option value="series">删除整个任务系列</option></select></label><button class="danger full">确认删除</button></form>`);$('#delete-form').onsubmit=async e=>{e.preventDefault();deleteTask(data,t.id,t.date,new FormData(e.target).get('scope'));await persist();dialog.close();};}
-function settingsHTML(){return `<section class="settings"><h1>设置与数据同步</h1><p>学习记录先保存在本机，再同步到你的 GitHub 私有仓库。</p><form id="config" class="panel"><h2>☁ 连接 GitHub</h2><p class="hint">连接诊断版 9（已开启实时推送）</p><p role="status">${esc(status)}</p><label>GitHub 令牌<input name="token" type="password" required autocomplete="off" value="${esc(config.token||'')}"></label><button type="button" id="load-repos">读取私有仓库</button><p id="repo-message" class="hint" role="status"></p><label id="repo-label" ${config.owner&&config.repo?'':'hidden'}>数据仓库<select name="repository" id="repository">${config.owner&&config.repo?`<option value="${esc(config.owner+'/'+config.repo)}">${esc(config.owner+'/'+config.repo)}</option>`:'<option value="">请先读取仓库</option>'}</select></label><p class="hint">仅授权指定仓库的 Contents 读写权限。Token 仅保存在本设备，不进入同步与备份文件。本机凭据仍有设备访问及网页脚本风险。</p><div class="buttons"><button class="primary">保存并测试连接</button><button type="button" id="clear-token">清除 Token</button></div></form><section class="panel"><h2>💾 备份与恢复</h2><p>定期导出一份学习数据，换设备也安心。</p><div class="buttons"><button id="export">导出 JSON 备份</button><label class="file-button">导入备份<input id="import" type="file" accept="application/json,.json" hidden></label><button id="history">查看完成记录</button></div><p class="hint">恢复会按记录合并，冲突时要求选择版本。备份不包含 Token。</p></section><section class="panel"><h2>🌱 安装到主屏幕</h2><p>iPhone / iPad：在 Safari 分享菜单选择「添加到主屏幕」。电脑：使用浏览器地址栏的安装入口。首次访问并加载成功后即可离线使用。</p></section></section>`;}
+function settingsHTML(){return `<section class="settings"><h1>设置与数据同步</h1><p>学习记录先保存在本机，再同步到你的 GitHub 私有仓库。</p><form id="config" class="panel"><h2>☁ 连接 GitHub</h2><p class="hint">连接诊断版 9（实时推送模式）</p><p role="status">${esc(status)}</p><label>GitHub 令牌<input name="token" type="password" required autocomplete="off" value="${esc(config.token||'')}"></label><button type="button" id="load-repos">读取私有仓库</button><p id="repo-message" class="hint" role="status"></p><label id="repo-label" ${config.owner&&config.repo?'':'hidden'}>数据仓库<select name="repository" id="repository">${config.owner&&config.repo?`<option value="${esc(config.owner+'/'+config.repo)}">${esc(config.owner+'/'+config.repo)}</option>`:'<option value="">请先读取仓库</option>'}</select></label><p class="hint">仅授权指定仓库的 Contents 读写权限。Token 仅保存在本设备，不进入同步与备份文件。本机凭据仍有设备访问及网页脚本风险。</p><div class="buttons"><button class="primary">保存并测试连接</button><button type="button" id="clear-token">清除 Token</button></div></form><section class="panel"><h2>💾 备份与恢复</h2><p>定期导出一份学习数据，换设备也安心。</p><div class="buttons"><button id="export">导出 JSON 备份</button><label class="file-button">导入备份<input id="import" type="file" accept="application/json,.json" hidden></label><button id="history">查看完成记录</button></div><p class="hint">恢复会按记录合并，冲突时要求选择版本。备份不包含 Token。</p></section><section class="panel"><h2>🌱 安装到主屏幕</h2><p>iPhone / iPad：在 Safari 分享菜单选择「添加到主屏幕」。电脑：使用浏览器地址栏的安装入口。首次访问并加载成功后即可离线使用。</p></section></section>`;}
 function bindSettings(){
  const form=$('#config'),tokenInput=form.elements.token,select=$('#repository'),message=$('#repo-message'),loadButton=$('#load-repos');
  let generation=0;
@@ -75,8 +75,13 @@ function bindSettings(){
  $('#config').onsubmit=async e=>{e.preventDefault();const fields=new FormData(e.target),repository=fields.get('repository');if(!repository)return toast('请先读取并选择私有仓库');const [owner,repo]=repository.split('/'),next={owner,repo,token:fields.get('token').trim()};try{await client(next).test();config=next;await write('config',config);base=await read('base:'+config.owner+'/'+config.repo)||emptyData();setupRealtimePush();toast('连接成功');await sync();}catch(e){message.textContent=e.message;toast(e.message);}};$('#clear-token').onclick=async()=>{config.token='';await write('config',config);status='本地模式';render();toast('本设备 Token 已清除');};$('#export').onclick=()=>{const a=document.createElement('a'),url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.href=url;a.download=`study-planner-${today()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};$('#import').onchange=async e=>{try{const incoming=validate(JSON.parse(await e.target.files[0].text()));if(!confirm('将备份合并到当前学习数据，是否继续？'))return;data=merge(emptyData(),data,incoming,choose);await persist();toast('备份已恢复');}catch(e){toast(e.message);}};$('#history').onclick=()=>{const records=Object.values(data.completions).filter(r=>r.status).sort((a,b)=>b.occurrenceDate.localeCompare(a.occurrenceDate));show(`<div class="modal-head"><h2>学习完成记录</h2><button data-close>✕</button></div>${records.map(r=>`<p>${esc(r.occurrenceDate)} · ${esc(data.tasks[r.taskId]?.title||'历史任务')} ✓</p>`).join('')||'<p>完成第一个任务后，记录会出现在这里。</p>'}`);};}
 function choose(group,id,l,r){return confirm(`发现冲突：${l.title||l.override?.title||id}\n本机：${JSON.stringify(l)}\n云端/备份：${JSON.stringify(r)}\n\n确定：保留本机版本；取消：保留云端/备份版本。`)?l:r;}
 function isEditing(){return screen==='settings'||dialog.open||document.activeElement?.matches('input,textarea,select,[contenteditable="true"]');}
-let lastAutoSync=0,retryAt=0,syncFailures=0,lastSuccess='';
-function updateSyncStatus(){const button=$('#sync');if(button)button.textContent='☁ '+status;const aside=$('.aside-bottom small');if(aside)aside.textContent=status;let note=$('#sync-feedback');if(!note){note=document.createElement('p');note.id='sync-feedback';note.className='hint';note.setAttribute('role','status');const target=$('#repo-message')||$('.board-heading')||$('.planner-heading');target?.after(note);}if(note)note.textContent=config.token?status:'';}
+let lastAutoSync=0;
+
+// 修复排版：只更新右上角按钮和左下角状态栏，不再往「今日学习看板」下面塞文字把卡片挤歪
+function updateSyncStatus(){
+ const button=$('#sync');if(button)button.textContent='☁ '+status;
+ const aside=$('.aside-bottom small');if(aside)aside.textContent=status;
+}
 
 // ================= 实时推送同步模块 (MQTT over WebSocket) =================
 const myDeviceId='dev_'+Math.random().toString(36).slice(2,10);
@@ -102,7 +107,7 @@ function setupRealtimePush(){
   try{
    const payload=JSON.parse(message.toString());
    if(payload.sender!==myDeviceId){
-    // 收到其他设备的修改广播：重置冷却时间并立即触发同步
+    // 收到其他设备的修改广播：立即触发同步
     lastAutoSync=0;
     if(isEditing()||busy){pendingRemotePull=true;}
     else{autoSync(true);}
@@ -119,7 +124,7 @@ function notifyOtherDevices(){
 // =========================================================================
 
 async function autoSync(force=false){
- if(document.hidden||isEditing()||busy||!navigator.onLine||!config.token||storageFailed||(!force&&Date.now()-lastAutoSync<5000))return;
+ if(document.hidden||isEditing()||busy||!navigator.onLine||!config.token||storageFailed||(!force&&Date.now()-lastAutoSync<60000))return;
  lastAutoSync=Date.now();await sync({quiet:true});
 }
 async function sync(options={}){
@@ -133,7 +138,6 @@ async function sync(options={}){
    const remote=await api.pull();
    if(quiet&&isEditing()){status='编辑中，稍后继续同步';return;}
    const snapshot=structuredClone(data),merged=merge(base,snapshot,remote.data,choose);
-   // Polls with no changes must not create a commit every time.
    if(JSON.stringify(merged)!==JSON.stringify(remote.data)){
     try{await api.push(merged,remote.sha);pushed=true;}catch(e){if(e.status===409){await new Promise(resolve=>setTimeout(resolve,1000*(n+1)));continue;}throw e;}
    }
@@ -143,7 +147,6 @@ async function sync(options={}){
   }
   if(!synced)throw Error('多设备正在修改，请稍后重试');
   status='已同步';
-  // 如果本次同步向 GitHub 上传了新修改，立即通过广播通知其他设备拉取
   if(pushed)notifyOtherDevices();
  }catch(e){status='同步失败：'+e.message;if(!quiet)toast(e.message);}
  finally{
@@ -152,5 +155,9 @@ async function sync(options={}){
  }
 }
 try{await openDB();data=validate(await read('data')||emptyData());config=await read('config')||{};base=await read('base:'+config.owner+'/'+config.repo)||emptyData();render();setupRealtimePush();sync();}catch(e){$('#app').textContent='无法读取本机学习数据。请确认浏览器允许 IndexedDB 存储后重新打开；不要清除已有网站数据。';}
-window.addEventListener('online',()=>{lastAutoSync=0;autoSync(true);});window.addEventListener('offline',()=>{status='等待同步（离线）';if(!isEditing())render();});document.addEventListener('visibilitychange',()=>{if(!document.hidden)autoSync();});window.addEventListener('focus',()=>autoSync());dialog.addEventListener('close',()=>{if(pendingRemotePull){pendingRemotePull=false;autoSync(true);}else autoSync();});
+window.addEventListener('online',()=>{lastAutoSync=0;autoSync(true);});
+window.addEventListener('offline',()=>{status='等待同步（离线）';if(!isEditing())render();});
+// 仅在页面从后台切回前台（且距离上次同步超过1分钟）或收到其他设备推送时才同步，去掉了鼠标点击窗口(focus)就同步的烦人触发
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)autoSync(false);});
+dialog.addEventListener('close',()=>{if(pendingRemotePull){pendingRemotePull=false;autoSync(true);}});
 if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>toast('离线缓存未启用，请检查 HTTPS 或本地服务器。'));
