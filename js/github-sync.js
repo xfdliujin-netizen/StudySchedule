@@ -13,6 +13,17 @@ export function merge(base,local,remote,choose){const result=emptyData();for(con
 const encode=s=>{const b=new TextEncoder().encode(s);let t='';for(const v of b)t+=String.fromCharCode(v);return btoa(t);};
 const decode=s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g,'')),c=>c.charCodeAt(0)));
 export function client(config){const root=`https://api.github.com/repos/${encodeURIComponent(config.owner)}/${encodeURIComponent(config.repo)}`;const headers={Accept:'application/vnd.github+json',Authorization:`Bearer ${config.token}`,'X-GitHub-Api-Version':'2026-03-10'};
- async function request(url,options={}){const r=await fetch(url,{...options,headers:{...headers,...options.headers},cache:'no-store',signal:AbortSignal.timeout(25000)});if(!r.ok){const e=Error(`GitHub 请求失败（${r.status}），请检查网络、仓库及 Token 权限`);e.status=r.status;throw e;}return r.json();}
+ async function request(url,options={}){
+  const step=options.method==='PUT'?'上传学习记录':url===root?'验证仓库':'读取学习记录';
+  let r;
+  try{r=await fetch(url,{...options,headers:{...headers,...options.headers},cache:'no-store',signal:AbortSignal.timeout(25000)});}
+  catch(cause){throw Error(step+'失败：'+(cause.name==='TimeoutError'?'连接 GitHub 超时，请重试。':'无法连接 api.github.com，请检查当前设备网络。'));}
+  if(!r.ok){
+   const body=await r.json().catch(()=>({}));
+   const detail=String(body.message||'').split(config.token).join('[已隐藏]').slice(0,240);
+   const e=Error(`${step}失败（HTTP ${r.status}）${detail?'：'+detail:''}`);e.status=r.status;throw e;
+  }
+  return r.json();
+ }
  return {async test(){const repo=await request(root);if(!repo.private)throw Error('请选择私有数据仓库');return repo;},async pull(){try{const file=await request(root+'/contents/data/state.json');return {data:validate(JSON.parse(decode(file.content))),sha:file.sha};}catch(e){if(e.status===404){await this.test();return {data:emptyData()};}throw e;}},async push(data,sha){return request(root+'/contents/data/state.json',{method:'PUT',body:JSON.stringify({message:'Sync study planner',content:encode(JSON.stringify(data)),...(sha?{sha}:{})})});}};
 }
