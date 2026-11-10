@@ -700,3 +700,61 @@
     grid-template-columns: 1fr;
   }
 }
+/* ================= 用户切换按钮（右上角 · 背景融合） ================= */
+.user-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  color: #5a6b87;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.user-badge-pill:hover { filter: none; background: rgba(255,255,255,.6); }
+.user-badge-pill small { font-size: 12px; color: #8ea0bd; }
+.user-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #34c77b;
+  box-shadow: 0 0 0 3px rgba(52,199,123,.16);
+}
+.mobile-user-switch { display: none; }
+@media (max-width: 700px) {
+  .mobile-user-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    position: fixed;
+    top: calc(8px + env(safe-area-inset-top));
+    right: 12px;
+    z-index: 60;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.55);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    border: 0;
+    box-shadow: 0 4px 14px rgba(38,52,80,.08);
+    color: #43536f;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .mobile-user-switch small { font-size: 12px; color: #7c8cab; }
+}
+/* ================= 禁止触屏缩放 / iPad 适配 ================= */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { touch-action: pan-y; }
+@media (min-width: 701px) and (max-width: 1366px) {
+  main { padding: 0 28px 34px; }
+}
+@media (min-width: 701px) and (max-width: 1180px) {
+  .hero-banner { min-height: 108px; padding: 16px 20px; }
+  .hero-visual { width: 165px; height: 118px; }
+  .day-tabs button { padding: 8px 11px; }
+  .day-tabs span { font-size: 15.5px; }
+}

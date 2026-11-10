@@ -8,6 +8,10 @@ import {client,merge,privateRepositories} from './github-sync.js';
 
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
+// 禁止 iOS / iPadOS Safari 捏合缩放整个页面
+document.addEventListener('gesturestart',e=>e.preventDefault());
+document.addEventListener('gesturechange',e=>e.preventDefault());
+
 // ================= 1. 账号配置与动态密码/权限引擎 =================
 const ACCOUNTS = {
   baobao: { username: 'baobao', defaultPin: '1234', name: '刘诣辰', badge: '👶 宝宝账号', role: 'kid' },
