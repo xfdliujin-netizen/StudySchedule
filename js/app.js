@@ -74,7 +74,36 @@ function bindSettings(){
  };
  $('#config').onsubmit=async e=>{e.preventDefault();const fields=new FormData(e.target),repository=fields.get('repository');if(!repository)return toast('请先读取并选择私有仓库');const [owner,repo]=repository.split('/'),next={owner,repo,token:fields.get('token').trim()};try{await client(next).test();config=next;await write('config',config);base=await read('base:'+config.owner+'/'+config.repo)||emptyData();toast('连接成功');await sync();}catch(e){message.textContent=e.message;toast(e.message);}};$('#clear-token').onclick=async()=>{config.token='';await write('config',config);status='本地模式';render();toast('本设备 Token 已清除');};$('#export').onclick=()=>{const a=document.createElement('a'),url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.href=url;a.download=`study-planner-${today()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};$('#import').onchange=async e=>{try{const incoming=validate(JSON.parse(await e.target.files[0].text()));if(!confirm('将备份合并到当前学习数据，是否继续？'))return;data=merge(emptyData(),data,incoming,choose);await persist();toast('备份已恢复');}catch(e){toast(e.message);}};$('#history').onclick=()=>{const records=Object.values(data.completions).filter(r=>r.status).sort((a,b)=>b.occurrenceDate.localeCompare(a.occurrenceDate));show(`<div class="modal-head"><h2>学习完成记录</h2><button data-close>✕</button></div>${records.map(r=>`<p>${esc(r.occurrenceDate)} · ${esc(data.tasks[r.taskId]?.title||'历史任务')} ✓</p>`).join('')||'<p>完成第一个任务后，记录会出现在这里。</p>'}`);};}
 function choose(group,id,l,r){return confirm(`发现冲突：${l.title||l.override?.title||id}\n本机：${JSON.stringify(l)}\n云端/备份：${JSON.stringify(r)}\n\n确定：保留本机版本；取消：保留云端/备份版本。`)?l:r;}
-async function sync(){if(busy||!config.token||storageFailed)return;if(!navigator.onLine){status='等待同步（离线）';render();return;}busy=true;status='同步中';render();try{const api=client(config);await api.test();let synced=false;for(let n=0;n<3;n++){const remote=await api.pull(),snapshot=structuredClone(data),merged=merge(base,snapshot,remote.data,choose);try{await api.push(merged,remote.sha);}catch(e){if(e.status===409||e.status===422)continue;throw e;}data=merge(snapshot,data,merged,choose);base=merged;await write('data',data);await write('base:'+config.owner+'/'+config.repo,base);synced=true;break;}if(!synced)throw Error('多设备正在修改，请稍后重试');status='已同步';}catch(e){status='同步失败：'+e.message;toast(e.message);}finally{busy=false;render();}}
+function isEditing(){return screen==='settings'||dialog.open||document.activeElement?.matches('input,textarea,select,[contenteditable="true"]');}
+let lastAutoSync=0;
+async function autoSync(){
+ if(document.hidden||isEditing()||busy||!navigator.onLine||!config.token||storageFailed||Date.now()-lastAutoSync<15000)return;
+ lastAutoSync=Date.now();await sync({quiet:true});
+}
+async function sync(options={}){
+ const quiet=options.quiet===true;
+ if(busy||!config.token||storageFailed)return;
+ if(!navigator.onLine){status='等待同步（离线）';if(!quiet&&!isEditing())render();return;}
+ busy=true;status='同步中';if(!quiet&&!isEditing())render();
+ try{
+  const api=client(config);let synced=false;
+  for(let n=0;n<3;n++){
+   const remote=await api.pull();
+   if(quiet&&isEditing())return;
+   const snapshot=structuredClone(data),merged=merge(base,snapshot,remote.data,choose);
+   // Polls with no changes must not create a commit every time.
+   if(JSON.stringify(merged)!==JSON.stringify(remote.data)){
+    try{await api.push(merged,remote.sha);}catch(e){if(e.status===409||e.status===422)continue;throw e;}
+   }
+   data=merge(snapshot,data,merged,choose);base=merged;
+   await write('data',data);await write('base:'+config.owner+'/'+config.repo,base);
+   synced=true;break;
+  }
+  if(!synced)throw Error('多设备正在修改，请稍后重试');
+  status='已同步';
+ }catch(e){status='同步失败：'+e.message;if(!quiet)toast(e.message);}
+ finally{busy=false;if(!isEditing())render();}
+}
 try{await openDB();data=validate(await read('data')||emptyData());config=await read('config')||{};base=await read('base:'+config.owner+'/'+config.repo)||emptyData();render();sync();}catch(e){$('#app').textContent='无法读取本机学习数据。请确认浏览器允许 IndexedDB 存储后重新打开；不要清除已有网站数据。';}
-window.addEventListener('online',sync);window.addEventListener('offline',()=>{status='等待同步（离线）';render();});document.addEventListener('visibilitychange',()=>{if(!document.hidden){render();sync();}});
+window.addEventListener('online',()=>{lastAutoSync=0;autoSync();});window.addEventListener('offline',()=>{status='等待同步（离线）';if(!isEditing())render();});document.addEventListener('visibilitychange',autoSync);window.addEventListener('focus',autoSync);dialog.addEventListener('close',autoSync);setInterval(autoSync,15000);
 if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>toast('离线缓存未启用，请检查 HTTPS 或本地服务器。'));
