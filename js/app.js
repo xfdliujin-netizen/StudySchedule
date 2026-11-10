@@ -46,6 +46,18 @@ function settingsHTML(){return `<section class="settings"><h1>设置与数据同
 function bindSettings(){
  const form=$('#config'),tokenInput=form.elements.token,select=$('#repository'),message=$('#repo-message'),loadButton=$('#load-repos');
  let generation=0;
+ const directButton=document.createElement('button');directButton.type='button';directButton.textContent='直接验证 online 仓库';loadButton.after(directButton);
+ directButton.onclick=async()=>{
+  const token=tokenInput.value.trim(),version=++generation;
+  if(!token){message.textContent='请先粘贴令牌。';return;}
+  loadButton.disabled=false;message.textContent='正在验证 xfdliujin-netizen/online…';
+  try{
+   await client({owner:'xfdliujin-netizen',repo:'online',token}).test();
+   if(version!==generation||!form.isConnected)return;
+   select.innerHTML='<option value="xfdliujin-netizen/online">xfdliujin-netizen/online</option>';
+   $('#repo-label').hidden=false;message.textContent='仓库可访问，点击保存并测试连接以开始同步。';
+  }catch(e){if(version===generation)message.textContent=e.status===404?'当前令牌无法访问 online（404）。请确认已点击 Update 保存授权，且填写的是这枚令牌。':e.message;}
+ };
  tokenInput.oninput=()=>{generation++;select.innerHTML='<option value="">请先读取仓库</option>';$('#repo-label').hidden=true;message.textContent='';loadButton.disabled=false;};
  loadButton.onclick=async()=>{
   const token=tokenInput.value.trim(),version=++generation;

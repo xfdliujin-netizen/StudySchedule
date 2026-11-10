@@ -5,7 +5,7 @@ export async function privateRepositories(token){
   const response=await fetch('https://api.github.com/user/repos?visibility=private&per_page=100&page='+page,{headers:{Accept:'application/vnd.github+json',Authorization:'Bearer '+token},cache:'no-store',signal:AbortSignal.timeout(25000)});
   if(!response.ok)throw Error(response.status===401?'令牌无效或已过期，请重新填写。':'无法读取仓库，请检查网络及令牌的仓库访问权限。');
   const rows=await response.json();
-  found.push(...rows.filter(r=>r.private&&!r.archived&&!r.disabled&&r.permissions?.push!==false).map(r=>({owner:r.owner.login,repo:r.name})));
+  found.push(...rows.filter(r=>r.private&&!r.archived&&!r.disabled).map(r=>({owner:r.owner.login,repo:r.name})));
   if(rows.length<100)return found;
  }
 }

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {privateRepositories} from '../js/github-sync.js';
 
-test('repository discovery paginates and excludes public, archived and read-only repositories',async()=>{
+test('repository discovery paginates without treating push metadata as token Contents permission',async()=>{
  const original=globalThis.fetch;let calls=0;
  try{
   globalThis.fetch=async(url,options)=>{
@@ -10,8 +10,8 @@ test('repository discovery paginates and excludes public, archived and read-only
    calls++;
    assert.ok(url.endsWith('page='+calls));
    return {ok:true,json:async()=>calls===1?Array.from({length:100},(_,i)=>({private:false,name:'public'+i})): [
-    {private:true,name:'study',owner:{login:'parent'},permissions:{push:true}},
-    {private:true,archived:true}, {private:true,permissions:{push:false}}
+    {private:true,name:'study',owner:{login:'parent'},permissions:{push:false}},
+    {private:true,archived:true}, {private:true,disabled:true}
    ]};
   };
   assert.deepEqual(await privateRepositories('example'),[{owner:'parent',repo:'study'}]);
