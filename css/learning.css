@@ -802,7 +802,7 @@ body { touch-action: pan-y; }
     display: flex; flex-direction: column; position: fixed; left: 76px; top: 0; bottom: 0; width: 250px; z-index: 86;
     padding: 18px 14px; background: #fff; border-right: 1px solid #e7edf5;
     box-shadow: 16px 0 44px rgba(30,41,59,.12);
-    transform: translateX(-118%); transition: transform .26s cubic-bezier(.4,0,.2,1); overflow-y: auto;
+    transform: translateX(-160%); transition: transform .26s cubic-bezier(.4,0,.2,1); overflow-y: auto;
   }
   .ipad-drawer.open { transform: translateX(0); }
   .drawer-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
