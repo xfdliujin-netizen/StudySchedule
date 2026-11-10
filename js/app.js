@@ -499,7 +499,7 @@ function ipadRailHTML(allowRep,parentMode){
    ${parentMode?`<button type="button" class="${screen==='settings'?'active':''}" id="rail-settings" aria-label="设置"><span class="nav-icon">⚙</span><small>设置</small></button>`:''}
    <button type="button" class="rail-avatar" data-logout title="切换账号">${esc(currentUser.name.slice(0,1))}</button>
   </div>
-  <aside class="ipad-drawer" id="ipad-drawer" aria-label="导航抽屉">
+  <div class="ipad-drawer" id="ipad-drawer" role="navigation" aria-label="导航抽屉">
    <div class="drawer-head"><a class="brand" href="#"><span>✦</span><div>小小学习家</div></a><button type="button" id="drawer-close" aria-label="收起">✕</button></div>
    <div class="drawer-caption">学习空间</div>
    <nav>${drawerNav}${allowRep?`<button type="button" id="drawer-reports" class="${screen==='reports'?'active':''}"><span class="nav-icon">📊</span><span>周报与管理</span></button>`:''}</nav>
@@ -508,7 +508,7 @@ function ipadRailHTML(allowRep,parentMode){
     ${parentMode?`<button type="button" id="drawer-settings">⚙ 设置与同步</button>`:''}
     <small>${esc(status)}</small>
    </div>
-  </aside>
+  </div>
   <div class="ipad-drawer-mask" id="drawer-mask"></div>`;
 }
 
