@@ -378,9 +378,10 @@ function render(){
 
  const userBadgeHTML = `<button type="button" class="user-badge-pill" data-logout title="点击切换登录账号">
    <span class="user-dot"></span>
-   <span>${esc(currentUser.badge)} · ${esc(currentUser.name)}</span>
+   <span>${esc(currentUser.name)}</span>
    <small>切换</small>
  </button>`;
+ const mobileUserSwitchHTML = `<button type="button" class="mobile-user-switch" data-logout title="点击切换登录账号"><span class="user-dot"></span>${esc(currentUser.name)}<small>切换</small></button>`;
 
  $('#app').innerHTML=`<aside>
    <a class="brand" href="#"><span>✦</span><div>小小学习家</div></a>
@@ -408,11 +409,12 @@ function render(){
        <button id="sync">☁ ${esc(status)}</button>
      </div>
    </header>
-   ${screen==='settings'?settingsHTML():screen==='reports'?reportsHTML():`${home?`<section class="hero-banner hero-home"><div class="hero-content"><div class="hero-badges"><span class="hero-pill">✦ 今日闪闪发光</span>${userBadgeHTML}</div><h1>刘诣辰的学习计划</h1><p class="hero-sub">专属学习空间 · 每一步都算数</p></div><div class="hero-visual" aria-hidden="true">${themes.all.art}</div></section>`:`<section class="hero-banner hero-${subject}"><div class="hero-content"><div class="hero-badges"><span class="hero-pill">0${['chinese','math','english'].indexOf(subject)+1} · ${theme.tag}</span>${userBadgeHTML}</div><h1>${theme.name}<span>学习计划</span></h1><p class="hero-sub">${theme.subtitle}</p></div><div class="hero-visual" aria-hidden="true">${theme.art}</div></section>`}
-   <section class="day-planner" aria-label="日期计划"><div class="planner-heading"><h2>${home?'这几天的安排':'学习日历'}</h2><label class="date">选择日期 <input type="date" id="date" value="${date}" aria-label="查看日期"></label></div><div class="day-tabs">${nearbyDays(data).map(d=>{const count=home?d.count:learningView(data,subject,d.date).total;return `<button data-date="${d.date}" class="${d.date===date?'selected':''}" aria-pressed="${d.date===date}"><span>${d.label}</span><small>${Number(d.date.slice(5,7))}/${Number(d.date.slice(8))}</small><em>${count} 项计划</em></button>`;}).join('')}</div></section>
+   ${screen==='settings'?settingsHTML():screen==='reports'?reportsHTML():`${home?`<section class="hero-banner hero-home"><div class="hero-content"><div class="hero-badges"><span class="hero-pill">✦ 今日闪闪发光</span></div><h1>刘诣辰的学习计划</h1><p class="hero-sub">专属学习空间 · 每一步都算数</p></div><div class="hero-visual" aria-hidden="true">${themes.all.art}</div></section>`:`<section class="hero-banner hero-${subject}"><div class="hero-content"><div class="hero-badges"><span class="hero-pill">0${['chinese','math','english'].indexOf(subject)+1} · ${theme.tag}</span></div><h1>${theme.name}<span>学习计划</span></h1><p class="hero-sub">${theme.subtitle}</p></div><div class="hero-visual" aria-hidden="true">${theme.art}</div></section>`}
+   <section class="day-planner" aria-label="日期计划"><div class="planner-heading"><h2>${home?'这几天的安排':'学习日历'}</h2><label class="date">选择日期 <input type="date" id="date" value="${date}" aria-label="查看日期"></label></div><div class="day-tabs">${nearbyDays(data).map(d=>{return `<button data-date="${d.date}" class="${d.date===date?'selected':''}" aria-pressed="${d.date===date}"><span>${d.label}</span><small>${Number(d.date.slice(5,7))}/${Number(d.date.slice(8))}</small></button>`;}).join('')}</div></section>
    <section class="stats" aria-label="${home?'全部科目':theme.name}统计"><button class="stat warm" data-filter="pending"><span>待学习</span><strong>${view.pending}<small> 项</small></strong></button><button class="stat green" data-filter="done"><span>${esc(day)}已学习</span><strong>${view.done}<small> 项</small></strong></button><div class="stat progress"><span>${esc(day)}进度 <b>${view.percent}%</b></span><div class="track"><i style="width:${view.percent}%"></i></div><small>${view.done} / ${view.total} 项完成</small></div></section>
    ${home?homeBoard(data,date):`<section class="workspace subject-workspace"><div class="section-head"><div><h2>${esc(day)}${theme.name}任务</h2><p>${view.total} 项当日计划${date===today()?' · 含往期待办':''}</p></div>${allowAdd?`<button class="primary" id="add">＋ 添加任务</button>`:''}</div><div class="toolbar"><div class="filters">${[['all','全部'],['pending','待学习'],['done','已学习']].map(([id,name])=>`<button data-filter="${id}" class="${filter===id?'selected':''}">${name}</button>`).join('')}</div></div><div class="cards">${rows.filter(t=>filter==='all'||(filter==='done'?t.done:!t.done)).map(cardHTML).join('')||`<div class="empty"><span class="empty-symbol">${theme.icon}</span><h3>${filter==='done'?'暂无已完成任务':'暂无'+theme.name+'任务'}</h3><p>${filter==='done'?'完成任务后会显示在这里':allowAdd?'点击添加任务，安排'+esc(day)+'的学习':'今天还没有安排这项学习任务哦'}</p></div>`}</div>${allowEdit?pausedHTML():''}</section>`}`}
  </main>
+ ${mobileUserSwitchHTML}
  <nav class="mobile-nav" aria-label="底部导航">
    ${Object.entries(themes).map(([id,s])=>`<button data-sub="${id}" class="${subject===id&&screen==='tasks'?'active':''}"><span class="nav-icon icon-${id}">${s.icon}</span><small>${s.name}</small></button>`).join('')}
    ${allowRep?`<button id="mobile-reports" class="${screen==='reports'?'active':''}"><span class="nav-icon">📊</span><small>看板</small></button>`:''}
