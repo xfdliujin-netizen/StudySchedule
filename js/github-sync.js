@@ -21,7 +21,11 @@ export function client(config){const root=`https://api.github.com/repos/${encode
   if(!r.ok){
    const body=await r.json().catch(()=>({}));
    const detail=String(body.message||'').split(config.token).join('[已隐藏]').slice(0,240);
-   const e=Error(`${step}失败（HTTP ${r.status}）${detail?'：'+detail:''}`);e.status=r.status;throw e;
+   const e=Error(`${step}失败（HTTP ${r.status}）${detail?'：'+detail:''}`);e.status=r.status;
+   const retry=r.headers?.get('retry-after'),remaining=r.headers?.get('x-ratelimit-remaining'),reset=r.headers?.get('x-ratelimit-reset');
+   e.retryAfterMs=Math.max(0,retry?(Number.isFinite(Number(retry))?Number(retry)*1000:Date.parse(retry)-Date.now()):0,remaining==='0'&&reset?Number(reset)*1000-Date.now():0);
+   if(r.status===429||r.status===403&&/rate limit|abuse/i.test(detail))e.retryAfterMs=Math.max(60000,e.retryAfterMs);
+   throw e;
   }
   return r.json();
  }
