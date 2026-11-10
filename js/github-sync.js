@@ -1,4 +1,4 @@
-import {emptyData,validate} from './database.js';
+import {emptyData,validate,defaultKidPerms,defaultPins} from './database.js';
 export async function privateRepositories(token){
  const found=[];
  for(let page=1;;page++){
@@ -9,7 +9,32 @@ export async function privateRepositories(token){
   if(rows.length<100)return found;
  }
 }
-export function merge(base,local,remote,choose){const result=emptyData();for(const group of ['tasks','exceptions','completions'])for(const id of new Set([...Object.keys(local[group]),...Object.keys(remote[group])])){const b=base[group][id],l=local[group][id],r=remote[group][id];if(!l)result[group][id]=r;else if(!r||l.rev===r.rev||r.rev===b?.rev)result[group][id]=l;else if(l.rev===b?.rev)result[group][id]=r;else if(group==='completions')result[group][id]=(l.updatedAt>r.updatedAt?l:r);else {const selection=choose?.(group,id,l,r);if(!selection)throw Error('存在冲突，请选择保留的版本后再同步');result[group][id]=selection;}}return result;}
+export function merge(base,local,remote,choose){
+ const result=emptyData();
+ for(const group of ['tasks','exceptions','completions']){
+  for(const id of new Set([...Object.keys(local[group]||{}),...Object.keys(remote[group]||{})])){
+   const b=base[group]?.[id],l=local[group]?.[id],r=remote[group]?.[id];
+   if(!l)result[group][id]=r;
+   else if(!r||l.rev===r.rev||r.rev===b?.rev)result[group][id]=l;
+   else if(l.rev===b?.rev)result[group][id]=r;
+   else if(group==='completions')result[group][id]=(l.updatedAt>r.updatedAt?l:r);
+   else {const selection=choose?.(group,id,l,r);if(!selection)throw Error('存在冲突，请选择保留的版本后再同步');result[group][id]=selection;}
+  }
+ }
+ // 合并增删改审计日志（保留最近 300 条）
+ const allLogs={...(remote.logs||{}),...(local.logs||{})};
+ const sortedKeys=Object.keys(allLogs).sort((a,b)=>(allLogs[b].timestamp||0)-(allLogs[a].timestamp||0)).slice(0,300);
+ for(const k of sortedKeys)result.logs[k]=allLogs[k];
+
+ // 合并宝宝动态权限设置（以最新修改时间为准）
+ const lp=local.kidPerms||defaultKidPerms(),rp=remote.kidPerms||defaultKidPerms();
+ result.kidPerms=(lp.updatedAt||0)>=(rp.updatedAt||0)?lp:rp;
+
+ // 合并各账号登录密码设置（以最新修改时间为准）
+ const lPin=local.pins||defaultPins(),rPin=remote.pins||defaultPins();
+ result.pins=(lPin.updatedAt||0)>=(rPin.updatedAt||0)?lPin:rPin;
+ return result;
+}
 const encode=s=>{const b=new TextEncoder().encode(s);let t='';for(const v of b)t+=String.fromCharCode(v);return btoa(t);};
 const decode=s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g,'')),c=>c.charCodeAt(0)));
 export function client(config){const root=`https://api.github.com/repos/${encodeURIComponent(config.owner)}/${encodeURIComponent(config.repo)}`;const headers={Accept:'application/vnd.github+json',Authorization:`Bearer ${config.token}`,'X-GitHub-Api-Version':'2026-03-10'};
