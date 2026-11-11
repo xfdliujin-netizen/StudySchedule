@@ -1,1 +1,5287 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#eff7ff"><meta name="description" content="儿童学习计划与家庭同步。"><link rel="manifest" href="manifest.json"><link rel="icon" type="image/svg+xml" href="assets/icon.svg"><link rel="apple-touch-icon" sizes="180x180" href="assets/icon-180.svg"><link rel="stylesheet" href="css/learning.css?v=20"><link rel="stylesheet" href="css/board.css?v=20"><title>小小学习家 · Kids Study Planner</title></head><body><div id="app"></div><dialog id="editor"></dialog><div id="toast" role="status" aria-live="polite"></div><script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script><script type="module" src="js/app.js?v=20"></script></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#eff7ff">
+  <meta name="description" content="儿童学习计划与家庭同步。">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icon-180.svg">
+  <link rel="stylesheet" href="css/learning.css?v=28">
+  <link rel="stylesheet" href="css/board.css?v=28">
+  <title>小小学习家 · Kids Study Planner</title>
+  <style id="inline-fallback-styles">
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  color: #1e293b;
+  background: #f1f5f9;
+  font-size: 16px;
+  line-height: 1.5;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  touch-action: pan-y;
+  background: #eef2f8;
+  overflow-x: hidden;
+}
+
+button, input, select, textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 16px;
+  color: inherit;
+  background: #e2e8f0;
+  font-weight: 600;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), background 0.2s ease, box-shadow 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:hover {
+  filter: brightness(0.98);
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+button:focus-visible, a:focus-visible {
+  outline: 3px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* ================= 六大页面专属主题色彩系统 ================= */
+#app {
+  --accent: #3b82f6;
+  --accent-2: #6366f1;
+  --soft: #eff6ff;
+  --soft-border: #bfdbfe;
+  --deep: #1e3a8a;
+  --wash: #f0f5ff;
+  --page-bg: radial-gradient(1200px 600px at 15% 0%, rgba(147, 197, 253, 0.28), transparent 70%),
+             radial-gradient(900px 500px at 90% 10%, rgba(199, 210, 254, 0.25), transparent 65%),
+             #eef2f8;
+  min-height: 100vh;
+  background: var(--page-bg);
+  transition: background 0.4s ease;
+}
+
+/* 语文：诗书山海 · 新中式宣纸朱砂风 */
+.theme-chinese {
+  --accent: #d97706 !important;
+  --accent-2: #ea580c !important;
+  --soft: #fffbeb !important;
+  --soft-border: #fde68a !important;
+  --deep: #78350f !important;
+  --wash: #fffaf0 !important;
+  --page-bg: radial-gradient(1100px 550px at 20% 0%, rgba(253, 230, 138, 0.35), transparent 70%),
+             radial-gradient(900px 500px at 90% 15%, rgba(254, 215, 170, 0.28), transparent 65%),
+             #f9f5ee !important;
+}
+
+/* 数学：逻辑宇宙 · 极客几何蓝紫风 */
+.theme-math {
+  --accent: #7c3aed !important;
+  --accent-2: #4f46e5 !important;
+  --soft: #f5f3ff !important;
+  --soft-border: #ddd6fe !important;
+  --deep: #4c1d95 !important;
+  --wash: #faf8ff !important;
+  --page-bg: radial-gradient(1100px 550px at 20% 0%, rgba(216, 180, 254, 0.32), transparent 70%),
+             radial-gradient(900px 500px at 90% 15%, rgba(199, 210, 254, 0.3), transparent 65%),
+             #f3f1fa !important;
+}
+
+/* 英语：世界对话 · 薄荷绿洲风 */
+.theme-english {
+  --accent: #059669 !important;
+  --accent-2: #0d9488 !important;
+  --soft: #ecfdf5 !important;
+  --soft-border: #a7f3d0 !important;
+  --deep: #064e3b !important;
+  --wash: #f2fbf7 !important;
+  --page-bg: radial-gradient(1100px 550px at 20% 0%, rgba(167, 243, 208, 0.34), transparent 70%),
+             radial-gradient(900px 500px at 90% 15%, rgba(153, 246, 228, 0.26), transparent 65%),
+             #eef8f4 !important;
+}
+
+/* ================= 第一段：左侧加宽美学 iOS 玻璃导航栏 (Stage 1 Sidebar) ================= */
+aside.app-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 244px;
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border-right: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 12px 0 36px -14px rgba(15, 23, 42, 0.08);
+  padding: 22px 16px 18px;
+  display: flex;
+  flex-direction: column;
+  z-index: 40;
+}
+
+.sidebar-brand-head {
+  padding: 2px 6px 14px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-logo {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: white;
+  font-size: 22px;
+  font-weight: 800;
+  box-shadow: 0 8px 18px -6px color-mix(in srgb, var(--accent) 55%, transparent);
+  flex-shrink: 0;
+}
+
+.brand-text strong {
+  display: block;
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.brand-text small {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.nav-caption {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #94a3b8;
+  margin: 16px 10px 8px;
+  letter-spacing: 0.06em;
+}
+
+aside.app-sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+aside.app-sidebar nav button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  background: transparent;
+  padding: 10px 12px;
+  text-align: left;
+  border-radius: 16px;
+  color: #334155;
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+aside.app-sidebar nav button:hover {
+  background: rgba(241, 245, 249, 0.85);
+  transform: translateX(2px);
+}
+
+aside.app-sidebar nav button.active {
+  color: var(--deep);
+  background: linear-gradient(135deg, var(--soft), rgba(255, 255, 255, 0.95));
+  box-shadow:
+    inset 3.5px 0 0 var(--accent),
+    0 8px 20px -8px color-mix(in srgb, var(--accent) 28%, transparent),
+    0 0 0 1px var(--soft-border);
+}
+
+.nav-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 800;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+aside.app-sidebar nav button.active .nav-icon {
+  transform: scale(1.06);
+}
+
+.icon-all { color: #2563eb; background: #dbeafe; }
+.icon-chinese { color: #b45309; background: #fef3c7; }
+.icon-math { color: #6d28d9; background: #ede9fe; }
+.icon-english { color: #047857; background: #d1fae5; }
+.icon-reports { color: #4338ca; background: #e0e7ff; }
+.icon-settings { color: #475569; background: #e2e8f0; }
+
+.nav-label-group {
+  flex: 1;
+  min-width: 0;
+}
+
+.nav-label-group strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: inherit;
+}
+
+.nav-label-group small {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748b;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+aside.app-sidebar nav button.active .nav-label-group small {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+aside.app-sidebar nav b {
+  font-size: 12px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #f43f5e, #e11d48);
+  color: white;
+  border-radius: 999px;
+  min-width: 22px;
+  height: 22px;
+  line-height: 22px;
+  padding: 0 6px;
+  text-align: center;
+  box-shadow: 0 3px 8px rgba(225, 29, 72, 0.3);
+}
+
+aside.app-sidebar nav b.badge-soft {
+  background: #dbeafe;
+  color: #1d4ed8;
+  box-shadow: none;
+}
+
+/* 左栏抽屉收展控制胶囊 */
+.drawer-stage-control {
+  margin-top: 12px;
+  padding: 0 4px;
+}
+
+.drawer-pill-btn {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #475569;
+  background: #f1f5f9;
+  border: 1px dashed #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.drawer-pill-btn:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+/* 左栏底部：账号卡片 + 同步状态胶囊 */
+.aside-bottom {
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid rgba(226, 232, 240, 0.8);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar-user-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 11px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  border: 1px solid #e2e8f0;
+}
+
+.user-avatar-circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: white;
+  font-size: 14px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.user-box-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-box-info strong {
+  display: block;
+  font-size: 13.5px;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.user-box-info small {
+  display: block;
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.switch-user-btn {
+  padding: 5px 10px;
+  font-size: 12px;
+  border-radius: 999px;
+  background: white;
+  color: var(--accent);
+  border: 1px solid #cbd5e1;
+  flex-shrink: 0;
+}
+
+.sidebar-sync-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(241, 245, 249, 0.8);
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sync-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18);
+}
+
+.sync-dot.ok {
+  background: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18);
+}
+
+.sync-dot.err {
+  background: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18);
+}
+
+/* ================= 主工作区容器 & 左中右三段式 iOS 抽屉架构 ================= */
+main {
+  margin-left: 244px;
+  padding: 18px 22px 32px;
+  max-width: 1680px;
+  min-height: 100vh;
+}
+
+.ipad-shell {
+  display: grid;
+  grid-template-columns: 334px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  position: relative;
+  transition: grid-template-columns 0.42s cubic-bezier(0.22, 1, 0.36, 1), gap 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ipad-shell.center-collapsed {
+  grid-template-columns: 0px minmax(0, 1fr);
+  gap: 0;
+}
+
+/* 第二段：中栏概览与日历抽屉面板 (Stage 2 Center Drawer) */
+.ipad-center {
+  position: relative;
+  z-index: 20;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  border-radius: 26px;
+  padding: 14px;
+  box-shadow:
+    14px 8px 36px -12px rgba(15, 23, 42, 0.08),
+    0 2px 10px rgba(15, 23, 42, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  transform-origin: left center;
+  transition:
+    transform 0.44s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.34s ease,
+    padding 0.34s ease,
+    border-width 0.34s ease;
+}
+
+.ipad-shell.center-collapsed .ipad-center {
+  opacity: 0;
+  transform: translate3d(-72px, 0, 0) scale(0.95);
+  pointer-events: none;
+  overflow: hidden;
+  padding: 0;
+  border-width: 0;
+}
+
+/* 中栏右侧边缘的 iOS 抽屉推拉把手 */
+.drawer-edge-handle {
+  position: absolute;
+  right: -13px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 56px;
+  border-radius: 999px;
+  background: white;
+  border: 1px solid #dbe3ef;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+  color: #64748b;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  font-weight: 800;
+  z-index: 25;
+}
+
+.drawer-edge-handle:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  transform: translateY(-50%) scale(1.06);
+}
+
+/* 第三段：右栏核心任务主工作区抽屉面板 (Stage 3 Right Drawer) */
+.ipad-right {
+  position: relative;
+  z-index: 10;
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(22px) saturate(175%);
+  -webkit-backdrop-filter: blur(22px) saturate(175%);
+  border: 1px solid rgba(255, 255, 255, 0.94);
+  border-radius: 26px;
+  padding: 18px 20px 24px;
+  box-shadow:
+    0 16px 42px -14px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  min-height: calc(100vh - 38px);
+  transform-origin: left center;
+}
+
+/* 中栏收起时右侧顶部的快速拉开横幅 */
+.expand-center-banner {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  margin-bottom: 14px;
+  border-radius: 14px;
+  background: var(--soft);
+  border: 1px solid var(--soft-border);
+  color: var(--deep);
+  font-size: 13.5px;
+}
+
+/* ================= iOS 物理弹簧三段式抽屉拉出关键帧动效 ================= */
+@keyframes iosDrawerPullCenter {
+  0% {
+    opacity: 0;
+    transform: translate3d(-68px, 0, 0) scale(0.96);
+  }
+  65% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes iosDrawerPullRight {
+  0% {
+    opacity: 0;
+    transform: translate3d(-115px, 0, 0) scale(0.95);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes iosCardSlideUp {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.ios-drawer-cascade:not(.center-collapsed) .ipad-center {
+  animation: iosDrawerPullCenter 0.48s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.ios-drawer-cascade .ipad-right,
+. single-stage-drawer.ios-drawer-cascade,
+.single-stage-drawer.ios-drawer-cascade {
+  animation: iosDrawerPullRight 0.56s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both;
+}
+
+.ios-drawer-cascade .task {
+  animation: iosCardSlideUp 0.42s cubic-bezier(0.22, 1, 0.36, 1) calc(0.08s + var(--card-idx, 0) * 0.035s) both;
+}
+
+/* ================= 中栏小组件设计 (Widgets in Stage 2 Center Drawer) ================= */
+.widget-card {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #e6edf7;
+  border-radius: 20px;
+  padding: 14px 15px;
+  box-shadow: 0 4px 14px -4px rgba(15, 23, 42, 0.04);
+}
+
+/* 1. 顶部主题横幅 Hero Banner */
+.hero-banner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 0;
+  min-height: 112px;
+  box-shadow: 0 8px 24px -10px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+}
+
+.hero-home {
+  background: radial-gradient(120% 120% at 95% 10%, rgba(147, 197, 253, 0.52) 0%, rgba(224, 231, 255, 0.42) 50%, rgba(248, 250, 252, 0.98) 100%);
+  color: #1e3a8a;
+}
+
+.hero-chinese {
+  background: radial-gradient(120% 120% at 95% 10%, rgba(253, 230, 138, 0.62) 0%, rgba(254, 243, 199, 0.45) 50%, rgba(255, 251, 235, 0.98) 100%);
+  color: #78350f;
+}
+
+.hero-math {
+  background: radial-gradient(120% 120% at 95% 10%, rgba(216, 180, 254, 0.54) 0%, rgba(237, 233, 254, 0.45) 50%, rgba(250, 245, 255, 0.98) 100%);
+  color: #4c1d95;
+}
+
+.hero-english {
+  background: radial-gradient(120% 120% at 95% 10%, rgba(167, 243, 208, 0.56) 0%, rgba(209, 250, 229, 0.42) 50%, rgba(236, 253, 245, 0.98) 100%);
+  color: #064e3b;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 72%;
+}
+
+.hero-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.hero-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.mobile-inline-progress {
+  display: none;
+}
+
+.hero-right-actions {
+  display: none;
+}
+
+.hero-banner h1 {
+  margin: 2px 0 0;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--deep);
+}
+
+.hero-banner h1 span {
+  font-size: 0.65em;
+  font-weight: 600;
+  opacity: 0.78;
+}
+
+.hero-sub {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.hero-visual {
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 145px;
+  height: 106px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.hero-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* 2. 五日学习日历小组件 (.day-planner) */
+.day-planner {
+  margin: 0;
+}
+
+.planner-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.planner-heading h2 {
+  font-size: 15px;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0;
+}
+
+.date {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.date input {
+  width: 126px;
+  margin: 0;
+  padding: 4px 8px;
+  background: #f8fafc;
+  border: 1px solid #dbe3ef;
+  border-radius: 9px;
+  font-size: 12.5px;
+  color: #334155;
+}
+
+.day-tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.day-tabs button {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 4px 7px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 13px;
+  color: #334155;
+}
+
+.day-tabs span {
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.day-tabs small {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.day-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  margin-top: 2px;
+}
+
+.dot-none { background: #cbd5e1; }
+.dot-done { background: #10b981; }
+.dot-pending { background: #f59e0b; }
+
+.day-tabs .selected {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 6px 14px -4px color-mix(in srgb, var(--accent) 42%, transparent);
+}
+
+.day-tabs .selected small {
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.day-tabs .selected .day-dot {
+  background: white;
+}
+
+/* 3. iOS 环形进度 + 待学/已学双卡片小组件 (.stats) */
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin: 0;
+}
+
+.stat {
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border-radius: 15px;
+  padding: 11px 13px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.stat.progress {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, #ffffff, var(--soft));
+  border-color: var(--soft-border);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.progress-ring-box {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+}
+
+.mini-ring-svg {
+  width: 64px;
+  height: 64px;
+  transform: rotate(-90deg);
+}
+
+.mini-ring-track {
+  fill: none;
+  stroke: rgba(148, 163, 184, 0.22);
+  stroke-width: 7;
+}
+
+.mini-ring-fill {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 7;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s ease;
+}
+
+.mini-ring-pct {
+  position: absolute;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--deep);
+}
+
+.mini-ring-pct small {
+  font-size: 10px;
+}
+
+.progress-meta-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.progress-meta-text > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.progress-meta-text > span b {
+  color: var(--accent);
+  font-size: 13px;
+}
+
+.track {
+  height: 8px;
+  background: rgba(203, 213, 225, 0.55);
+  border-radius: 999px;
+  margin: 7px 0 5px;
+  overflow: hidden;
+}
+
+.track i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  border-radius: 999px;
+  transition: width 0.35s ease;
+}
+
+.progress-meta-text > small {
+  font-size: 11.5px;
+  color: #64748b;
+  display: block;
+}
+
+.stat .stat-label {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.stat strong {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.stat strong small {
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.stat.warm {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #92400e;
+}
+
+.stat.warm strong {
+  color: #d97706;
+}
+
+.stat.green {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #065f46;
+}
+
+.stat.green strong {
+  color: #059669;
+}
+
+.stat.stat-active {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+/* 4. 中栏底部：学科特色锦囊卡 (.subject-feature-widget) */
+.subject-feature-widget {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), var(--soft));
+  border-color: var(--soft-border);
+}
+
+.feature-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.feature-head strong {
+  font-size: 13.5px;
+  color: var(--deep);
+}
+
+.feature-tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: white;
+  color: var(--accent);
+}
+
+.subject-feature-widget p {
+  margin: 0 0 9px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #475569;
+}
+
+.feature-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.feature-pills span {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--deep);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+}
+
+/* ================= 右栏：核心学习任务区与各页面专属底纹特色 ================= */
+.workspace {
+  position: relative;
+}
+
+/* 各科目工作区专属底纹装饰 */
+.workspace-chinese {
+  background-image: radial-gradient(rgba(217, 119, 6, 0.06) 1px, transparent 1px);
+  background-size: 20px 20px;
+  border-radius: 20px;
+}
+
+.workspace-math {
+  background-image:
+    linear-gradient(to right, rgba(124, 58, 237, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(124, 58, 237, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+  border-radius: 20px;
+}
+
+.workspace-english {
+  background-image: radial-gradient(circle at 10px 10px, rgba(5, 150, 105, 0.05) 2px, transparent 0);
+  background-size: 26px 26px;
+  border-radius: 20px;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.section-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-head h2 {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.task-count-pill {
+  font-size: 12px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--soft);
+  color: var(--accent);
+  border: 1px solid var(--soft-border);
+}
+
+.section-head p {
+  font-size: 13px;
+  color: #64748b;
+  margin: 3px 0 0;
+}
+
+.section-head p b {
+  color: var(--deep);
+}
+
+.primary {
+  color: white;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  padding: 10px 18px;
+  border-radius: 14px;
+  box-shadow: 0 6px 16px -4px color-mix(in srgb, var(--accent) 42%, transparent);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 14px 0;
+}
+
+.filters {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: #f1f5f9;
+  border-radius: 13px;
+}
+
+.filters button {
+  background: transparent;
+  font-size: 13.5px;
+  padding: 6px 14px;
+  border-radius: 10px;
+  color: #64748b;
+}
+
+.filters .selected {
+  color: var(--deep);
+  background: white;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.07);
+}
+
+.subject-quick-pills {
+  display: flex;
+  gap: 6px;
+}
+
+.sub-mini-pill {
+  padding: 5px 11px;
+  font-size: 12px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.pill-chinese { background: #fef3c7; color: #b45309; }
+.pill-math { background: #ede9fe; color: #6d28d9; }
+.pill-english { background: #d1fae5; color: #047857; }
+
+/* 核心学习任务卡片网格与卡片设计 (.cards & .task) */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 12px;
+}
+
+.task {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 18px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-left: 5px solid var(--accent);
+  border-radius: 18px;
+  box-shadow: 0 6px 18px -6px rgba(15, 23, 42, 0.06);
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+.task:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px -8px rgba(15, 23, 42, 0.11);
+}
+
+.task-chinese { border-left-color: #d97706; }
+.task-math { border-left-color: #7c3aed; }
+.task-english { border-left-color: #059669; }
+
+.check {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  background: #f8fafc;
+  border: 2px solid #cbd5e1;
+  border-radius: 11px;
+  padding: 0;
+  margin-top: 2px;
+  font-size: 19px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  color: transparent;
+  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.check:hover {
+  border-color: var(--accent);
+  background: var(--soft);
+}
+
+.task-body {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.task-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.task-heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.subject-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 2.5px 9px;
+  border-radius: 999px;
+}
+
+.tag-chinese { background: #fef3c7; color: #b45309; }
+.tag-math { background: #ede9fe; color: #6d28d9; }
+.tag-english { background: #d1fae5; color: #047857; }
+.tag-all { background: #dbeafe; color: #1d4ed8; }
+
+.state {
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.state-pending {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.state-done {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.duration-pill, .time-pill {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.task-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.task-actions button {
+  font-size: 11.5px;
+  padding: 4px 9px;
+  background: #f1f5f9;
+  color: #475569;
+  border-radius: 8px;
+}
+
+.task-actions button:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.task h3 {
+  font-size: 17.5px;
+  margin: 8px 0 5px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.35;
+}
+
+.task p {
+  font-size: 14px;
+  color: #475569;
+  margin: 0 0 10px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.meta {
+  display: flex;
+  gap: 8px 14px;
+  flex-wrap: wrap;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.done-time-tag {
+  color: #059669;
+  font-weight: 600;
+}
+
+.task.completed {
+  border-left-color: #10b981;
+  background: linear-gradient(135deg, #ffffff, #f0fdf4);
+}
+
+.task.completed .check {
+  background: linear-gradient(135deg, #10b981, #059669);
+  border-color: #059669;
+  color: white;
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+}
+
+.task.completed h3 {
+  color: #64748b;
+  text-decoration: line-through;
+}
+
+/* 空状态与示例任务按钮 */
+.empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  border: 1.5px dashed #cbd5e1;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 20px;
+  padding: 32px 20px;
+}
+
+.empty-symbol {
+  color: var(--accent);
+  background: var(--soft);
+  display: inline-grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.empty h3 {
+  font-size: 18px;
+  margin: 12px 0 4px;
+  color: #1e293b;
+}
+
+.empty p {
+  font-size: 13.5px;
+  color: #64748b;
+  margin: 0 auto 14px;
+  max-width: 420px;
+}
+
+.seed-btn {
+  margin-top: 4px;
+}
+
+.plans {
+  font-size: 14px;
+  margin-top: 18px;
+  color: #475569;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 12px 16px;
+}
+
+.plans summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.plans-list p {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: white;
+  padding: 10px 12px;
+  border-radius: 12px;
+  margin: 8px 0 0;
+  border: 1px solid #e2e8f0;
+}
+
+/* ================= 学习周报与管理看板（星际数据驾驶舱全面重设计） ================= */
+.reports-view {
+  max-width: 1260px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.reports-hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 26px 30px;
+  border-radius: 26px;
+  background:
+    radial-gradient(600px 280px at 88% 15%, rgba(56, 189, 248, 0.28), transparent 70%),
+    radial-gradient(500px 300px at 15% 90%, rgba(168, 85, 247, 0.25), transparent 70%),
+    linear-gradient(135deg, #0f172a 0%, #1e1b4b 52%, #312e81 100%);
+  color: white;
+  box-shadow: 0 20px 44px -15px rgba(30, 27, 75, 0.35);
+}
+
+.reports-hero-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.reports-hero-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.report-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(8px);
+}
+
+.report-medal-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.28), rgba(245, 158, 11, 0.38));
+  border: 1px solid rgba(252, 211, 77, 0.45);
+  color: #fef3c7;
+}
+
+.reports-hero h1 {
+  color: white;
+  font-size: clamp(1.45rem, 3vw, 2rem);
+  font-weight: 800;
+  margin: 0 0 6px;
+  letter-spacing: -0.02em;
+}
+
+.reports-hero-sub {
+  margin: 0 0 16px;
+  font-size: 13.5px;
+  color: rgba(226, 232, 240, 0.86);
+}
+
+.reports-hero-sub strong {
+  color: #38bdf8;
+}
+
+.range-switch {
+  display: inline-flex;
+  gap: 6px;
+  padding: 5px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.range-switch button {
+  padding: 7px 15px;
+  font-size: 13px;
+  border-radius: 10px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.range-switch button.selected {
+  background: white;
+  color: #1e1b4b;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.audit-filter-switch {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+}
+
+.audit-filter-switch button {
+  color: #64748b;
+}
+
+.audit-filter-switch button.selected {
+  background: white;
+  color: #0f172a;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+/* 顶栏右侧动态圆环仪表 */
+.reports-hero-ring {
+  position: relative;
+  width: 118px;
+  height: 118px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 24px;
+  padding: 6px;
+}
+
+.ring-svg {
+  width: 104px;
+  height: 104px;
+  transform: rotate(-90deg);
+}
+
+.ring-track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.14);
+  stroke-width: 9;
+}
+
+.ring-fill {
+  fill: none;
+  stroke-width: 9;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ring-center-text {
+  position: absolute;
+  text-align: center;
+  line-height: 1.1;
+}
+
+.ring-center-text strong {
+  display: block;
+  font-size: 24px;
+  font-weight: 800;
+  color: white;
+}
+
+.ring-center-text strong small {
+  font-size: 12px;
+}
+
+.ring-center-text span {
+  font-size: 10.5px;
+  color: rgba(226, 232, 240, 0.8);
+}
+
+/* 4 张高颜值玻璃拟态 KPI 卡片 (.report-kpis) */
+.report-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.kpi-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  padding: 18px 20px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 26px -10px rgba(15, 23, 42, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kpi-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.kpi-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+}
+
+.kpi-tag {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+.kpi-card strong {
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.kpi-card strong small {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.kpi-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.kpi-card em {
+  font-style: normal;
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.kpi-mini-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: #dbeafe;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.kpi-mini-bar i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #6366f1);
+  border-radius: 999px;
+}
+
+.kpi-blue { background: linear-gradient(145deg, #ffffff, #eff6ff); border-color: #bfdbfe; }
+.kpi-blue .kpi-icon { background: #dbeafe; }
+.kpi-blue .kpi-tag { background: #dbeafe; color: #1d4ed8; }
+.kpi-blue strong { color: #1d4ed8; }
+
+.kpi-green { background: linear-gradient(145deg, #ffffff, #ecfdf5); border-color: #a7f3d0; }
+.kpi-green .kpi-icon { background: #d1fae5; }
+.kpi-green .kpi-tag { background: #d1fae5; color: #047857; }
+.kpi-green strong { color: #059669; }
+
+.kpi-warm { background: linear-gradient(145deg, #ffffff, #fffbeb); border-color: #fde68a; }
+.kpi-warm .kpi-icon { background: #fef3c7; }
+.kpi-warm .kpi-tag { background: #fef3c7; color: #b45309; }
+.kpi-warm strong { color: #d97706; }
+
+.kpi-purple { background: linear-gradient(145deg, #ffffff, #f5f3ff); border-color: #ddd6fe; }
+.kpi-purple .kpi-icon { background: #ede9fe; }
+.kpi-purple .kpi-tag { background: #ede9fe; color: #6d28d9; }
+.kpi-purple strong { color: #7c3aed; }
+
+/* 双栏图表区 (.report-grid) */
+.report-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 18px;
+}
+
+.panel {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  padding: 22px 24px;
+  margin: 0;
+  box-shadow: 0 10px 28px -12px rgba(15, 23, 42, 0.05);
+}
+
+.report-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.report-panel-head h2 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 3px;
+}
+
+.report-panel-head p {
+  font-size: 12.5px;
+  color: #64748b;
+  margin: 0;
+}
+
+.panel-chip {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  white-space: nowrap;
+}
+
+/* 三科进度对比条 (.sub-bars) */
+.sub-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sub-bar-card {
+  padding: 13px 15px;
+  border-radius: 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.sub-bar-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.sub-bar-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.sub-bar-title strong {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  color: #0f172a;
+}
+
+.sub-bar-title strong em {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: white;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.sub-bar-title small {
+  display: block;
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.sub-bar-pct-wrap {
+  text-align: right;
+}
+
+.sub-bar-pct {
+  display: block;
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+.sub-bar-pct-wrap small {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.bar-chinese { background: linear-gradient(90deg, #f59e0b, #d97706) !important; }
+.bar-math { background: linear-gradient(90deg, #8b5cf6, #6d28d9) !important; }
+.bar-english { background: linear-gradient(90deg, #10b981, #059669) !important; }
+
+/* 每日打卡立体柱状图 (.daily-chart) */
+.daily-chart {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(28px, 1fr);
+  gap: 8px;
+  align-items: end;
+  height: 224px;
+  padding: 16px 10px 8px;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+}
+
+.chart-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.chart-rate-lbl {
+  font-size: 10px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.chart-bar-wrap {
+  width: 100%;
+  max-width: 30px;
+  flex: 1;
+  background: rgba(203, 213, 225, 0.38);
+  border-radius: 999px;
+  display: flex;
+  align-items: flex-end;
+  padding: 3px;
+  overflow: hidden;
+}
+
+.chart-bar {
+  width: 100%;
+  border-radius: 999px;
+  transition: height 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.chart-bar.is-full {
+  background: linear-gradient(180deg, #34d399, #059669);
+  box-shadow: 0 4px 10px rgba(5, 150, 105, 0.3);
+}
+
+.chart-bar.is-partial {
+  background: linear-gradient(180deg, #60a5fa, #3b82f6);
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.25);
+}
+
+.chart-bar.is-zero {
+  background: #fbbf24;
+}
+
+.chart-bar.is-empty {
+  background: #cbd5e1;
+}
+
+.chart-col strong {
+  font-size: 11px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.chart-col small {
+  font-size: 10.5px;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.chart-col.is-today small {
+  color: #2563eb;
+  font-weight: 800;
+}
+
+/* 宝宝权限动态控制面板 & iOS 开关样式 (.perm-panel) */
+.perm-panel {
+  background: linear-gradient(135deg, #ffffff, #f8fafc);
+}
+
+.perm-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.perm-header h2 {
+  font-size: 18px;
+  margin: 0 0 4px;
+}
+
+.perm-header p {
+  font-size: 13px;
+  margin: 0;
+  color: #64748b;
+}
+
+.perm-meta {
+  font-size: 11.5px;
+  color: #4f46e5;
+  background: #eef2ff;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.perm-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.perm-switch-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 !important;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.perm-switch-card.is-on {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.perm-card-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.perm-card-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.perm-card-text strong {
+  display: block;
+  font-size: 14.5px;
+  color: #0f172a;
+}
+
+.perm-card-text small {
+  display: block;
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+input.ios-switch {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 46px;
+  height: 26px;
+  border-radius: 999px;
+  background: #cbd5e1;
+  position: relative;
+  cursor: pointer;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  flex-shrink: 0;
+  transition: background 0.25s ease;
+}
+
+input.ios-switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+input.ios-switch:checked {
+  background: #10b981;
+}
+
+input.ios-switch:checked::after {
+  transform: translateX(20px);
+}
+
+/* 审计日志面板 (.audit-panel) */
+.audit-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.audit-head h2 {
+  font-size: 18px;
+  margin: 0 0 3px;
+}
+
+.audit-head p {
+  font-size: 13px;
+  margin: 0;
+  color: #64748b;
+}
+
+.audit-list {
+  display: grid;
+  gap: 10px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.audit-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  border-radius: 15px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.audit-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.log-add { background: #dcfce7; color: #15803d; }
+.log-edit { background: #dbeafe; color: #1d4ed8; }
+.log-del { background: #ffe4e6; color: #be123c; }
+
+.audit-main {
+  flex: 1;
+  min-width: 180px;
+}
+
+.audit-sub-pill {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 6px;
+  background: #e2e8f0;
+  color: #334155;
+  font-size: 11.5px;
+  margin-right: 6px;
+}
+
+.audit-main strong {
+  display: block;
+  font-size: 14.5px;
+  color: #0f172a;
+}
+
+.audit-main small {
+  display: block;
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.audit-meta {
+  text-align: right;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.audit-user {
+  display: block;
+  color: #334155;
+}
+
+.audit-meta time {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+/* ================= 设置与云端同步页（苹果系统设置风） ================= */
+.settings {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.settings-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 22px 26px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  color: white;
+  box-shadow: 0 14px 34px -12px rgba(15, 23, 42, 0.25);
+}
+
+.settings-hero .hero-pill {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+}
+
+.settings-hero h1 {
+  color: white;
+  font-size: 24px;
+  margin: 6px 0 4px;
+}
+
+.settings-hero .hero-sub {
+  color: rgba(226, 232, 240, 0.85);
+}
+
+.settings-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 13px;
+}
+
+.settings-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.pin-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.pin-panel-head h2 {
+  margin: 0 0 4px;
+  font-size: 18px;
+}
+
+.pin-eye-btn {
+  font-size: 13px;
+  padding: 7px 12px;
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.pin-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.pin-card {
+  margin: 0 !important;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.pin-card span {
+  display: block;
+  font-size: 13px;
+  color: #334155;
+  margin-bottom: 4px;
+}
+
+label {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #334155;
+  margin: 12px 0;
+}
+
+input, select, textarea {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 11px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  color: #0f172a;
+  font-size: 15px;
+  margin-top: 6px;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: 2px solid var(--accent);
+  background: white;
+}
+
+input[type="checkbox"]:not(.ios-switch) {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.hint, .panel .hint {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.file-button {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 12px;
+  background: #e2e8f0;
+  padding: 10px 16px;
+  margin: 0;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.form-row.two-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px;
+}
+
+.weekdays {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.weekdays label, .inline {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.full {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.danger {
+  color: #be123c;
+  background: #ffe4e6;
+}
+
+/* ================= 弹窗与登录页样式 ================= */
+dialog {
+  border: 0;
+  border-radius: 24px;
+  width: 540px;
+  max-width: calc(100vw - 24px);
+  max-height: 92dvh;
+  padding: 24px;
+  color: #1e293b;
+  box-shadow: 0 25px 80px rgba(15, 23, 42, 0.25);
+}
+
+dialog::backdrop {
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+}
+
+.modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-head h2 {
+  font-size: 20px;
+  margin: 0;
+}
+
+.modal-head button {
+  background: #f1f5f9;
+  padding: 6px 10px;
+}
+
+.history-modal-list p {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+  margin: 8px 0;
+}
+
+.login-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background:
+    radial-gradient(800px 400px at 20% 10%, rgba(96, 165, 250, 0.28), transparent 70%),
+    radial-gradient(700px 400px at 85% 85%, rgba(167, 139, 250, 0.25), transparent 70%),
+    #eef2ff;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(24px);
+  border: 1px solid white;
+  border-radius: 28px;
+  padding: 32px 28px;
+  box-shadow: 0 24px 60px -15px rgba(30, 58, 138, 0.16);
+  text-align: center;
+}
+
+.login-brand span {
+  display: inline-grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: white;
+  font-size: 28px;
+  font-weight: 800;
+  box-shadow: 0 10px 24px -6px rgba(37, 99, 235, 0.45);
+}
+
+.login-card h1 {
+  font-size: 26px;
+  margin: 12px 0 4px;
+  color: #0f172a;
+}
+
+.login-subtitle {
+  font-size: 13.5px;
+  color: #64748b;
+  margin: 0 0 18px;
+}
+
+.role-selector {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.role-chip {
+  padding: 9px 6px;
+  font-size: 12.5px;
+  border-radius: 12px;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1.5px solid transparent;
+}
+
+.role-chip.selected {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #3b82f6;
+}
+
+.login-card label {
+  text-align: left;
+}
+
+.login-error {
+  color: #e11d48;
+  font-size: 13px;
+  min-height: 20px;
+  margin: 4px 0;
+}
+
+.mobile-nav {
+  display: none;
+}
+
+#toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 90vw;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(12px);
+  color: white;
+  font-size: 14.5px;
+  font-weight: 600;
+  padding: 12px 22px;
+  border-radius: 999px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 100;
+  transition: opacity 0.25s ease;
+}
+
+#toast.show {
+  opacity: 1;
+}
+
+/* ================= iPad 端适配 (701px ~ 1180px)：加宽美学左栏 + 三段式 iOS 抽屉 ================= */
+@media (min-width: 701px) and (max-width: 1180px) {
+  aside.app-sidebar {
+    width: 204px;
+    padding: 18px 12px 14px;
+  }
+  .brand-logo {
+    width: 36px;
+    height: 36px;
+    font-size: 19px;
+  }
+  .brand-text strong {
+    font-size: 16px;
+  }
+  aside.app-sidebar nav button {
+    padding: 9px 10px;
+    gap: 10px;
+  }
+  .nav-icon {
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+  }
+  .nav-label-group strong {
+    font-size: 14px;
+  }
+  .nav-label-group small {
+    font-size: 10px;
+  }
+  main {
+    margin-left: 204px;
+    padding: 14px 16px 28px;
+  }
+  .ipad-shell {
+    grid-template-columns: 288px minmax(0, 1fr);
+    gap: 14px;
+  }
+  .cards {
+    grid-template-columns: 1fr;
+  }
+  .report-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .report-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ================= 手机端 (<= 700px)：以核心学习任务卡片为绝对核心，辅助区域极简压缩 ================= */
+@media (max-width: 700px) {
+  aside.app-sidebar {
+    display: none !important;
+  }
+
+  main {
+    margin: 0;
+    padding: 8px 12px calc(98px + env(safe-area-inset-bottom));
+  }
+
+  .ipad-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* 手机端隐藏中栏卡片外框与非核心小组件，把顶部辅助区压缩到极致 */
+  .ipad-center {
+    background: transparent;
+    backdrop-filter: none;
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+    gap: 7px;
+  }
+
+  .drawer-edge-handle,
+  .expand-center-banner,
+  .subject-feature-widget,
+  .stats {
+    display: none !important;
+  }
+
+  /* 手机端顶部紧凑主题与状态合一横幅（仅约 52px 高） */
+  .hero-banner {
+    min-height: 54px;
+    padding: 9px 12px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .hero-content {
+    max-width: none;
+    flex: 1;
+    min-width: 0;
+    gap: 2px;
+  }
+
+  .hero-pill {
+    font-size: 10px;
+    padding: 2px 7px;
+  }
+
+  .mobile-inline-progress {
+    display: inline-flex;
+    align-items: center;
+    font-size: 10.5px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: white;
+  }
+
+  .hero-banner h1 {
+    font-size: 17px;
+    margin: 1px 0 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .hero-sub,
+  .hero-visual {
+    display: none !important;
+  }
+
+  .hero-right-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+    z-index: 3;
+    flex-shrink: 0;
+  }
+
+  .mobile-account-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.95);
+    font-size: 12px;
+    font-weight: 700;
+    color: #1e293b;
+  }
+
+  .mobile-account-chip small {
+    font-size: 10.5px;
+    color: var(--accent);
+  }
+
+  .user-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #10b981;
+  }
+
+  .mobile-icon-chip {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.85);
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+  }
+
+  /* 手机端五日日历条：单行紧凑胶囊（仅约 44px 高） */
+  .day-planner.widget-card {
+    padding: 6px 8px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .planner-heading {
+    margin: 0;
+    flex-shrink: 0;
+  }
+
+  .planner-heading h2,
+  .date span {
+    display: none;
+  }
+
+  .date input {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    font-size: 0;
+    border-radius: 10px;
+    background: #f1f5f9 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>') no-repeat center;
+    cursor: pointer;
+  }
+
+  .day-tabs {
+    flex: 1;
+    gap: 4px;
+  }
+
+  .day-tabs button {
+    padding: 4px 2px;
+    border-radius: 10px;
+    gap: 0;
+  }
+
+  .day-tabs span {
+    font-size: 12px;
+  }
+
+  .day-tabs small {
+    font-size: 9.5px;
+  }
+
+  .day-dot {
+    width: 4px;
+    height: 4px;
+    margin-top: 1px;
+  }
+
+  /* 手机端右侧主工作区：突出核心学习任务卡片！ */
+  .ipad-right {
+    padding: 12px 12px 18px;
+    border-radius: 20px;
+    min-height: auto;
+  }
+
+  .section-head h2 {
+    font-size: 18px;
+  }
+
+  .section-head p {
+    font-size: 11.5px;
+  }
+
+  .add-task-btn {
+    padding: 8px 13px;
+    font-size: 13px;
+    border-radius: 11px;
+  }
+
+  .toolbar {
+    margin: 10px 0;
+    gap: 6px;
+  }
+
+  .filters {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .filters button {
+    font-size: 12.5px;
+    padding: 6px 4px;
+    text-align: center;
+  }
+
+  .subject-quick-pills {
+    display: none;
+  }
+
+  /* 手机端核心任务卡片：饱满、醒目、占主导视觉 */
+  .cards {
+    grid-template-columns: 1fr;
+    gap: 11px;
+  }
+
+  .task {
+    padding: 15px 14px;
+    gap: 12px;
+    border-radius: 16px;
+    border-left-width: 5px;
+  }
+
+  .check {
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+    border-radius: 11px;
+    margin-top: 2px;
+  }
+
+  .task h3 {
+    font-size: 16.5px;
+    margin: 6px 0 4px;
+  }
+
+  .task p {
+    font-size: 13.5px;
+    margin: 0 0 8px;
+  }
+
+  /* 手机端周报与设置适配 */
+  .reports-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 18px;
+    gap: 14px;
+  }
+
+  .reports-hero-ring {
+    align-self: center;
+  }
+
+  .report-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .kpi-card {
+    padding: 14px;
+  }
+
+  .kpi-card strong {
+    font-size: 24px;
+  }
+
+  .report-grid,
+  .perm-grid,
+  .pin-grid,
+  .settings-two-col,
+  .form-row.two-cols {
+    grid-template-columns: 1fr !important;
+  }
+
+  .panel {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  /* 手机端 Apple 液态玻璃底部悬浮 Tab 栏 */
+  .mobile-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: 4px;
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    width: calc(100% - 24px);
+    max-width: 400px;
+    padding: 5px 7px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(248, 250, 255, 0.75) 100%);
+    backdrop-filter: blur(28px) saturate(210%);
+    -webkit-backdrop-filter: blur(28px) saturate(210%);
+    border: 1px solid rgba(255, 255, 255, 0.88);
+    box-shadow: 0 14px 34px -8px rgba(15, 23, 42, 0.18);
+    z-index: 50;
+  }
+
+  .mobile-nav button {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    margin: 0;
+    padding: 6px 0 5px;
+    border-radius: 999px;
+    background: transparent;
+    color: #64748b;
+  }
+
+  .mobile-nav .nav-icon {
+    width: 26px;
+    height: 24px;
+    flex-basis: 24px;
+    font-size: 18px;
+    background: transparent;
+  }
+
+  .mobile-nav small {
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .mobile-nav .active {
+    color: var(--accent);
+    background: white;
+    box-shadow: 0 4px 12px -2px color-mix(in srgb, var(--accent) 25%, transparent);
+  }
+
+  .mobile-badge {
+    position: absolute;
+    right: calc(50% - 20px);
+    top: 2px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #ff6b7b, #e11d48);
+    color: white;
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 14px;
+    text-align: center;
+    border: 1.5px solid white;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+
+/* ================= 首页右侧紧凑自适应三科进度卡片条 (Compact Adaptive Subject Strip) ================= */
+.home-board {
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed #e2e8f0;
+}
+
+.board-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.board-heading-left {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.board-heading h2 {
+  font-size: 15.5px;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0;
+}
+
+.board-sub-hint {
+  font-size: 11.5px;
+  color: #64748b;
+}
+
+.board-date-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.home-subject-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.subject-summary {
+  --board: #f59e0b;
+  --board-light: #fffbeb;
+  --board-ink: #78350f;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 82px;
+  margin: 0;
+  padding: 11px 13px;
+  text-align: left;
+  border-radius: 16px;
+  background: var(--board-light);
+  border: 1px solid color-mix(in srgb, var(--board) 28%, white);
+  color: var(--board-ink);
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.22s ease;
+}
+
+.subject-summary.board-math {
+  --board: #8b5cf6;
+  --board-light: #f5f3ff;
+  --board-ink: #4c1d95;
+}
+
+.subject-summary.board-english {
+  --board: #10b981;
+  --board-light: #ecfdf5;
+  --board-ink: #064e3b;
+}
+
+.subject-card-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: -1;
+  background: color-mix(in srgb, var(--board) 26%, white);
+  transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  border-right: 1.5px solid color-mix(in srgb, var(--board) 42%, transparent);
+  pointer-events: none;
+}
+
+.subject-summary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px -8px color-mix(in srgb, var(--board) 35%, transparent);
+}
+
+.summary-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.summary-icon-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.board-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.85);
+  font-size: 15px;
+  font-weight: 800;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.summary-title-group {
+  min-width: 0;
+}
+
+.summary-title-group strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.summary-title-group small {
+  display: block;
+  font-size: 10.5px;
+  opacity: 0.75;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.summary-percent {
+  font-size: 13.5px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.summary-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.summary-count {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.summary-count strong {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.summary-count em {
+  font-style: normal;
+  font-size: 11px;
+  margin-left: 4px;
+  opacity: 0.85;
+}
+
+.board-arrow {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.75);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* ================= 任务表单星期选择器 & 完成庆祝烟花动效 ================= */
+#task-form .weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 7px;
+  margin: 12px 0 16px;
+}
+
+#task-form .weekdays label {
+  position: relative;
+  display: block;
+  margin: 0;
+  text-align: center;
+  cursor: pointer;
+}
+
+#task-form .weekdays input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+#task-form .weekdays span {
+  display: grid;
+  place-items: center;
+  height: 40px;
+  border: 1px solid #cbd5e1;
+  border-radius: 11px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+#task-form .weekdays input:checked + span {
+  background: var(--accent, #3b82f6);
+  color: white;
+  border-color: var(--accent, #3b82f6);
+}
+
+.celebration {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 90;
+  overflow: hidden;
+  background: rgba(15, 23, 42, 0.62);
+  backdrop-filter: blur(4px);
+}
+
+.celebration-message {
+  position: absolute;
+  top: 26%;
+  left: 50%;
+  transform: translateX(-50%) scale(1.04);
+  background: linear-gradient(145deg, #fffef4, #fff5c7);
+  color: #6d4310;
+  border: 3px solid #ffbd2e;
+  border-radius: 22px;
+  box-shadow: 0 0 0 8px rgba(255, 207, 76, 0.26), 0 18px 70px rgba(0, 0, 0, 0.55);
+  padding: 20px 30px;
+  font-size: 26px;
+  font-weight: 800;
+  text-align: center;
+  width: max-content;
+  max-width: 90vw;
+  animation: celebration-message 5.5s both;
+}
+
+.firework-spark {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--spark);
+  box-shadow: 0 0 6px var(--spark), 0 0 16px var(--spark);
+  opacity: 0;
+  animation: firework-burst 2.2s ease-out both;
+}
+
+@keyframes firework-burst {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.4); }
+  8% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx), calc(var(--dy) + 45px)) scale(0.15); }
+}
+
+@keyframes celebration-message {
+  0%, 100% { opacity: 0; }
+  12%, 85% { opacity: 1; }
+}
+
+/* ================= 手机端三科概览条极简紧凑适配 (单行3列胶囊，绝不挤占核心任务空间) ================= */
+@media (max-width: 700px) {
+  .home-board {
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+  }
+
+  .board-heading {
+    margin-bottom: 6px;
+  }
+
+  .board-heading h2 {
+    font-size: 13.5px;
+  }
+
+  .board-sub-hint {
+    display: none;
+  }
+
+  .board-date-pill {
+    font-size: 10px;
+    padding: 1px 7px;
+  }
+
+  .home-subject-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .subject-summary {
+    min-height: 58px;
+    padding: 7px 9px;
+    border-radius: 13px;
+  }
+
+  .board-icon {
+    width: 22px;
+    height: 22px;
+    font-size: 12px;
+    border-radius: 7px;
+  }
+
+  .summary-title-group strong {
+    font-size: 13px;
+  }
+
+  .summary-title-group small {
+    display: none;
+  }
+
+  .summary-percent {
+    font-size: 11px;
+    padding: 1px 5px;
+  }
+
+  .summary-bottom {
+    margin-top: 4px;
+  }
+
+  .summary-count {
+    font-size: 10.5px;
+  }
+
+  .summary-count strong {
+    font-size: 12px;
+  }
+
+  .summary-count em,
+  .board-arrow {
+    display: none;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <dialog id="editor"></dialog>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="js/app.js?v=28"></script>
+  <script>
+  window.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+      if (!window.__STUDY_PLANNER_BOOTED__) {
+        (function() {
+// --- Module: js/repeat-engine.js ---
+const subjects = [{id:'chinese',name:'语文',icon:'📖',color:'#fff0dc'},{id:'math',name:'数学',icon:'🧮',color:'#e7e5ff'},{id:'english',name:'英语',icon:'🔤',color:'#dff4ef'}];
+function today(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+const dayNumber=d=>Date.parse(d+'T00:00:00Z')/86400000;
+const shiftDate=(d,n)=>new Date((dayNumber(d)+n)*86400000).toISOString().slice(0,10);
+function occurs(t,date){if(t.deleted||!t.enabled||date<t.startDate||(t.endDate&&date>t.endDate))return false;const r=t.repeatRule;return r.type==='daily'||(r.type==='once'&&date===t.startDate)||(r.type==='weekly'&&r.days.includes(new Date(date+'T00:00:00Z').getUTCDay()))||(r.type==='interval'&&(dayNumber(date)-dayNumber(t.startDate))%r.interval===0);}
+const key=(id,date)=>`${id}@${date}`;
+function instances(data,date,overdue=true){const out=[];for(const t of Object.values(data.tasks)){if(t.deleted)continue;let start=overdue?t.startDate:date;for(let d=start;d<=date;d=shiftDate(d,1)){const k=key(t.id,d),e=data.exceptions[k];if((occurs(t,d)||e?.override)&&!e?.deleted){const c=data.completions[k];if(d===date||!c?.status)out.push({...t,...e?.override,id:t.id,date,key:k,done:!!c?.status,completedAt:c?.completedAt});}}}return out.sort((a,b)=>a.date.localeCompare(b.date)||(a.reminderTime||'').localeCompare(b.reminderTime||''));}
+function repeatLabel(r){return {once:'仅一次',daily:'每天',weekly:'每周 '+(r.days||[]).map(d=>'日一二三四五六'[d]).join('、'),interval:`每隔 ${r.interval} 天`}[r.type];}
+
+// --- Module: js/view-model.js ---
+function relativeDay(date, now = today()) {
+  if (date === now) return '今日';
+  if (date === shiftDate(now, -1)) return '昨日';
+  if (date === shiftDate(now, -2)) return '前日';
+  if (date === shiftDate(now, 1)) return '明日';
+  if (date === shiftDate(now, 2)) return '后日';
+  return `${Number(date.slice(5, 7))}月${Number(date.slice(8))}日`;
+}
+
+function nearbyDays(data, now = today()) {
+  const offsets = [
+    [-2, '前天'],
+    [-1, '昨天'],
+    [0, '今天'],
+    [1, '明天'],
+    [2, '后天']
+  ];
+  return offsets.map(([diff, label]) => {
+    const d = shiftDate(now, diff);
+    const all = instances(data, d, d === now);
+    const done = all.filter(item => item.done).length;
+    return {
+      date: d,
+      label,
+      total: all.length,
+      done,
+      pending: all.length - done
+    };
+  });
+}
+
+function learningView(data, subject = 'all', date = today(), now = today()) {
+  const allRows = instances(data, date, date === now);
+  const rows = subject === 'all'
+    ? allRows
+    : allRows.filter(item => item.subjectId === subject);
+  const total = rows.length;
+  const done = rows.filter(item => item.done).length;
+  const pending = total - done;
+  const percent = total ? Math.round((done / total) * 100) : 0;
+  const totalMinutes = rows.reduce((sum, item) => sum + (Number(item.durationMinutes) || 20), 0);
+  const doneMinutes = rows.filter(item => item.done).reduce((sum, item) => sum + (Number(item.durationMinutes) || 20), 0);
+  return {
+    rows,
+    total,
+    done,
+    pending,
+    percent,
+    totalMinutes,
+    doneMinutes
+  };
+}
+
+// --- Module: js/database.js ---
+const DB_NAME = 'study-planner-db', STORE = 'kv';
+let dbPromise = null;
+const memStore = new Map();
+
+function safeLocalGet(key) {
+  try {
+    const raw = localStorage.getItem('sp_kv_' + key);
+    return raw ? JSON.parse(raw) : undefined;
+  } catch (e) {
+    return memStore.get(key);
+  }
+}
+
+function safeLocalSet(key, val) {
+  memStore.set(key, val);
+  try {
+    localStorage.setItem('sp_kv_' + key, JSON.stringify(val));
+  } catch (e) {}
+}
+
+function openDB() {
+  if (!dbPromise) {
+    dbPromise = new Promise(resolve => {
+      try {
+        if (typeof indexedDB === 'undefined') {
+          resolve(null);
+          return;
+        }
+        const req = indexedDB.open(DB_NAME, 1);
+        req.onupgradeneeded = () => {
+          try { req.result.createObjectStore(STORE); } catch (e) {}
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => resolve(null);
+        req.onblocked = () => resolve(null);
+      } catch (e) {
+        resolve(null);
+      }
+    });
+  }
+  return dbPromise;
+}
+
+async function read(key) {
+  const db = await openDB();
+  if (!db) {
+    const v = safeLocalGet(key);
+    return v !== undefined ? v : memStore.get(key);
+  }
+  return new Promise(resolve => {
+    try {
+      const tx = db.transaction(STORE, 'readonly');
+      const req = tx.objectStore(STORE).get(key);
+      req.onsuccess = () => {
+        if (req.result !== undefined) resolve(req.result);
+        else resolve(safeLocalGet(key));
+      };
+      req.onerror = () => resolve(safeLocalGet(key));
+    } catch (e) {
+      resolve(safeLocalGet(key));
+    }
+  });
+}
+
+async function write(key, val) {
+  safeLocalSet(key, val);
+  const db = await openDB();
+  if (!db) return;
+  return new Promise(resolve => {
+    try {
+      const tx = db.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).put(val, key);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => resolve();
+    } catch (e) {
+      resolve();
+    }
+  });
+}
+
+function defaultKidPerms() {
+  return {
+    canAdd: true,       // 默认允许添加任务，方便直接使用
+    canEdit: true,      // 默认允许编辑修改任务
+    canDelete: false,   // 允许删除任务
+    canReport: true,    // 默认允许查看周报月报
+    updatedAt: 0,
+    updatedBy: '系统默认'
+  };
+}
+
+function defaultPins() {
+  return {
+    baobao: '1234',
+    baba: '8888',
+    mama: '8888',
+    updatedAt: 0,
+    updatedBy: '系统默认'
+  };
+}
+
+function emptyData() {
+  return {
+    tasks: {},
+    exceptions: {},
+    completions: {},
+    logs: {},
+    kidPerms: defaultKidPerms(),
+    pins: defaultPins()
+  };
+}
+
+function validate(raw) {
+  if (!raw || typeof raw !== 'object') return emptyData();
+  return {
+    tasks: (raw.tasks && typeof raw.tasks === 'object') ? raw.tasks : {},
+    exceptions: (raw.exceptions && typeof raw.exceptions === 'object') ? raw.exceptions : {},
+    completions: (raw.completions && typeof raw.completions === 'object') ? raw.completions : {},
+    logs: (raw.logs && typeof raw.logs === 'object') ? raw.logs : {},
+    kidPerms: (raw.kidPerms && typeof raw.kidPerms === 'object')
+      ? { ...defaultKidPerms(), ...raw.kidPerms }
+      : defaultKidPerms(),
+    pins: (raw.pins && typeof raw.pins === 'object')
+      ? { ...defaultPins(), ...raw.pins }
+      : defaultPins()
+  };
+}
+
+// --- Module: js/task-manager.js ---
+function uid() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    try { return crypto.randomUUID(); } catch (e) {}
+  }
+  return 'id_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
+}
+
+const stamp = () => ({ rev: uid(), updatedAt: new Date().toISOString() });
+
+function saveTask(data, values, original, date, scope = 'future') {
+  const now = new Date().toISOString();
+  if (!original) {
+    const id = uid();
+    data.tasks[id] = { ...values, id, createdAt: now, ...stamp() };
+    return;
+  }
+  if (scope === 'day') {
+    data.exceptions[key(original.id, date)] = { override: values, ...stamp() };
+    return;
+  }
+  const prior = data.tasks[original.id];
+  if (date > prior.startDate) {
+    data.tasks[prior.id] = { ...prior, endDate: shiftDate(date, -1), ...stamp() };
+    const id = uid();
+    data.tasks[id] = {
+      ...values,
+      id,
+      startDate: values.startDate < date ? date : values.startDate,
+      createdAt: now,
+      ...stamp()
+    };
+  } else {
+    data.tasks[prior.id] = { ...prior, ...values, ...stamp() };
+  }
+}
+
+function deleteTask(data, id, date, scope) {
+  const t = data.tasks[id];
+  if (scope === 'day') data.exceptions[key(id, date)] = { deleted: true, ...stamp() };
+  else if (scope === 'future') data.tasks[id] = { ...t, endDate: shiftDate(date, -1), ...stamp() };
+  else data.tasks[id] = { ...t, deleted: true, ...stamp() };
+}
+
+function complete(data, task) {
+  data.completions[task.key] = {
+    completionId: task.key,
+    taskId: task.id,
+    occurrenceDate: task.date,
+    status: !task.done,
+    completedAt: task.done ? null : new Date().toISOString(),
+    ...stamp()
+  };
+}
+
+// --- Module: js/github-sync.js ---
+async function privateRepositories(token){
+ const found=[];
+ for(let page=1;;page++){
+  const response=await fetch('https://api.github.com/user/repos?visibility=private&per_page=100&page='+page,{headers:{Accept:'application/vnd.github+json',Authorization:'Bearer '+token},cache:'no-store',signal:AbortSignal.timeout(25000)});
+  if(!response.ok)throw Error(response.status===401?'令牌无效或已过期，请重新填写。':'无法读取仓库，请检查网络及令牌的仓库访问权限。');
+  const rows=await response.json();
+  found.push(...rows.filter(r=>r.private&&!r.archived&&!r.disabled).map(r=>({owner:r.owner.login,repo:r.name})));
+  if(rows.length<100)return found;
+ }
+}
+function merge(base,local,remote,choose){
+ const result=emptyData();
+ for(const group of ['tasks','exceptions','completions']){
+  for(const id of new Set([...Object.keys(local[group]||{}),...Object.keys(remote[group]||{})])){
+   const b=base[group]?.[id],l=local[group]?.[id],r=remote[group]?.[id];
+   if(!l)result[group][id]=r;
+   else if(!r||l.rev===r.rev||r.rev===b?.rev)result[group][id]=l;
+   else if(l.rev===b?.rev)result[group][id]=r;
+   else if(group==='completions')result[group][id]=(l.updatedAt>r.updatedAt?l:r);
+   else {const selection=choose?.(group,id,l,r);if(!selection)throw Error('存在冲突，请选择保留的版本后再同步');result[group][id]=selection;}
+  }
+ }
+ // 合并增删改审计日志（保留最近 300 条）
+ const allLogs={...(remote.logs||{}),...(local.logs||{})};
+ const sortedKeys=Object.keys(allLogs).sort((a,b)=>(allLogs[b].timestamp||0)-(allLogs[a].timestamp||0)).slice(0,300);
+ for(const k of sortedKeys)result.logs[k]=allLogs[k];
+
+ // 合并宝宝动态权限设置（以最新修改时间为准）
+ const lp=local.kidPerms||defaultKidPerms(),rp=remote.kidPerms||defaultKidPerms();
+ result.kidPerms=(lp.updatedAt||0)>=(rp.updatedAt||0)?lp:rp;
+
+ // 合并各账号登录密码设置（以最新修改时间为准）
+ const lPin=local.pins||defaultPins(),rPin=remote.pins||defaultPins();
+ result.pins=(lPin.updatedAt||0)>=(rPin.updatedAt||0)?lPin:rPin;
+ return result;
+}
+const encode=s=>{const b=new TextEncoder().encode(s);let t='';for(const v of b)t+=String.fromCharCode(v);return btoa(t);};
+const decode=s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g,'')),c=>c.charCodeAt(0)));
+function client(config){const root=`https://api.github.com/repos/${encodeURIComponent(config.owner)}/${encodeURIComponent(config.repo)}`;const headers={Accept:'application/vnd.github+json',Authorization:`Bearer ${config.token}`,'X-GitHub-Api-Version':'2026-03-10'};
+ async function request(url,options={}){
+  const step=options.method==='PUT'?'上传学习记录':url===root?'验证仓库':'读取学习记录';
+  let r;
+  try{r=await fetch(url,{...options,headers:{...headers,...options.headers},cache:'no-store',signal:AbortSignal.timeout(25000)});}
+  catch(cause){throw Error(step+'失败：'+(cause.name==='TimeoutError'?'连接 GitHub 超时，请重试。':'无法连接 api.github.com，请检查当前设备网络。'));}
+  if(!r.ok){
+   const body=await r.json().catch(()=>({}));
+   const detail=String(body.message||'').split(config.token).join('[已隐藏]').slice(0,240);
+   const e=Error(`${step}失败（HTTP ${r.status}）${detail?'：'+detail:''}`);e.status=r.status;
+   const retry=r.headers?.get('retry-after'),remaining=r.headers?.get('x-ratelimit-remaining'),reset=r.headers?.get('x-ratelimit-reset');
+   e.retryAfterMs=Math.max(0,retry?(Number.isFinite(Number(retry))?Number(retry)*1000:Date.parse(retry)-Date.now()):0,remaining==='0'&&reset?Number(reset)*1000-Date.now():0);
+   if(r.status===429||r.status===403&&/rate limit|abuse/i.test(detail))e.retryAfterMs=Math.max(60000,e.retryAfterMs);
+   throw e;
+  }
+  return r.json();
+ }
+ return {async test(){const repo=await request(root);if(!repo.private)throw Error('请选择私有数据仓库');return repo;},async pull(){try{const file=await request(root+'/contents/data/state.json');return {data:validate(JSON.parse(decode(file.content))),sha:file.sha};}catch(e){if(e.status===404){await this.test();return {data:emptyData()};}throw e;}},async push(data,sha){return request(root+'/contents/data/state.json',{method:'PUT',body:JSON.stringify({message:'Sync study planner',content:encode(JSON.stringify(data)),...(sha?{sha}:{})})});}};
+}
+
+// --- Module: js/celebration.js ---
+function allTodayDone(data,now=today()) {
+  const view=learningView(data,'all',now,now);
+  return view.total>0&&view.done===view.total;
+}
+let active;
+function fireworks(){
+  active?.();
+  const layer=document.createElement('div');layer.className='celebration';
+  layer.setAttribute('role','status');layer.innerHTML='<div class="celebration-message">🎉 今日任务全部完成！</div>';
+  document.body.append(layer);
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!reduced){
+    for(let burst=0;burst<11;burst++){
+      const x=10+Math.random()*80,y=10+Math.random()*52;
+      for(let i=0;i<34;i++){
+        const spark=document.createElement('i'),angle=i/34*Math.PI*2,radius=70+Math.random()*125;
+        spark.className='firework-spark';
+        spark.style.cssText=`left:${x}%;top:${y}%;--dx:${Math.cos(angle)*radius}px;--dy:${Math.sin(angle)*radius}px;--spark:${['#ffb000','#ff3f68','#6557ff','#10b995','#168dff','#fff'][i%6]};animation-delay:${burst*.22}s`;
+        layer.append(spark);
+      }
+    }
+  }
+  const timer=setTimeout(()=>{layer.remove();active=null;},6500);
+  active=()=>{clearTimeout(timer);layer.remove();};
+}
+
+// --- Module: js/home-board.js ---
+const SUBJECT_META = {
+  chinese: { badge: '文', tag: '诗书积累', color: '#d97706' },
+  math:    { badge: 'π',  tag: '逻辑思维', color: '#7c3aed' },
+  english: { badge: 'Aa', tag: '世界对话', color: '#059669' }
+};
+
+function homeBoard(data, date) {
+  const dayLabel = esc(relativeDay(date));
+  return `<section class="home-board" aria-label="各科学习进度">
+    <div class="board-heading">
+      <div class="board-heading-left">
+        <h2>📚 三科概览</h2>
+        <span class="board-sub-hint">点击切换单科抽屉</span>
+      </div>
+      <span class="board-date-pill">${dayLabel}学科进度</span>
+    </div>
+    <div class="home-subject-grid">
+      ${subjects.map(s => {
+        const v = learningView(data, s.id, date);
+        const total = v.rows.length;
+        const done = v.rows.filter(t => t.done).length;
+        const pending = total - done;
+        const percent = total ? Math.round((done / total) * 100) : 0;
+        const meta = SUBJECT_META[s.id] || { badge: s.icon, tag: '学习计划' };
+        return `<button type="button" class="board-subject subject-summary board-${s.id}" data-sub="${s.id}" aria-label="进入${s.name}学习计划">
+          <span class="subject-card-fill" style="width:${percent}%" aria-hidden="true"></span>
+          <div class="summary-top">
+            <span class="summary-icon-wrap">
+              <span class="board-icon">${meta.badge}</span>
+              <span class="summary-title-group">
+                <strong>${s.name}</strong>
+                <small>${meta.tag}</small>
+              </span>
+            </span>
+            <span class="summary-percent" role="progressbar" aria-label="${s.name}完成进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}">${percent}%</span>
+          </div>
+          <div class="summary-bottom">
+            <span class="summary-count"><strong>${done}</strong>/${total} 项 <em class="${pending > 0 ? 'has-pending' : 'all-clear'}">${total ? (pending ? `待学 ${pending}` : '已全部完成') : '暂无任务'}</em></span>
+            <span class="board-arrow" aria-hidden="true">›</span>
+          </div>
+        </button>`;
+      }).join('')}
+    </div>
+  </section>`;
+}
+
+// --- Module: js/app.js ---
+window.__STUDY_PLANNER_BOOTED__ = true;
+
+
+
+
+
+
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;'
+}[c]));
+
+// 禁止 iOS / iPadOS Safari 捏合缩放整个页面
+document.addEventListener('gesturestart', e => e.preventDefault());
+document.addEventListener('gesturechange', e => e.preventDefault());
+
+function safeGetStorage(key) {
+  try { return localStorage.getItem(key); } catch (e) { return null; }
+}
+function safeSetStorage(key, val) {
+  try { localStorage.setItem(key, val); } catch (e) {}
+}
+function safeRemoveStorage(key) {
+  try { localStorage.removeItem(key); } catch (e) {}
+}
+
+// ================= 1. 账号配置与动态密码/权限引擎 =================
+const ACCOUNTS = {
+  baobao: { username: 'baobao', defaultPin: '1234', name: '刘诣辰', badge: '👶 宝宝账号', role: 'kid', avatar: '辰' },
+  baba:   { username: 'baba',   defaultPin: '8888', name: '爸爸',   badge: '👨 父母管理', role: 'parent', avatar: '爸' },
+  mama:   { username: 'mama',   defaultPin: '8888', name: '妈妈',   badge: '👩 父母管理', role: 'parent', avatar: '妈' }
+};
+
+let data = emptyData(),
+    base = emptyData(),
+    config = {},
+    subject = 'all',
+    filter = 'all',
+    date = today(),
+    busy = false,
+    status = '本地模式',
+    timer,
+    screen = 'tasks',
+    storageFailed = false,
+    reportRange = 'week',
+    logFilter = 'all';
+
+let currentUser = null;
+// 控制 iPad / 桌面端左中右三段式 iOS 抽屉动效与收展状态
+let drawerCascadeAnim = true;
+let centerDrawerCollapsed = false;
+
+function getAccountPin(username) {
+  const custom = data?.pins?.[username];
+  if (custom && String(custom).trim()) return String(custom).trim();
+  return ACCOUNTS[username]?.defaultPin || '';
+}
+
+function verifySavedSession() {
+  try {
+    const raw = safeGetStorage('lyc_study_auth_user');
+    if (!raw) {
+      // 首次打开默认进入父母预览或宝宝模式，也可随时点“切换”重新登录
+      currentUser = null;
+      return;
+    }
+    const saved = JSON.parse(raw);
+    if (saved && ACCOUNTS[saved.username] && getAccountPin(saved.username) === saved.pin) {
+      currentUser = ACCOUNTS[saved.username];
+    } else {
+      currentUser = null;
+    }
+  } catch (e) {
+    currentUser = null;
+  }
+}
+
+const isParent = () => currentUser?.role === 'parent';
+const canAddTask = () => isParent() || Boolean(data.kidPerms?.canAdd);
+const canEditTask = () => isParent() || Boolean(data.kidPerms?.canEdit);
+const canDeleteTask = () => isParent() || Boolean(data.kidPerms?.canDelete);
+const canViewReports = () => isParent() || Boolean(data.kidPerms?.canReport);
+
+function recordLog(action, taskTitle, subjectId, detail = '') {
+  if (!data.logs) data.logs = {};
+  const id = 'log_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+  const subObj = subjects.find(s => s.id === subjectId);
+  data.logs[id] = {
+    id,
+    action, // 'add' | 'edit' | 'delete'
+    taskTitle: taskTitle || '未命名任务',
+    subjectName: subObj ? subObj.name : '系统安全',
+    detail,
+    user: currentUser ? currentUser.name : '系统初始化',
+    badge: currentUser ? currentUser.badge : '',
+    timestamp: Date.now()
+  };
+}
+
+// 一键载入示例任务（当列表为空时方便快速体验语数英核心任务卡片）
+async function seedStarterTasks(silent = false) {
+  const d = today();
+  const samples = [
+    {
+      subjectId: 'chinese',
+      title: '课外经典绘本/名著阅读 20 分钟',
+      description: '朗读喜欢的章节，摘录 2 个好词好句并和爸爸妈妈分享读后感。',
+      startDate: shiftDate(d, -5),
+      endDate: '',
+      reminderTime: '18:30',
+      durationMinutes: 20,
+      repeatRule: { type: 'daily', days: [1, 2, 3, 4, 5], interval: 1 },
+      enabled: true
+    },
+    {
+      subjectId: 'chinese',
+      title: '生字词听写与古诗词背诵',
+      description: '复习本单元生字词，熟练背诵古诗词并注意字音字形。',
+      startDate: shiftDate(d, -5),
+      endDate: '',
+      reminderTime: '19:00',
+      durationMinutes: 15,
+      repeatRule: { type: 'daily', days: [1, 3, 5], interval: 1 },
+      enabled: true
+    },
+    {
+      subjectId: 'math',
+      title: '每日口算与计算闯关 30 题',
+      description: '限时 10 分钟完成混合运算练习，完成后用红笔自查订正。',
+      startDate: shiftDate(d, -5),
+      endDate: '',
+      reminderTime: '19:20',
+      durationMinutes: 15,
+      repeatRule: { type: 'daily', days: [1, 2, 3, 4, 5], interval: 1 },
+      enabled: true
+    },
+    {
+      subjectId: 'math',
+      title: '思维拓展应用题 2 道',
+      description: '画线段图分析数量关系，写出完整解题步骤与答句。',
+      startDate: shiftDate(d, -5),
+      endDate: '',
+      reminderTime: '19:45',
+      durationMinutes: 20,
+      repeatRule: { type: 'daily', days: [2, 4, 6], interval: 1 },
+      enabled: true
+    },
+    {
+      subjectId: 'english',
+      title: '英语分级阅读与原声跟读 15 分钟',
+      description: '听原声录音跟读 2 遍，注意连读与语调，大声开口朗读。',
+      startDate: shiftDate(d, -5),
+      endDate: '',
+      reminderTime: '20:10',
+      durationMinutes: 15,
+      repeatRule: { type: 'daily', days: [1, 2, 3, 4, 5], interval: 1 },
+      enabled: true
+    }
+  ];
+  for (const item of samples) {
+    saveTask(data, item);
+  }
+  // 默认标记部分今日与往日任务已完成，使进度环和周报趋势图立即呈现丰富效果
+  const todayList = instances(data, d, false);
+  if (todayList[0]) complete(data, todayList[0]);
+  if (todayList[2]) complete(data, todayList[2]);
+  for (let offset = 1; offset <= 4; offset++) {
+    const pastDate = shiftDate(d, -offset);
+    const pastList = instances(data, pastDate, false);
+    pastList.slice(0, Math.max(1, 5 - offset)).forEach(item => complete(data, item));
+  }
+  recordLog('add', '初始化语数英核心学习计划（5项）', 'all', '包含语文、数学、英语每日核心任务');
+  safeSetStorage('lyc_study_seeded_v1', '1');
+  if (!silent) toast('已载入 5 项语数英学习任务 🌟');
+  await persist();
+}
+
+const dialog = $('#editor');
+function toast(message) {
+  const el = $('#toast');
+  if (!el) return;
+  el.textContent = message;
+  el.classList.add('show');
+  clearTimeout(timer);
+  timer = setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+let syncTimer;
+async function persist() {
+  try {
+    await write('data', data);
+    storageFailed = false;
+    status = config.token ? '等待同步' : '已保存到本机';
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(sync, 1500);
+  } catch (e) {
+    storageFailed = true;
+    status = '保存失败';
+    toast('本机存储失败，请立即导出备份，避免关闭页面。');
+  }
+  render();
+}
+
+// ================= 各页面专属视觉主题与特色配置 =================
+const themes = {
+  all: {
+    name: '首页',
+    navSub: '今日全科总览',
+    icon: '☀',
+    subtitle: '今日任务优先 · 每一份努力都闪闪发光',
+    tag: '今日星辰舱',
+    quoteTitle: '🌟 今日学习寄语',
+    quoteText: '先完成最重要的今日任务，每打勾一项都是一次小胜利！',
+    focusTags: ['专注当下', '今日事今日毕', '全科均衡'],
+    art: `<svg class="hero-svg" viewBox="0 0 220 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="165" cy="70" r="55" fill="url(#homeGlow)" opacity="0.55"/>
+      <circle cx="165" cy="70" r="38" stroke="currentColor" stroke-opacity="0.15" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <path d="M95 115 C125 65, 165 45, 210 30" stroke="url(#homeLine)" stroke-width="2.5" stroke-linecap="round"/>
+      <g class="floating-badge" transform="translate(135, 32)">
+        <rect x="0" y="0" width="56" height="56" rx="18" fill="white" fill-opacity="0.82" stroke="white" stroke-width="1.5"/>
+        <path d="M28 12L32.5 23.5L44 28L32.5 32.5L28 44L23.5 32.5L12 28L23.5 23.5L28 12Z" fill="url(#starGrad)"/>
+      </g>
+      <circle cx="112" cy="88" r="5" fill="#3B82F6" fill-opacity="0.4"/>
+      <circle cx="195" cy="98" r="3.5" fill="#6366F1" fill-opacity="0.5"/>
+      <defs>
+        <radialGradient id="homeGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(165 70) scale(55)">
+          <stop stop-color="#60A5FA"/><stop offset="1" stop-color="#60A5FA" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="homeLine" x1="95" y1="115" x2="210" y2="30" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#3B82F6" stop-opacity="0"/><stop offset="0.5" stop-color="#3B82F6" stop-opacity="0.45"/><stop offset="1" stop-color="#6366F1" stop-opacity="0.8"/>
+        </linearGradient>
+        <linearGradient id="starGrad" x1="12" y1="12" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#2563EB"/><stop offset="1" stop-color="#7C3AED"/>
+        </linearGradient>
+      </defs>
+    </svg>`
+  },
+  chinese: {
+    name: '语文',
+    navSub: '诗书山海 · 阅读',
+    icon: '文',
+    subtitle: '晨诵暮读 · 字里行间见天地',
+    tag: '诗书山海',
+    quoteTitle: '📜 诗书山海 · 每日古训',
+    quoteText: '“读书破万卷，下笔如有神。” 每天坚持朗读与积累，语感自然水到渠成。',
+    focusTags: ['大声朗读', '好词摘录', '书写工整'],
+    art: `<svg class="hero-svg" viewBox="0 0 220 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M60 130 Q105 75 150 130 Z" fill="#D97706" fill-opacity="0.12"/>
+      <path d="M110 130 Q160 55 215 130 Z" fill="#B45309" fill-opacity="0.16"/>
+      <circle cx="178" cy="40" r="22" fill="#F59E0B" fill-opacity="0.24"/>
+      <g transform="translate(118, 28)">
+        <rect x="0" y="8" width="68" height="82" rx="12" transform="rotate(-6 0 8)" fill="white" fill-opacity="0.82" stroke="#F59E0B" stroke-opacity="0.35" stroke-width="1.5"/>
+        <line x1="18" y1="24" x2="18" y2="72" stroke="#D97706" stroke-opacity="0.35" stroke-width="2" stroke-linecap="round"/>
+        <line x1="34" y1="22" x2="34" y2="70" stroke="#D97706" stroke-opacity="0.35" stroke-width="2" stroke-linecap="round"/>
+        <line x1="50" y1="20" x2="50" y2="68" stroke="#D97706" stroke-opacity="0.35" stroke-width="2" stroke-linecap="round"/>
+        <rect x="42" y="48" width="36" height="36" rx="10" fill="#B45309" fill-opacity="0.92"/>
+        <text x="60" y="73" text-anchor="middle" fill="#FFFBEB" font-size="20" font-weight="700" font-family="serif">文</text>
+      </g>
+    </svg>`
+  },
+  math: {
+    name: '数学',
+    navSub: '逻辑宇宙 · 思维',
+    icon: 'π',
+    subtitle: '严谨推理 · 探索数字与几何的奥秘',
+    tag: '逻辑宇宙',
+    quoteTitle: '📐 逻辑宇宙 · 思维锦囊',
+    quoteText: '审题先圈关键词，草稿纸分区打草稿，算完逆向验算一遍，准确率提升 90%！',
+    focusTags: ['圈画条件', '规范草稿', '逆向验算'],
+    art: `<svg class="hero-svg" viewBox="0 0 220 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="160" cy="70" r="52" stroke="#7C3AED" stroke-opacity="0.16" stroke-width="1.5" stroke-dasharray="5 5"/>
+      <polygon points="155,18 202,98 110,98" fill="#8B5CF6" fill-opacity="0.12" stroke="#7C3AED" stroke-opacity="0.32" stroke-width="1.5" stroke-linejoin="round"/>
+      <g transform="translate(105, 32)">
+        <rect x="0" y="18" width="54" height="54" rx="16" transform="rotate(-10 0 18)" fill="white" fill-opacity="0.86" stroke="#8B5CF6" stroke-opacity="0.32" stroke-width="1.5"/>
+        <text x="27" y="54" text-anchor="middle" fill="#6D28D9" font-size="30" font-weight="800" font-family="serif" transform="rotate(-10 27 45)">π</text>
+      </g>
+      <g transform="translate(154, 62)">
+        <rect x="0" y="0" width="52" height="30" rx="9" fill="#6D28D9" fill-opacity="0.9"/>
+        <text x="26" y="19" text-anchor="middle" fill="white" font-size="11" font-weight="700">a²+b²=c²</text>
+      </g>
+    </svg>`
+  },
+  english: {
+    name: '英语',
+    navSub: '世界对话 · 语感',
+    icon: 'Aa',
+    subtitle: '听说先行 · 用声音与世界自信对话',
+    tag: '世界对话',
+    quoteTitle: '🌍 世界对话 · 语感秘籍',
+    quoteText: '“Practice makes perfect!” 先盲听抓大意，再逐句跟读模仿语音语调。',
+    focusTags: ['原声跟读', '自然拼读', '情境造句'],
+    art: `<svg class="hero-svg" viewBox="0 0 220 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="162" cy="70" r="48" fill="#10B981" fill-opacity="0.12"/>
+      <g transform="translate(104, 24)">
+        <rect x="0" y="0" width="76" height="46" rx="16" fill="white" fill-opacity="0.88" stroke="#10B981" stroke-opacity="0.32" stroke-width="1.5"/>
+        <path d="M18 46 L12 56 L28 46 Z" fill="white" fill-opacity="0.88"/>
+        <text x="38" y="29" text-anchor="middle" fill="#047857" font-size="16" font-weight="800">Hello!</text>
+      </g>
+      <g transform="translate(142, 62)">
+        <rect x="0" y="0" width="62" height="44" rx="14" fill="#059669" fill-opacity="0.92"/>
+        <path d="M46 44 L54 53 L36 44 Z" fill="#059669" fill-opacity="0.92"/>
+        <text x="31" y="29" text-anchor="middle" fill="white" font-size="18" font-weight="800">Aa</text>
+      </g>
+    </svg>`
+  }
+};
+
+// ================= 2. 登录界面渲染与事件 =================
+function loginHTML() {
+  return `<div class="login-screen">
+    <form id="login-form" class="login-card">
+      <div class="login-brand"><span>✦</span></div>
+      <h1>小小学习家</h1>
+      <p class="login-subtitle">请选择登录身份并输入密码</p>
+      <div class="role-selector">
+        <button type="button" class="role-chip" data-user="baobao">👶 宝宝 (刘诣辰)</button>
+        <button type="button" class="role-chip" data-user="baba">👨 爸爸</button>
+        <button type="button" class="role-chip" data-user="mama">👩 妈妈</button>
+      </div>
+      <label>登录账号
+        <input name="username" id="login-user" required autocomplete="username" placeholder="baobao / baba / mama" value="baobao">
+      </label>
+      <label>登录密码
+        <input name="pin" id="login-pin" type="password" required autocomplete="current-password" placeholder="请输入密码（默认宝宝1234 / 父母8888）">
+      </label>
+      <p id="login-error" class="login-error" role="alert"></p>
+      <button type="submit" class="primary full login-submit">进入学习空间</button>
+    </form>
+  </div>`;
+}
+
+function bindLogin() {
+  const userInp = $('#login-user'), pinInp = $('#login-pin'), err = $('#login-error');
+  document.querySelectorAll('.role-chip').forEach(btn => {
+    if (btn.dataset.user === userInp.value) btn.classList.add('selected');
+    btn.onclick = () => {
+      document.querySelectorAll('.role-chip').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      userInp.value = btn.dataset.user;
+      err.textContent = '';
+      pinInp.focus();
+    };
+  });
+  $('#login-form').onsubmit = e => {
+    e.preventDefault();
+    const u = userInp.value.trim().toLowerCase(), p = pinInp.value.trim();
+    const acc = ACCOUNTS[u];
+    if (!acc || getAccountPin(u) !== p) {
+      err.textContent = '账号或密码不正确，请重试';
+      return;
+    }
+    currentUser = acc;
+    safeSetStorage('lyc_study_auth_user', JSON.stringify({ username: acc.username, pin: p }));
+    if (!isParent() && screen === 'settings') screen = 'tasks';
+    if (!canViewReports() && screen === 'reports') screen = 'tasks';
+    drawerCascadeAnim = true;
+    toast(`欢迎回来，${acc.name}！`);
+    render();
+  };
+}
+
+function logout() {
+  show(`<form id="switch-account-form">
+    <div class="modal-head">
+      <h2>👤 切换登录账号</h2>
+      <button type="button" data-close aria-label="关闭">✕</button>
+    </div>
+    <p class="hint" style="margin:6px 0 12px">当前登录：<strong>${esc(currentUser?.name || '')}</strong>（${esc(currentUser?.badge || '')}）。请选择要切换的角色并输入密码：</p>
+    <div class="role-selector" style="margin-bottom:12px">
+      <button type="button" class="role-chip selected" data-switch-user="baobao">👶 宝宝 (刘诣辰)</button>
+      <button type="button" class="role-chip" data-switch-user="baba">👨 爸爸</button>
+      <button type="button" class="role-chip" data-switch-user="mama">👩 妈妈</button>
+    </div>
+    <input type="hidden" name="username" id="switch-user-input" value="baobao">
+    <label>登录密码
+      <input name="pin" id="switch-pin-input" type="password" required placeholder="输入对应角色密码（宝宝1234 / 父母8888）">
+    </label>
+    <p id="switch-error" class="login-error" role="alert"></p>
+    <div class="buttons" style="margin-top:12px">
+      <button type="submit" class="primary" style="flex:1">确认切换账号</button>
+      <button type="button" id="full-logout-btn" class="danger">退出到登录页</button>
+    </div>
+  </form>`);
+  const uInput = $('#switch-user-input'), pInput = $('#switch-pin-input'), errEl = $('#switch-error');
+  dialog.querySelectorAll('[data-switch-user]').forEach(btn => {
+    btn.onclick = () => {
+      dialog.querySelectorAll('[data-switch-user]').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      uInput.value = btn.dataset.switchUser;
+      errEl.textContent = '';
+      pInput.focus();
+    };
+  });
+  $('#full-logout-btn').onclick = () => {
+    dialog.close();
+    currentUser = null;
+    safeRemoveStorage('lyc_study_auth_user');
+    render();
+  };
+  $('#switch-account-form').onsubmit = e => {
+    e.preventDefault();
+    const u = uInput.value.trim().toLowerCase(), p = pInput.value.trim();
+    const acc = ACCOUNTS[u];
+    if (!acc || getAccountPin(u) !== p) {
+      errEl.textContent = '密码不正确，请重试';
+      return;
+    }
+    currentUser = acc;
+    safeSetStorage('lyc_study_auth_user', JSON.stringify({ username: acc.username, pin: p }));
+    if (!isParent() && screen === 'settings') screen = 'tasks';
+    if (!canViewReports() && screen === 'reports') screen = 'tasks';
+    dialog.close();
+    drawerCascadeAnim = true;
+    toast(`已切换至：${acc.name}`);
+    render();
+  };
+}
+
+// ================= 3. 后台看板：高颜值星际数据舱 + 权限控制 + 审计日志 =================
+function computeStats(daysCount) {
+  const end = today();
+  const dates = [];
+  for (let i = daysCount - 1; i >= 0; i--) dates.push(shiftDate(end, -i));
+  let total = 0, done = 0, activeDays = 0, totalMinutes = 0, doneMinutes = 0;
+  const bySub = {
+    chinese: { name: '语文', icon: '文', tag: '诗书积累', total: 0, done: 0, minutes: 0, color: '#d97706' },
+    math:    { name: '数学', icon: 'π',  tag: '逻辑思维', total: 0, done: 0, minutes: 0, color: '#7c3aed' },
+    english: { name: '英语', icon: 'Aa', tag: '世界对话', total: 0, done: 0, minutes: 0, color: '#059669' }
+  };
+  const daily = [];
+  for (const d of dates) {
+    const items = instances(data, d, false);
+    const dTotal = items.length;
+    const dDone = items.filter(x => x.done).length;
+    total += dTotal;
+    done += dDone;
+    if (dDone > 0) activeDays++;
+    for (const item of items) {
+      const mins = Number(item.durationMinutes) || 20;
+      totalMinutes += mins;
+      if (item.done) doneMinutes += mins;
+      if (bySub[item.subjectId]) {
+        bySub[item.subjectId].total++;
+        if (item.done) {
+          bySub[item.subjectId].done++;
+          bySub[item.subjectId].minutes += mins;
+        }
+      }
+    }
+    daily.push({
+      date: d,
+      label: `${Number(d.slice(5, 7))}/${Number(d.slice(8))}`,
+      isToday: d === end,
+      total: dTotal,
+      done: dDone,
+      rate: dTotal ? Math.round((dDone / dTotal) * 100) : 0
+    });
+  }
+  const rate = total ? Math.round((done / total) * 100) : 0;
+  return {
+    daysCount,
+    startDate: dates[0],
+    endDate: end,
+    total,
+    done,
+    pending: total - done,
+    rate,
+    activeDays,
+    totalMinutes,
+    doneMinutes,
+    bySub,
+    daily
+  };
+}
+
+function reportsHTML() {
+  const days = reportRange === 'week' ? 7 : 30;
+  const st = computeStats(days);
+  const chartDays = reportRange === 'week' ? st.daily : st.daily.slice(-14);
+  const perms = data.kidPerms || defaultKidPerms();
+  const allLogs = Object.values(data.logs || {}).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+  const filteredLogs = allLogs.filter(l => logFilter === 'all' || l.action === logFilter);
+
+  const ringRadius = 42;
+  const ringCircum = +(2 * Math.PI * ringRadius).toFixed(1);
+  const ringOffset = +(ringCircum * (1 - st.rate / 100)).toFixed(1);
+  const medalTitle = st.rate >= 85 ? '🏆 卓越学习之星' : st.rate >= 60 ? '🌟 稳步进阶达人' : '🌱 每日蓄力起航';
+
+  const actionLabels = {
+    add:    { text: '添加任务', cls: 'log-add',  icon: '➕' },
+    edit:   { text: '编辑修改', cls: 'log-edit', icon: '✏️' },
+    delete: { text: '删除任务', cls: 'log-del',  icon: '🗑️' }
+  };
+
+  return `<section class="reports-view single-stage-drawer ${drawerCascadeAnim ? 'ios-drawer-cascade' : ''}">
+    <div class="reports-hero">
+      <div class="reports-hero-main">
+        <div class="reports-hero-badges">
+          <span class="report-badge-pill">📊 ${isParent() ? '父母管理驾驶舱 · 统计与权限中心' : '专属学习成长报告'}</span>
+          <span class="report-medal-pill">${medalTitle}</span>
+        </div>
+        <h1>学习${reportRange === 'week' ? '周报' : '月报'}与管理看板</h1>
+        <p class="reports-hero-sub">统计周期：${st.startDate} 至 ${st.endDate}（近 ${days} 天） · 累计专注约 <strong>${st.doneMinutes}</strong> 分钟</p>
+        <div class="range-switch">
+          <button type="button" data-range="week" class="${reportRange === 'week' ? 'selected' : ''}">📅 近 7 天周报</button>
+          <button type="button" data-range="month" class="${reportRange === 'month' ? 'selected' : ''}">🗓️ 近 30 天月报</button>
+        </div>
+      </div>
+      <div class="reports-hero-ring" aria-label="周期总完成率 ${st.rate}%">
+        <svg viewBox="0 0 108 108" class="ring-svg">
+          <defs>
+            <linearGradient id="reportRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#38bdf8"/>
+              <stop offset="50%" stop-color="#818cf8"/>
+              <stop offset="100%" stop-color="#34d399"/>
+            </linearGradient>
+          </defs>
+          <circle cx="54" cy="54" r="${ringRadius}" class="ring-track"/>
+          <circle cx="54" cy="54" r="${ringRadius}" class="ring-fill" stroke="url(#reportRingGrad)" stroke-dasharray="${ringCircum}" stroke-dashoffset="${ringOffset}"/>
+        </svg>
+        <div class="ring-center-text">
+          <strong>${st.rate}<small>%</small></strong>
+          <span>综合达成</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="report-kpis">
+      <div class="kpi-card kpi-blue">
+        <div class="kpi-top"><span class="kpi-icon">🎯</span><span class="kpi-tag">核心指标</span></div>
+        <strong>${st.rate}<small>%</small></strong>
+        <span class="kpi-label">总计划完成率</span>
+        <div class="kpi-mini-bar"><i style="width:${st.rate}%"></i></div>
+      </div>
+      <div class="kpi-card kpi-green">
+        <div class="kpi-top"><span class="kpi-icon">✅</span><span class="kpi-tag">约 ${st.doneMinutes} 分钟</span></div>
+        <strong>${st.done}<small> 项</small></strong>
+        <span class="kpi-label">已打卡完成任务</span>
+        <em>共安排 ${st.total} 项学习任务</em>
+      </div>
+      <div class="kpi-card kpi-warm">
+        <div class="kpi-top"><span class="kpi-icon">⏳</span><span class="kpi-tag">${st.pending ? '继续加油' : '全部清零'}</span></div>
+        <strong>${st.pending}<small> 项</small></strong>
+        <span class="kpi-label">周期内待完成</span>
+        <em>${st.pending === 0 ? '太棒了！无遗留任务' : '按步就班逐项击破'}</em>
+      </div>
+      <div class="kpi-card kpi-purple">
+        <div class="kpi-top"><span class="kpi-icon">🔥</span><span class="kpi-tag">打卡习惯</span></div>
+        <strong>${st.activeDays}<small> / ${days}天</small></strong>
+        <span class="kpi-label">活跃学习天数</span>
+        <em>活跃度 ${Math.round((st.activeDays / days) * 100)}%</em>
+      </div>
+    </div>
+
+    <div class="report-grid">
+      <section class="panel report-panel">
+        <div class="report-panel-head">
+          <div>
+            <h2>📚 三大学科完成度与学时分布</h2>
+            <p>直观对比语、数、英各科执行力与投入时长</p>
+          </div>
+          <span class="panel-chip">三科均衡</span>
+        </div>
+        <div class="sub-bars">
+          ${Object.entries(st.bySub).map(([id, s]) => {
+            const p = s.total ? Math.round((s.done / s.total) * 100) : 0;
+            return `<div class="sub-bar-card sub-card-${id}">
+              <div class="sub-bar-head">
+                <span class="nav-icon icon-${id}">${s.icon}</span>
+                <div class="sub-bar-title">
+                  <strong>${s.name} <em>${s.tag}</em></strong>
+                  <small>已完成 <b>${s.done}</b> / ${s.total} 项 · 累计专注 ${s.minutes} 分钟</small>
+                </div>
+                <div class="sub-bar-pct-wrap">
+                  <b class="sub-bar-pct">${p}%</b>
+                  <small>${s.total - s.done ? `剩 ${s.total - s.done} 项` : '已满格'}</small>
+                </div>
+              </div>
+              <div class="track"><i class="bar-${id}" style="width:${p}%"></i></div>
+            </div>`;
+          }).join('')}
+        </div>
+      </section>
+
+      <section class="panel report-panel">
+        <div class="report-panel-head">
+          <div>
+            <h2>📈 每日打卡趋势图（${reportRange === 'week' ? '近 7 天' : '最近 14 天'}）</h2>
+            <p>柱高代表当日完成率，绿色代表当日 100% 满格达成</p>
+          </div>
+          <span class="panel-chip">每日能量</span>
+        </div>
+        <div class="daily-chart">
+          ${chartDays.map(d => {
+            const stateCls = d.total === 0 ? 'is-empty' : d.rate === 100 ? 'is-full' : d.done > 0 ? 'is-partial' : 'is-zero';
+            return `<div class="chart-col ${d.isToday ? 'is-today' : ''}">
+              <span class="chart-rate-lbl">${d.total ? d.rate + '%' : '-'}</span>
+              <div class="chart-bar-wrap" title="${d.date}: 完成 ${d.done}/${d.total} 项 (${d.rate}%)">
+                <div class="chart-bar ${stateCls}" style="height:${Math.max(d.total ? 12 : 6, d.rate)}%"></div>
+              </div>
+              <strong>${d.done}/${d.total}</strong>
+              <small>${d.isToday ? '今天' : d.label}</small>
+            </div>`;
+          }).join('')}
+        </div>
+      </section>
+    </div>
+
+    ${isParent() ? `<section class="panel perm-panel">
+      <div class="perm-header">
+        <div>
+          <h2>🛡️ 宝宝账号（刘诣辰）权限动态控制中心</h2>
+          <p>爸爸妈妈可随时开启或关闭孩子的对应操作权限，修改后实时同步至所有设备（设置与同步中心始终仅限父母访问）。</p>
+        </div>
+        ${perms.updatedAt ? `<small class="perm-meta">最近由 ${esc(perms.updatedBy)} 更新于 ${esc(new Date(perms.updatedAt).toLocaleString('zh-CN'))}</small>` : ''}
+      </div>
+      <div class="perm-grid">
+        <label class="perm-switch-card ${perms.canAdd ? 'is-on' : ''}">
+          <span class="perm-card-icon">➕</span>
+          <div class="perm-card-text"><strong>允许添加新任务</strong><small>开启后宝宝可自主新增学习计划</small></div>
+          <input type="checkbox" class="ios-switch" data-perm="canAdd" ${perms.canAdd ? 'checked' : ''}>
+        </label>
+        <label class="perm-switch-card ${perms.canEdit ? 'is-on' : ''}">
+          <span class="perm-card-icon">✏️</span>
+          <div class="perm-card-text"><strong>允许编辑修改任务</strong><small>开启后宝宝可修改任务内容与暂停计划</small></div>
+          <input type="checkbox" class="ios-switch" data-perm="canEdit" ${perms.canEdit ? 'checked' : ''}>
+        </label>
+        <label class="perm-switch-card ${perms.canDelete ? 'is-on' : ''}">
+          <span class="perm-card-icon">🗑️</span>
+          <div class="perm-card-text"><strong>允许删除任务</strong><small>开启后宝宝任务卡上将显示删除按钮</small></div>
+          <input type="checkbox" class="ios-switch" data-perm="canDelete" ${perms.canDelete ? 'checked' : ''}>
+        </label>
+        <label class="perm-switch-card ${perms.canReport ? 'is-on' : ''}">
+          <span class="perm-card-icon">📊</span>
+          <div class="perm-card-text"><strong>允许查看统计周报</strong><small>开启后宝宝也能进入周报看板查看成长</small></div>
+          <input type="checkbox" class="ios-switch" data-perm="canReport" ${perms.canReport ? 'checked' : ''}>
+        </label>
+      </div>
+    </section>` : ''}
+
+    <section class="panel audit-panel">
+      <div class="audit-head">
+        <div>
+          <h2>📋 任务增删改安全审计日志</h2>
+          <p>自动记录每一次添加、修改和删除任务的责任人与精确时间（共 ${allLogs.length} 条记录）。</p>
+        </div>
+        <div class="range-switch audit-filter-switch">
+          ${[['all', '全部记录'], ['add', '➕ 添加'], ['edit', '✏️ 修改'], ['delete', '🗑️ 删除']].map(([k, n]) => `<button type="button" data-log-filter="${k}" class="${logFilter === k ? 'selected' : ''}">${n}</button>`).join('')}
+        </div>
+      </div>
+      <div class="audit-list">
+        ${filteredLogs.slice(0, 60).map(item => {
+          const info = actionLabels[item.action] || { text: '操作', cls: 'log-edit', icon: '📌' };
+          return `<div class="audit-row">
+            <span class="audit-tag ${info.cls}">${info.icon} ${info.text}</span>
+            <div class="audit-main">
+              <strong><span class="audit-sub-pill">${esc(item.subjectName)}</span>${esc(item.taskTitle)}</strong>
+              ${item.detail ? `<small>${esc(item.detail)}</small>` : ''}
+            </div>
+            <div class="audit-meta">
+              <span class="audit-user">操作人：<b>${esc(item.user)}</b></span>
+              <time>${esc(new Date(item.timestamp).toLocaleString('zh-CN'))}</time>
+            </div>
+          </div>`;
+        }).join('') || `<div class="empty audit-empty"><span class="empty-symbol">🛡️</span><h3>暂无符合条件的操作记录</h3><p>新增、编辑或删除学习任务后，这里会自动生成安全审计时间轴。</p></div>`}
+      </div>
+    </section>
+  </section>`;
+}
+
+// ================= 4. 主界面渲染（左中右三段式 iOS 抽屉 + 手机端任务核心优先） =================
+function render() {
+  verifySavedSession();
+  if (!currentUser) {
+    $('#app').className = 'theme-all';
+    $('#app').innerHTML = loginHTML();
+    bindLogin();
+    return;
+  }
+  const parentMode = isParent();
+  const allowAdd = canAddTask(),
+        allowEdit = canEditTask(),
+        allowDel = canDeleteTask(),
+        allowRep = canViewReports();
+
+  if (!parentMode && screen === 'settings') screen = 'tasks';
+  if (!allowRep && screen === 'reports') screen = 'tasks';
+
+  const theme = themes[subject];
+  const view = learningView(data, subject, date);
+  const rows = view.rows;
+  const day = relativeDay(date);
+  const home = subject === 'all';
+  const filteredRows = rows.filter(t => filter === 'all' || (filter === 'done' ? t.done : !t.done));
+
+  $('#app').className = `theme-${screen === 'settings' || screen === 'reports' ? 'all' : subject} screen-${screen} role-${currentUser.role}`;
+
+  // 圆环进度参数（供中栏小组件使用）
+  const rRadius = 32;
+  const rCircum = +(2 * Math.PI * rRadius).toFixed(1);
+  const rOffset = +(rCircum * (1 - view.percent / 100)).toFixed(1);
+
+  $('#app').innerHTML = `
+  <aside class="app-sidebar" aria-label="主导航侧栏">
+    <div class="sidebar-brand-head">
+      <a class="brand" href="#" id="brand-home">
+        <span class="brand-logo">✦</span>
+        <div class="brand-text">
+          <strong>小小学习家</strong>
+          <small>KIDS STUDY PLANNER</small>
+        </div>
+      </a>
+    </div>
+
+    <div class="nav-caption">学习空间 · 抽屉导航</div>
+    <nav aria-label="学习导航">
+      ${Object.entries(themes).map(([id, s]) => {
+        const n = id === 'all' ? learningView(data, 'all', date).pending : learningView(data, id, date).pending;
+        const isActive = subject === id && screen === 'tasks';
+        return `<button type="button" data-sub="${id}" class="${isActive ? 'active' : ''}">
+          <span class="nav-icon icon-${id}">${s.icon}</span>
+          <span class="nav-label-group">
+            <strong>${s.name}</strong>
+            <small>${s.navSub}</small>
+          </span>
+          ${n ? `<b class="${id === 'all' ? 'badge-soft' : ''}">${n}</b>` : ''}
+        </button>`;
+      }).join('')}
+      ${allowRep ? `<button type="button" id="nav-reports" class="${screen === 'reports' ? 'active' : ''}">
+        <span class="nav-icon icon-reports">📊</span>
+        <span class="nav-label-group">
+          <strong>周报与看板</strong>
+          <small>统计 · 权限 · 日志</small>
+        </span>
+      </button>` : ''}
+      ${parentMode ? `<button type="button" id="settings" class="${screen === 'settings' ? 'active' : ''}">
+        <span class="nav-icon icon-settings">⚙</span>
+        <span class="nav-label-group">
+          <strong>设置与同步</strong>
+          <small>密码 · 云端 · 备份</small>
+        </span>
+      </button>` : ''}
+    </nav>
+
+    ${screen === 'tasks' ? `<div class="drawer-stage-control">
+      <button type="button" id="sidebar-drawer-toggle" class="drawer-pill-btn" title="展开或收起中间概览抽屉">
+        <span>${centerDrawerCollapsed ? '⇥ 展开中栏抽屉' : '⇤ 收起中栏抽屉'}</span>
+      </button>
+    </div>` : ''}
+
+    <div class="aside-bottom">
+      <div class="sidebar-user-box">
+        <span class="user-avatar-circle">${esc(currentUser.avatar || currentUser.name.slice(0, 1))}</span>
+        <div class="user-box-info">
+          <strong>${esc(currentUser.name)}</strong>
+          <small>${esc(currentUser.badge)}</small>
+        </div>
+        <button type="button" class="switch-user-btn" data-logout title="切换登录账号">切换</button>
+      </div>
+      <button type="button" id="sync" class="sidebar-sync-btn" title="点击立即同步">
+        <span class="sync-dot ${status.includes('失败') ? 'err' : status.includes('已同步') ? 'ok' : ''}"></span>
+        <span>☁ ${esc(status)}</span>
+      </button>
+    </div>
+  </aside>
+
+  <main>
+    ${screen === 'settings'
+      ? settingsHTML()
+      : screen === 'reports'
+        ? reportsHTML()
+        : `<div class="ipad-shell ${centerDrawerCollapsed ? 'center-collapsed' : ''} ${drawerCascadeAnim ? 'ios-drawer-cascade' : ''}">
+          <!-- 第二段：中间概览与日历抽屉 (Stage 2 Center Drawer) -->
+          <div class="ipad-center">
+            <button type="button" class="drawer-edge-handle" id="toggle-center-drawer" aria-label="${centerDrawerCollapsed ? '展开概览抽屉' : '收起概览抽屉'}" title="${centerDrawerCollapsed ? '拉开概览抽屉' : '收起概览抽屉'}">
+              <span>${centerDrawerCollapsed ? '›' : '‹'}</span>
+            </button>
+
+            <!-- 顶部紧凑主题横幅（手机端自动融合成轻量状态条） -->
+            <section class="hero-banner hero-${home ? 'home' : subject}">
+              <div class="hero-content">
+                <div class="hero-badges">
+                  <span class="hero-pill">${home ? '✦ 今日闪闪发光' : `0${['chinese', 'math', 'english'].indexOf(subject) + 1} · ${theme.tag}`}</span>
+                  <span class="mobile-inline-progress">${esc(day)} ${view.done}/${view.total} · ${view.percent}%</span>
+                </div>
+                <h1>${home ? '刘诣辰的学习计划' : `${theme.name}<span>学习计划</span>`}</h1>
+                <p class="hero-sub">${theme.subtitle}</p>
+              </div>
+              <div class="hero-right-actions">
+                <button type="button" class="mobile-account-chip" data-logout title="点击切换账号">
+                  <span class="user-dot"></span>
+                  <span>${esc(currentUser.name)}</span>
+                  <small>切换</small>
+                </button>
+                ${parentMode ? `<button type="button" id="mobile-settings" class="mobile-icon-chip" aria-label="设置">⚙</button>` : ''}
+              </div>
+              <div class="hero-visual" aria-hidden="true">${theme.art}</div>
+            </section>
+
+            <!-- 中栏核心组件 1：五日学习日历滑块 -->
+            <section class="day-planner widget-card" aria-label="日期计划">
+              <div class="planner-heading">
+                <h2>📅 ${home ? '学习日历' : theme.name + '日历'}</h2>
+                <label class="date" aria-label="选择日期">
+                  <span>跳至</span>
+                  <input type="date" id="date" value="${date}" aria-label="查看日期">
+                </label>
+              </div>
+              <div class="day-tabs">
+                ${nearbyDays(data).map(d => {
+                  const dotCls = d.total === 0 ? 'dot-none' : d.pending === 0 ? 'dot-done' : 'dot-pending';
+                  return `<button type="button" data-date="${d.date}" class="${d.date === date ? 'selected' : ''}" aria-pressed="${d.date === date}">
+                    <span>${d.label}</span>
+                    <small>${Number(d.date.slice(5, 7))}/${Number(d.date.slice(8))}</small>
+                    <i class="day-dot ${dotCls}"></i>
+                  </button>`;
+                }).join('')}
+              </div>
+            </section>
+
+            <!-- 中栏核心组件 2：iOS 环形进度 + 待学/已学筛选舱 -->
+            <section class="stats widget-card" aria-label="${home ? '全部科目' : theme.name}统计">
+              <div class="stat progress">
+                <div class="progress-ring-box">
+                  <svg viewBox="0 0 80 80" class="mini-ring-svg">
+                    <circle cx="40" cy="40" r="${rRadius}" class="mini-ring-track"/>
+                    <circle cx="40" cy="40" r="${rRadius}" class="mini-ring-fill" stroke-dasharray="${rCircum}" stroke-dashoffset="${rOffset}"/>
+                  </svg>
+                  <strong class="mini-ring-pct">${view.percent}<small>%</small></strong>
+                </div>
+                <div class="progress-meta-text">
+                  <span>${esc(day)}完成度 <b>${view.done}/${view.total} 项</b></span>
+                  <div class="track"><i style="width:${view.percent}%"></i></div>
+                  <small>⏱ 预计总时长 ${view.totalMinutes} 分钟</small>
+                </div>
+              </div>
+              <button type="button" class="stat warm ${filter === 'pending' ? 'stat-active' : ''}" data-filter="pending">
+                <span class="stat-label">🔥 待学习</span>
+                <strong>${view.pending}<small> 项</small></strong>
+              </button>
+              <button type="button" class="stat green ${filter === 'done' ? 'stat-active' : ''}" data-filter="done">
+                <span class="stat-label">✅ ${esc(day)}已学</span>
+                <strong>${view.done}<small> 项</small></strong>
+              </button>
+            </section>
+
+            <!-- 中栏核心组件 3：各页面专属特色学习锦囊（填补中栏结构，手机端自动隐藏不占空间） -->
+            <section class="subject-feature-widget widget-card feature-${subject}">
+              <div class="feature-head">
+                <strong>${theme.quoteTitle}</strong>
+                <span class="feature-tag">${theme.tag}</span>
+              </div>
+              <p>${theme.quoteText}</p>
+              <div class="feature-pills">
+                ${theme.focusTags.map(t => `<span>✦ ${t}</span>`).join('')}
+              </div>
+            </section>
+          </div>
+
+          <!-- 第三段：右侧核心学习任务抽屉 (Stage 3 Primary Task Drawer) -->
+          <div class="ipad-right">
+            ${centerDrawerCollapsed ? `<button type="button" class="expand-center-banner" id="expand-center-btn">
+              <span>⇥ 展开左侧「${esc(day)}日历与进度概览」抽屉</span>
+              <strong>${view.done}/${view.total} 项 (${view.percent}%)</strong>
+            </button>` : ''}
+
+            ${home ? homeBoard(data, date) : ''}
+
+            <section class="workspace ${home ? 'home-workspace' : 'subject-workspace'} workspace-${subject}">
+              <div class="section-head">
+                <div class="section-title-group">
+                  <div class="section-title-row">
+                    <h2>${home ? `🎯 ${esc(day)}核心学习任务` : `${esc(day)}${theme.name}学习任务`}</h2>
+                    <span class="task-count-pill">${filteredRows.length} 项</span>
+                  </div>
+                  <p>${view.total} 项当日计划 · 待学 <b>${view.pending}</b> 项 / 已学 <b>${view.done}</b> 项${date === today() ? '（含往期待办）' : ''}</p>
+                </div>
+                <div class="section-head-actions">
+                  ${allowAdd ? `<button type="button" class="primary add-task-btn" id="add">＋ 添加任务</button>` : ''}
+                </div>
+              </div>
+
+              <div class="toolbar">
+                <div class="filters" role="tablist" aria-label="任务状态筛选">
+                  ${[
+                    ['all', `全部 (${view.total})`],
+                    ['pending', `待学习 (${view.pending})`],
+                    ['done', `已学习 (${view.done})`]
+                  ].map(([id, name]) => `<button type="button" data-filter="${id}" class="${filter === id ? 'selected' : ''}">${name}</button>`).join('')}
+                </div>
+                ${home ? `<div class="subject-quick-pills">
+                  ${subjects.map(s => `<button type="button" class="sub-mini-pill pill-${s.id}" data-sub="${s.id}">${s.name} ›</button>`).join('')}
+                </div>` : ''}
+              </div>
+
+              <div class="cards">
+                ${filteredRows.map((t, idx) => cardHTML(t, idx)).join('') || `
+                  <div class="empty">
+                    <span class="empty-symbol">${theme.icon}</span>
+                    <h3>${filter === 'done' ? '还没有已完成的任务哦' : filter === 'pending' ? `太棒了！${esc(day)}${home ? '' : theme.name}待办已全部完成 🎉` : `暂无${esc(day)}${home ? '' : theme.name}学习任务`}</h3>
+                    <p>${filter === 'done'
+                      ? '勾选任务左侧的方框即可打卡完成任务并燃放礼花！'
+                      : allowAdd
+                        ? `点击右上角「＋ 添加任务」安排${esc(day)}的学习计划，或一键载入示例任务体验。`
+                        : '今天还没有安排这项学习任务哦，稍后再来看看吧！'}</p>
+                    ${allowAdd && Object.keys(data.tasks || {}).length === 0 ? `<button type="button" class="primary seed-btn" id="seed-tasks">✨ 一键载入语数英示例任务</button>` : ''}
+                  </div>
+                `}
+              </div>
+
+              ${allowEdit ? pausedHTML() : ''}
+            </section>
+          </div>
+        </div>`
+    }
+  </main>
+
+  <nav class="mobile-nav" aria-label="底部导航">
+    ${Object.entries(themes).map(([id, s]) => `<button type="button" data-sub="${id}" class="${subject === id && screen === 'tasks' ? 'active' : ''}">
+      <span class="nav-icon icon-${id}">${s.icon}</span>
+      <small>${s.name}</small>
+    </button>`).join('')}
+    ${allowRep ? `<button type="button" id="mobile-reports" class="${screen === 'reports' ? 'active' : ''}">
+      <span class="nav-icon">📊</span>
+      <small>看板</small>
+    </button>` : ''}
+  </nav>`;
+
+  // 动画播放一次后复位标志，避免普通勾选时整栏重跳
+  drawerCascadeAnim = false;
+
+  // 绑定事件
+  document.querySelectorAll('[data-logout]').forEach(b => (b.onclick = logout));
+
+  const switchSubject = newSub => {
+    if (screen === 'tasks' && subject === newSub && window.innerWidth > 700) {
+      centerDrawerCollapsed = !centerDrawerCollapsed;
+      drawerCascadeAnim = true;
+      render();
+      return;
+    }
+    subject = newSub;
+    screen = 'tasks';
+    filter = 'all';
+    centerDrawerCollapsed = false;
+    drawerCascadeAnim = true;
+    render();
+  };
+
+  document.querySelectorAll('[data-sub]').forEach(b => {
+    b.onclick = () => switchSubject(b.dataset.sub);
+  });
+
+  if ($('#brand-home')) {
+    $('#brand-home').onclick = e => {
+      e.preventDefault();
+      switchSubject('all');
+    };
+  }
+
+  document.querySelectorAll('[data-filter]').forEach(b => {
+    b.onclick = () => {
+      filter = b.dataset.filter;
+      screen = 'tasks';
+      render();
+    };
+  });
+
+  document.querySelectorAll('[data-date]').forEach(b => {
+    b.onclick = () => {
+      date = b.dataset.date;
+      filter = 'all';
+      render();
+    };
+  });
+
+  document.querySelectorAll('.mobile-nav [data-sub]').forEach(b => {
+    const id = b.dataset.sub;
+    if (id !== 'all') {
+      const n = learningView(data, id, date).pending;
+      if (n) {
+        const badge = document.createElement('b');
+        badge.className = 'mobile-badge';
+        badge.textContent = n;
+        b.append(badge);
+      }
+    }
+  });
+
+  const openSettings = () => {
+    if (!isParent()) return;
+    screen = 'settings';
+    drawerCascadeAnim = true;
+    render();
+  };
+  const openReports = () => {
+    if (!canViewReports()) return;
+    screen = 'reports';
+    drawerCascadeAnim = true;
+    render();
+  };
+
+  if ($('#settings')) $('#settings').onclick = openSettings;
+  if ($('#mobile-settings')) $('#mobile-settings').onclick = openSettings;
+  if ($('#nav-reports')) $('#nav-reports').onclick = openReports;
+  if ($('#mobile-reports')) $('#mobile-reports').onclick = openReports;
+  if ($('#sync')) $('#sync').onclick = sync;
+  if ($('#seed-tasks')) $('#seed-tasks').onclick = () => seedStarterTasks(false);
+
+  // 中栏抽屉收展控制
+  const toggleCenterDrawer = () => {
+    centerDrawerCollapsed = !centerDrawerCollapsed;
+    drawerCascadeAnim = true;
+    render();
+  };
+  if ($('#toggle-center-drawer')) $('#toggle-center-drawer').onclick = toggleCenterDrawer;
+  if ($('#sidebar-drawer-toggle')) $('#sidebar-drawer-toggle').onclick = toggleCenterDrawer;
+  if ($('#expand-center-btn')) $('#expand-center-btn').onclick = toggleCenterDrawer;
+
+  if (screen === 'settings') {
+    bindSettings();
+  } else if (screen === 'reports') {
+    document.querySelectorAll('[data-range]').forEach(b => {
+      b.onclick = () => {
+        reportRange = b.dataset.range;
+        render();
+      };
+    });
+    document.querySelectorAll('[data-log-filter]').forEach(b => {
+      b.onclick = () => {
+        logFilter = b.dataset.logFilter;
+        render();
+      };
+    });
+    document.querySelectorAll('[data-perm]').forEach(chk => {
+      chk.onchange = async e => {
+        if (!isParent()) return;
+        const key = e.target.dataset.perm;
+        if (!data.kidPerms) data.kidPerms = defaultKidPerms();
+        data.kidPerms[key] = e.target.checked;
+        data.kidPerms.updatedAt = Date.now();
+        data.kidPerms.updatedBy = currentUser.name;
+        toast(`已${e.target.checked ? '开启' : '关闭'}宝宝对应权限`);
+        await persist();
+      };
+    });
+  } else {
+    if ($('#add') && allowAdd) $('#add').onclick = () => edit();
+    if ($('#date')) {
+      $('#date').onchange = e => {
+        if (e.target.value) {
+          date = e.target.value;
+          filter = 'all';
+          render();
+        }
+      };
+    }
+    document.querySelectorAll('[data-action]').forEach(b => {
+      b.onclick = () => {
+        const t = rows.find(item => item.key === b.dataset.key);
+        if (!t) return;
+        if (b.dataset.action === 'complete') {
+          const wasDone = allTodayDone(data);
+          complete(data, t);
+          persist().then(() => {
+            if (!storageFailed && !wasDone && t.date === today() && allTodayDone(data)) fireworks();
+            else if (!t.done) toast('太棒了！完成一项学习任务 🌟');
+          });
+        }
+        if (allowEdit && b.dataset.action === 'edit') edit(t);
+        if (allowDel && b.dataset.action === 'delete') remove(t);
+      };
+    });
+    if (allowEdit) {
+      document.querySelectorAll('[data-resume]').forEach(b => {
+        b.onclick = () => edit({ ...data.tasks[b.dataset.resume], date });
+      });
+    }
+  }
+}
+
+const SUB_TAG_META = {
+  chinese: { name: '语文', icon: '文', cls: 'tag-chinese' },
+  math:    { name: '数学', icon: 'π',  cls: 'tag-math' },
+  english: { name: '英语', icon: 'Aa', cls: 'tag-english' }
+};
+
+function cardHTML(t, idx = 0) {
+  const allowEdit = canEditTask(), allowDel = canDeleteTask();
+  const subMeta = SUB_TAG_META[t.subjectId] || { name: '综合', icon: '✦', cls: 'tag-all' };
+  const mins = Number(t.durationMinutes) || 20;
+  return `<article class="task task-${esc(t.subjectId)} ${t.done ? 'completed' : ''}" style="--card-idx:${Math.min(idx, 8)}">
+    <button type="button" class="check" data-action="complete" data-key="${esc(t.key)}" aria-label="${t.done ? '撤销完成' : '完成任务'}">
+      <span>${t.done ? '✓' : ''}</span>
+    </button>
+    <div class="task-body">
+      <div class="task-top-row">
+        <div class="task-heading">
+          <span class="subject-tag ${subMeta.cls}"><b>${subMeta.icon}</b> ${subMeta.name}</span>
+          <span class="state ${t.done ? 'state-done' : 'state-pending'}">${t.done ? '✅ 已完成' : '🔥 待学习'}</span>
+          <span class="duration-pill">⏱ ${mins}分钟</span>
+          ${t.reminderTime ? `<span class="time-pill">⏰ ${esc(t.reminderTime)}</span>` : ''}
+        </div>
+        ${(allowEdit || allowDel) ? `<div class="task-actions">
+          ${allowEdit ? `<button type="button" data-action="edit" data-key="${esc(t.key)}" aria-label="编辑任务">编辑</button>` : ''}
+          ${allowDel ? `<button type="button" data-action="delete" data-key="${esc(t.key)}" aria-label="删除任务">删除</button>` : ''}
+        </div>` : ''}
+      </div>
+      <h3>${esc(t.title)}</h3>
+      ${t.description ? `<p>${esc(t.description)}</p>` : ''}
+      <div class="meta">
+        <span>📅 ${t.date}</span>
+        <span>↻ ${esc(repeatLabel(t.repeatRule))}</span>
+        ${t.done && t.completedAt ? `<span class="done-time-tag">🎉 完成于 ${esc(new Date(t.completedAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }))}</span>` : ''}
+      </div>
+    </div>
+  </article>`;
+}
+
+function pausedHTML() {
+  const tasks = Object.values(data.tasks).filter(t => !t.deleted && (!t.enabled || t.startDate > date) && (subject === 'all' || t.subjectId === subject));
+  return tasks.length
+    ? `<details class="plans"><summary>⏸ 暂停 / 未来计划（${tasks.length} 项）</summary><div class="plans-list">${tasks.map(t => `<p><span><strong>${esc(t.title)}</strong> · ${t.enabled ? t.startDate + ' 开始' : '已暂停'}</span> <button type="button" data-resume="${esc(t.id)}">管理计划</button></p>`).join('')}</div></details>`
+    : '';
+}
+
+function show(content) {
+  dialog.innerHTML = content;
+  dialog.showModal();
+  dialog.querySelector('[data-close]')?.addEventListener('click', () => dialog.close());
+}
+
+function edit(t) {
+  if (t ? !canEditTask() : !canAddTask()) return;
+  const initial = t || {
+    subjectId: subject === 'all' ? 'chinese' : subject,
+    title: '',
+    description: '',
+    startDate: date,
+    endDate: '',
+    durationMinutes: 20,
+    reminderTime: '',
+    enabled: true,
+    repeatRule: { type: 'daily', days: [1, 3, 5], interval: 2 }
+  };
+  show(`<form id="task-form">
+    <div class="modal-head">
+      <h2>${t ? '✏️ 编辑学习计划' : '➕ 添加学习任务'}</h2>
+      <button type="button" data-close aria-label="关闭">✕</button>
+    </div>
+    <label>任务名称
+      <input name="title" required maxlength="100" value="${esc(initial.title)}" placeholder="例如：课外阅读 20 分钟">
+    </label>
+    <div class="form-row two-cols">
+      <label>所属科目
+        <select name="subjectId">${subjects.map(s => `<option value="${s.id}" ${s.id === initial.subjectId ? 'selected' : ''}>${s.name}</option>`).join('')}</select>
+      </label>
+      <label>预计时长（分钟）
+        <input name="durationMinutes" type="number" min="5" max="240" step="5" value="${Number(initial.durationMinutes) || 20}">
+      </label>
+    </div>
+    <label>学习内容与要求
+      <textarea name="description" maxlength="2000" rows="3" placeholder="写下具体的学习目标或页码要求…">${esc(initial.description)}</textarea>
+    </label>
+    <div class="form-row two-cols">
+      <label>重复方式
+        <select id="repeat" name="repeat">${[
+          ['once', '仅一次'],
+          ['daily', '每天重复'],
+          ['weekly', '每周（指定星期）'],
+          ['interval', '每隔 N 天']
+        ].map(([v, n]) => `<option value="${v}" ${v === initial.repeatRule.type ? 'selected' : ''}>${n}</option>`).join('')}</select>
+      </label>
+      <label>提醒时间（选填）
+        <input name="reminderTime" type="time" value="${esc(initial.reminderTime || '')}">
+      </label>
+    </div>
+    <div id="weekly" class="weekdays">
+      ${[0, 1, 2, 3, 4, 5, 6].map(d => `<label><input type="checkbox" name="days" value="${d}" ${initial.repeatRule.days?.includes(d) ? 'checked' : ''}><span>${'日一二三四五六'[d]}</span></label>`).join('')}
+    </div>
+    <label id="interval">间隔天数
+      <input name="interval" type="number" min="1" max="3650" value="${initial.repeatRule.interval || 2}">
+    </label>
+    <label class="inline"><input name="enabled" type="checkbox" ${initial.enabled ? 'checked' : ''}> 启用此学习计划</label>
+    ${t ? '<label>修改范围<select name="scope"><option value="day">仅修改此执行日</option><option value="future">此执行日及以后的计划</option></select></label>' : ''}
+    <button class="primary full">保存学习计划</button>
+  </form>`);
+  const update = () => {
+    $('#weekly').hidden = $('#repeat').value !== 'weekly';
+    $('#interval').hidden = $('#repeat').value !== 'interval';
+  };
+  $('#repeat').onchange = update;
+  update();
+  $('#task-form').onsubmit = async e => {
+    e.preventDefault();
+    const f = new FormData(e.target),
+          rule = {
+            type: f.get('repeat'),
+            days: f.getAll('days').map(Number),
+            interval: Number(f.get('interval'))
+          };
+    if (rule.type === 'weekly' && !rule.days.length) return toast('请至少选择一个星期');
+    if (rule.type === 'interval' && (!Number.isInteger(rule.interval) || rule.interval < 1)) return toast('请输入有效的间隔天数');
+    const title = f.get('title').trim(),
+          subId = f.get('subjectId'),
+          scope = f.get('scope');
+    saveTask(data, {
+      title,
+      description: f.get('description'),
+      subjectId: subId,
+      startDate: initial.startDate,
+      endDate: initial.endDate || '',
+      reminderTime: f.get('reminderTime') || '',
+      durationMinutes: Number(f.get('durationMinutes')) || 20,
+      repeatRule: rule,
+      enabled: f.has('enabled')
+    }, t, t?.date, scope);
+    recordLog(
+      t ? 'edit' : 'add',
+      title,
+      subId,
+      t ? (scope === 'day' ? `仅修改 ${t.date} 当日` : `修改 ${t.date} 及后续计划`) : `起始日期：${initial.startDate}`
+    );
+    await persist();
+    dialog.close();
+  };
+}
+
+function remove(t) {
+  if (!canDeleteTask()) return;
+  show(`<form id="delete-form">
+    <div class="modal-head">
+      <h2>🗑️ 删除学习任务</h2>
+      <button type="button" data-close>✕</button>
+    </div>
+    <p>确定删除「${esc(t.title)}」？历史完成记录会保留。</p>
+    <label>删除范围
+      <select name="scope">
+        <option value="day">仅删除此执行日</option>
+        <option value="future">终止此执行日及后续计划</option>
+        <option value="series">删除整个任务系列</option>
+      </select>
+    </label>
+    <button class="danger full">确认删除</button>
+  </form>`);
+  $('#delete-form').onsubmit = async e => {
+    e.preventDefault();
+    const scope = new FormData(e.target).get('scope');
+    const scopeLabels = {
+      day: `仅删除 ${t.date} 当日`,
+      future: `终止 ${t.date} 及后续计划`,
+      series: '删除整个任务系列'
+    };
+    deleteTask(data, t.id, t.date, scope);
+    recordLog('delete', t.title, t.subjectId, scopeLabels[scope] || '');
+    await persist();
+    dialog.close();
+  };
+}
+
+function settingsHTML() {
+  const pins = data.pins || defaultPins();
+  return `<section class="settings single-stage-drawer ${drawerCascadeAnim ? 'ios-drawer-cascade' : ''}">
+    <div class="settings-hero">
+      <div>
+        <span class="hero-pill">⚙ 系统控制室 · 父母专属</span>
+        <h1>设置与云端数据同步</h1>
+        <p class="hero-sub">管理家庭成员登录密码、GitHub 私有仓库实时同步及本机安全备份。</p>
+      </div>
+      <div class="settings-status-badge">
+        <span class="sync-dot ${status.includes('失败') ? 'err' : status.includes('已同步') ? 'ok' : ''}"></span>
+        <strong>${esc(status)}</strong>
+      </div>
+    </div>
+
+    <form id="pin-form" class="panel settings-panel">
+      <div class="pin-panel-head">
+        <div>
+          <h2>🔑 家庭账号与登录密码管理</h2>
+          <p class="hint">直接在此修改各角色登录密码，保存后自动加密同步至所有家庭设备。</p>
+        </div>
+        <button type="button" id="toggle-pin-view" class="pin-eye-btn">👁 显示密码</button>
+      </div>
+      ${pins.updatedAt ? `<p class="perm-meta" style="display:inline-block;margin:0 0 12px">最近由 ${esc(pins.updatedBy)} 修改于 ${esc(new Date(pins.updatedAt).toLocaleString('zh-CN'))}</p>` : ''}
+      <div class="pin-grid">
+        <label class="pin-card">
+          <span>👶 宝宝密码（账号：<b>baobao</b>）</span>
+          <input name="pin_baobao" class="pin-input" type="password" required maxlength="32" value="${esc(getAccountPin('baobao'))}" placeholder="设置宝宝密码">
+        </label>
+        <label class="pin-card">
+          <span>👨 爸爸密码（账号：<b>baba</b>）</span>
+          <input name="pin_baba" class="pin-input" type="password" required maxlength="32" value="${esc(getAccountPin('baba'))}" placeholder="设置爸爸密码">
+        </label>
+        <label class="pin-card">
+          <span>👩 妈妈密码（账号：<b>mama</b>）</span>
+          <input name="pin_mama" class="pin-input" type="password" required maxlength="32" value="${esc(getAccountPin('mama'))}" placeholder="设置妈妈密码">
+        </label>
+      </div>
+      <div class="buttons" style="margin-top:16px">
+        <button type="submit" class="primary">保存并同步新密码</button>
+      </div>
+    </form>
+
+    <form id="config" class="panel settings-panel">
+      <h2>☁ 连接 GitHub 私有云仓库</h2>
+      <p class="hint">连接诊断版 12（支持在线改密 + 动态权限 + 审计日志 + MQTT 秒级推送）</p>
+      <p role="status" class="sync-status-line">当前状态：<strong>${esc(status)}</strong></p>
+      <label>GitHub 个人访问令牌 (Fine-grained Token)
+        <input name="token" type="password" required autocomplete="off" value="${esc(config.token || '')}" placeholder="github_pat_...">
+      </label>
+      <div class="buttons" style="margin:10px 0">
+        <button type="button" id="load-repos">读取私有仓库</button>
+      </div>
+      <p id="repo-message" class="hint" role="status"></p>
+      <label id="repo-label" ${config.owner && config.repo ? '' : 'hidden'}>数据仓库
+        <select name="repository" id="repository">
+          ${config.owner && config.repo ? `<option value="${esc(config.owner + '/' + config.repo)}">${esc(config.owner + '/' + config.repo)}</option>` : '<option value="">请先读取仓库</option>'}
+        </select>
+      </label>
+      <p class="hint">仅需授权指定私有数据仓库的 Contents 读写权限。Token 仅保存在本设备本地，不进入云端同步与 JSON 备份文件。</p>
+      <div class="buttons">
+        <button class="primary">保存并测试连接</button>
+        <button type="button" id="clear-token" class="danger">清除本机 Token</button>
+      </div>
+    </form>
+
+    <section class="panel settings-panel">
+      <h2>💾 本机备份与恢复</h2>
+      <p>定期导出一份 JSON 学习数据，换设备或断网归档都安心。</p>
+      <div class="buttons">
+        <button type="button" id="export" class="primary">导出 JSON 备份</button>
+        <label class="file-button">导入备份<input id="import" type="file" accept="application/json,.json" hidden></label>
+        <button type="button" id="history">查看历史完成记录</button>
+      </div>
+      <p class="hint">恢复备份会按记录三方合并，安全保留历史完成状态。</p>
+    </section>
+  </section>`;
+}
+
+function bindSettings() {
+  const pinForm = $('#pin-form'), toggleBtn = $('#toggle-pin-view');
+  if (toggleBtn && pinForm) {
+    let showPlain = false;
+    toggleBtn.onclick = () => {
+      showPlain = !showPlain;
+      pinForm.querySelectorAll('.pin-input').forEach(inp => (inp.type = showPlain ? 'text' : 'password'));
+      toggleBtn.textContent = showPlain ? '🙈 隐藏密码' : '👁 显示密码';
+    };
+    pinForm.onsubmit = async e => {
+      e.preventDefault();
+      const f = new FormData(pinForm);
+      const pBaobao = String(f.get('pin_baobao') || '').trim();
+      const pBaba   = String(f.get('pin_baba') || '').trim();
+      const pMama   = String(f.get('pin_mama') || '').trim();
+      if (!pBaobao || !pBaba || !pMama) return toast('密码不能为空');
+
+      const changed = [];
+      if (pBaobao !== getAccountPin('baobao')) changed.push('宝宝');
+      if (pBaba !== getAccountPin('baba')) changed.push('爸爸');
+      if (pMama !== getAccountPin('mama')) changed.push('妈妈');
+      if (!changed.length) return toast('密码未发生变化');
+
+      data.pins = {
+        baobao: pBaobao,
+        baba: pBaba,
+        mama: pMama,
+        updatedAt: Date.now(),
+        updatedBy: currentUser.name
+      };
+      if (currentUser) {
+        safeSetStorage('lyc_study_auth_user', JSON.stringify({
+          username: currentUser.username,
+          pin: data.pins[currentUser.username]
+        }));
+      }
+      recordLog('edit', `修改了【${changed.join('、')}】的登录密码`, 'all', '安全设置变更');
+      toast('新密码已保存，正在同步至所有设备…');
+      await persist();
+    };
+  }
+
+  const form = $('#config'),
+        tokenInput = form.elements.token,
+        select = $('#repository'),
+        message = $('#repo-message'),
+        loadButton = $('#load-repos');
+  let generation = 0;
+  const directButton = document.createElement('button');
+  directButton.type = 'button';
+  directButton.textContent = '直接验证 online 仓库';
+  loadButton.after(directButton);
+  directButton.onclick = async () => {
+    const token = tokenInput.value.trim(), version = ++generation;
+    if (!token) { message.textContent = '请先粘贴令牌。'; return; }
+    loadButton.disabled = false;
+    message.textContent = '正在验证 xfdliujin-netizen/online…';
+    try {
+      await client({ owner: 'xfdliujin-netizen', repo: 'online', token }).test();
+      if (version !== generation || !form.isConnected) return;
+      select.innerHTML = '<option value="xfdliujin-netizen/online">xfdliujin-netizen/online</option>';
+      $('#repo-label').hidden = false;
+      message.textContent = '仓库可访问，点击保存并测试连接以开始同步。';
+    } catch (e) {
+      if (version === generation) {
+        message.textContent = e.status === 404
+          ? '当前令牌无法访问 online（404）。请确认已点击 Update 保存授权，且填写的是这枚令牌。'
+          : e.message;
+      }
+    }
+  };
+  tokenInput.oninput = () => {
+    generation++;
+    select.innerHTML = '<option value="">请先读取仓库</option>';
+    $('#repo-label').hidden = true;
+    message.textContent = '';
+    loadButton.disabled = false;
+  };
+  loadButton.onclick = async () => {
+    const token = tokenInput.value.trim(), version = ++generation;
+    if (!token) { message.textContent = '请先粘贴令牌。'; return; }
+    loadButton.disabled = true;
+    message.textContent = '正在读取私有仓库…';
+    try {
+      const repos = await privateRepositories(token);
+      if (version !== generation || !form.isConnected) return;
+      select.innerHTML = (repos.length === 1 ? '' : '<option value="">请选择数据仓库</option>') +
+        repos.map(r => '<option value="' + esc(r.owner + '/' + r.repo) + '">' + esc(r.owner + '/' + r.repo) + '</option>').join('');
+      $('#repo-label').hidden = !repos.length;
+      message.textContent = !repos.length
+        ? '未找到可用私有仓库。请先在 GitHub 创建私有仓库，并给令牌授权该仓库的 Contents 读写权限。'
+        : repos.length === 1
+          ? '已自动选中，点击下方保存即可。'
+          : '请选择用于存放学习记录的仓库。';
+    } catch (e) {
+      if (version === generation) message.textContent = e.message;
+    } finally {
+      if (version === generation) loadButton.disabled = false;
+    }
+  };
+  $('#config').onsubmit = async e => {
+    e.preventDefault();
+    const fields = new FormData(e.target), repository = fields.get('repository');
+    if (!repository) return toast('请先读取并选择私有仓库');
+    const [owner, repo] = repository.split('/'),
+          next = { owner, repo, token: fields.get('token').trim() };
+    try {
+      await client(next).test();
+      config = next;
+      await write('config', config);
+      base = (await read('base:' + config.owner + '/' + config.repo)) || emptyData();
+      setupRealtimePush();
+      toast('连接成功');
+      await sync();
+    } catch (e) {
+      message.textContent = e.message;
+      toast(e.message);
+    }
+  };
+  $('#clear-token').onclick = async () => {
+    config.token = '';
+    await write('config', config);
+    status = '本地模式';
+    render();
+    toast('本设备 Token 已清除');
+  };
+  $('#export').onclick = () => {
+    const a = document.createElement('a'),
+          url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+    a.href = url;
+    a.download = `study-planner-${today()}.json`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+  $('#import').onchange = async e => {
+    try {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const incoming = validate(JSON.parse(await file.text()));
+      data = merge(emptyData(), data, incoming, choose);
+      await persist();
+      toast('备份已安全合并恢复');
+    } catch (err) {
+      toast(err.message);
+    }
+  };
+  $('#history').onclick = () => {
+    const records = Object.values(data.completions).filter(r => r.status).sort((a, b) => b.occurrenceDate.localeCompare(a.occurrenceDate));
+    show(`<div class="modal-head"><h2>🏆 学习完成记录</h2><button type="button" data-close>✕</button></div><div class="history-modal-list">${records.map(r => `<p><span>📅 ${esc(r.occurrenceDate)}</span> <strong>${esc(data.tasks[r.taskId]?.title || '历史任务')}</strong> <b>✓</b></p>`).join('') || '<p>完成第一个任务后，记录会出现在这里。</p>'}</div>`);
+  };
+}
+
+function choose(group, id, l, r) {
+  return (l.updatedAt || '') >= (r.updatedAt || '') ? l : r;
+}
+
+function isEditing() {
+  return !currentUser || screen === 'settings' || dialog.open || document.activeElement?.matches('input,textarea,select,[contenteditable="true"]');
+}
+
+let lastAutoSync = 0;
+
+function updateSyncStatus() {
+  const button = $('#sync');
+  if (button) button.innerHTML = `<span class="sync-dot ${status.includes('失败') ? 'err' : status.includes('已同步') ? 'ok' : ''}"></span><span>☁ ${esc(status)}</span>`;
+}
+
+// ================= 实时推送同步模块 (MQTT over WebSocket) =================
+const myDeviceId = 'dev_' + Math.random().toString(36).slice(2, 10);
+let mqttClient = null, currentTopic = '', pendingRemotePull = false;
+
+function getSyncTopic() {
+  const repoPath = (config.owner && config.repo) ? `${config.owner}_${config.repo}` : 'xfdliujin-netizen_online';
+  return `lyc_study_planner_sync_2026/${repoPath}`;
+}
+
+let mqttLoading = false;
+function ensureMqttLoaded(cb) {
+  if (window.mqtt) { cb(); return; }
+  if (mqttLoading || !navigator.onLine) return;
+  mqttLoading = true;
+  const sc = document.createElement('script');
+  sc.async = true;
+  sc.src = 'https://cdn.jsdelivr.net/npm/mqtt@5.10.3/dist/mqtt.min.js';
+  sc.onload = () => { mqttLoading = false; if (window.mqtt) cb(); };
+  sc.onerror = () => { mqttLoading = false; };
+  document.head.appendChild(sc);
+}
+
+function setupRealtimePush() {
+  if (!window.mqtt) { ensureMqttLoaded(setupRealtimePush); return; }
+  const topic = getSyncTopic();
+  if (mqttClient) {
+    if (currentTopic && currentTopic !== topic) {
+      mqttClient.unsubscribe(currentTopic);
+      mqttClient.subscribe(topic);
+      currentTopic = topic;
+    }
+    return;
+  }
+  currentTopic = topic;
+  mqttClient = window.mqtt.connect('wss://broker.emqx.io:8084/mqtt', { keepalive: 60, reconnectPeriod: 5000 });
+  mqttClient.on('connect', () => {
+    if (currentTopic) mqttClient.subscribe(currentTopic);
+  });
+  mqttClient.on('message', (t, message) => {
+    if (t !== currentTopic) return;
+    try {
+      const payload = JSON.parse(message.toString());
+      if (payload.sender !== myDeviceId) {
+        lastAutoSync = 0;
+        if (isEditing() || busy) {
+          pendingRemotePull = true;
+        } else {
+          autoSync(true);
+        }
+      }
+    } catch (e) {}
+  });
+}
+
+function notifyOtherDevices() {
+  if (mqttClient && mqttClient.connected && currentTopic) {
+    mqttClient.publish(currentTopic, JSON.stringify({ sender: myDeviceId, time: Date.now() }));
+  }
+}
+
+async function autoSync(force = false) {
+  if (document.hidden || isEditing() || busy || !navigator.onLine || !config.token || storageFailed || (!force && Date.now() - lastAutoSync < 60000)) return;
+  lastAutoSync = Date.now();
+  await sync({ quiet: true });
+}
+
+async function sync(options = {}) {
+  const quiet = options.quiet === true;
+  if (busy || !config.token || storageFailed) return;
+  if (!navigator.onLine) {
+    status = '等待同步（离线）';
+    if (!quiet && !isEditing()) render();
+    return;
+  }
+  busy = true;
+  status = '同步中';
+  updateSyncStatus();
+  try {
+    const api = client(config);
+    let synced = false, pushed = false;
+    for (let n = 0; n < 3; n++) {
+      const remote = await api.pull();
+      if (quiet && isEditing()) {
+        status = '编辑中，稍后继续同步';
+        return;
+      }
+      const snapshot = structuredClone(data),
+            merged = merge(base, snapshot, remote.data, choose);
+      if (JSON.stringify(merged) !== JSON.stringify(remote.data)) {
+        try {
+          await api.push(merged, remote.sha);
+          pushed = true;
+        } catch (e) {
+          if (e.status === 409) {
+            await new Promise(resolve => setTimeout(resolve, 1000 * (n + 1)));
+            continue;
+          }
+          throw e;
+        }
+      }
+      data = merge(snapshot, data, merged, choose);
+      base = merged;
+      await write('data', data);
+      await write('base:' + config.owner + '/' + config.repo, base);
+      synced = true;
+      break;
+    }
+    if (!synced) throw Error('多设备正在修改，请稍后重试');
+    status = '已同步';
+    if (pushed) notifyOtherDevices();
+  } catch (e) {
+    status = '同步失败：' + e.message;
+    if (!quiet) toast(e.message);
+  } finally {
+    busy = false;
+    if (!isEditing()) render();
+    if (pendingRemotePull && !isEditing()) {
+      pendingRemotePull = false;
+      autoSync(true);
+    }
+  }
+}
+
+(async function bootApp() {
+  try {
+    // 立即先渲染一次默认界面，确保页面零延迟秒开不白屏
+    if (!safeGetStorage('lyc_study_auth_user')) {
+      safeSetStorage('lyc_study_auth_user', JSON.stringify({ username: 'baba', pin: getAccountPin('baba') }));
+    }
+    verifySavedSession();
+    render();
+
+    await openDB();
+    const savedData = await read('data');
+    if (savedData) data = validate(savedData);
+    config = (await read('config')) || {};
+    base = (await read('base:' + config.owner + '/' + config.repo)) || emptyData();
+    verifySavedSession();
+    if (Object.keys(data.tasks || {}).length === 0 && !safeGetStorage('lyc_study_seeded_v1')) {
+      await seedStarterTasks(true);
+    } else {
+      render();
+    }
+    setupRealtimePush();
+    sync();
+  } catch (e) {
+    render();
+  }
+})();
+
+window.addEventListener('online', () => {
+  lastAutoSync = 0;
+  autoSync(true);
+});
+window.addEventListener('offline', () => {
+  status = '等待同步（离线）';
+  if (!isEditing()) render();
+});
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) autoSync(false);
+});
+dialog.addEventListener('close', () => {
+  if (pendingRemotePull) {
+    pendingRemotePull = false;
+    autoSync(true);
+  }
+});
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.protocol === 'http:')) { navigator.serviceWorker.register('./sw.js').catch(() => {}); }
+        })();
+      }
+    }, 60);
+  });
+  </script>
+</body>
+</html>

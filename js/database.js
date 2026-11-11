@@ -1,13 +1,41 @@
 const DB_NAME = 'study-planner-db', STORE = 'kv';
-let dbPromise;
+let dbPromise = null;
+const memStore = new Map();
+
+function safeLocalGet(key) {
+  try {
+    const raw = localStorage.getItem('sp_kv_' + key);
+    return raw ? JSON.parse(raw) : undefined;
+  } catch (e) {
+    return memStore.get(key);
+  }
+}
+
+function safeLocalSet(key, val) {
+  memStore.set(key, val);
+  try {
+    localStorage.setItem('sp_kv_' + key, JSON.stringify(val));
+  } catch (e) {}
+}
 
 export function openDB() {
   if (!dbPromise) {
-    dbPromise = new Promise((resolve, reject) => {
-      const req = indexedDB.open(DB_NAME, 1);
-      req.onupgradeneeded = () => req.result.createObjectStore(STORE);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
+    dbPromise = new Promise(resolve => {
+      try {
+        if (typeof indexedDB === 'undefined') {
+          resolve(null);
+          return;
+        }
+        const req = indexedDB.open(DB_NAME, 1);
+        req.onupgradeneeded = () => {
+          try { req.result.createObjectStore(STORE); } catch (e) {}
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => resolve(null);
+        req.onblocked = () => resolve(null);
+      } catch (e) {
+        resolve(null);
+      }
     });
   }
   return dbPromise;
@@ -15,30 +43,47 @@ export function openDB() {
 
 export async function read(key) {
   const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, 'readonly');
-    const req = tx.objectStore(STORE).get(key);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
+  if (!db) {
+    const v = safeLocalGet(key);
+    return v !== undefined ? v : memStore.get(key);
+  }
+  return new Promise(resolve => {
+    try {
+      const tx = db.transaction(STORE, 'readonly');
+      const req = tx.objectStore(STORE).get(key);
+      req.onsuccess = () => {
+        if (req.result !== undefined) resolve(req.result);
+        else resolve(safeLocalGet(key));
+      };
+      req.onerror = () => resolve(safeLocalGet(key));
+    } catch (e) {
+      resolve(safeLocalGet(key));
+    }
   });
 }
 
 export async function write(key, val) {
+  safeLocalSet(key, val);
   const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, 'readwrite');
-    tx.objectStore(STORE).put(val, key);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
+  if (!db) return;
+  return new Promise(resolve => {
+    try {
+      const tx = db.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).put(val, key);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => resolve();
+    } catch (e) {
+      resolve();
+    }
   });
 }
 
 export function defaultKidPerms() {
   return {
-    canAdd: false,      // 允许添加任务
-    canEdit: false,     // 允许编辑修改任务
+    canAdd: true,       // 默认允许添加任务，方便直接使用
+    canEdit: true,      // 默认允许编辑修改任务
     canDelete: false,   // 允许删除任务
-    canReport: false,   // 允许查看周报月报
+    canReport: true,    // 默认允许查看周报月报
     updatedAt: 0,
     updatedBy: '系统默认'
   };

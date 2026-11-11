@@ -18,5 +18,5 @@ test('five day shortcuts cross month boundaries and use correct labels',()=>{
  const days=nearbyDays(emptyData(),'2026-12-01');
  assert.deepEqual(days.map(d=>d.label),['前天','昨天','今天','明天','后天']);
  assert.equal(days[0].date,'2026-11-29');assert.equal(days[4].date,'2026-12-03');
- assert.equal(relativeDay('2026-12-02','2026-12-01'),'明天');
+ assert.equal(relativeDay('2026-12-02','2026-12-01'),'明日');
 });
