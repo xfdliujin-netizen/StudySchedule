@@ -1,49 +1,59 @@
-/* ================= 首页右侧紧凑自适应三科进度卡片条 (Compact Adaptive Subject Strip) ================= */
+/* ================= 首页右侧紧凑自适应三科进度卡片条（零换行干涉） ================= */
 .home-board {
-  margin-bottom: 16px;
-  padding-bottom: 14px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
   border-bottom: 1px dashed #e2e8f0;
+  flex-shrink: 0;
 }
 
 .board-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 8px;
+  margin-bottom: 7px;
+  flex-wrap: nowrap;
 }
 
 .board-heading-left {
   display: flex;
   align-items: baseline;
   gap: 8px;
+  min-width: 0;
 }
 
 .board-heading h2 {
-  font-size: 15.5px;
+  font-size: 14.5px;
   font-weight: 800;
   color: #1e293b;
   margin: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .board-sub-hint {
-  font-size: 11.5px;
+  font-size: 11px;
   color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .board-date-pill {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
-  padding: 2px 9px;
+  padding: 2px 8px;
   border-radius: 999px;
   background: #f1f5f9;
   color: #475569;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .home-subject-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 .subject-summary {
@@ -57,15 +67,15 @@
   flex-direction: column;
   justify-content: space-between;
   width: 100%;
-  min-height: 82px;
+  min-height: 68px;
   margin: 0;
-  padding: 11px 13px;
+  padding: 9px 11px;
   text-align: left;
-  border-radius: 16px;
+  border-radius: 14px;
   background: var(--board-light);
   border: 1px solid color-mix(in srgb, var(--board) 28%, white);
   color: var(--board-ink);
-  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.22s ease;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease;
 }
 
 .subject-summary.board-math {
@@ -84,15 +94,15 @@
   position: absolute;
   inset: 0 auto 0 0;
   z-index: -1;
-  background: color-mix(in srgb, var(--board) 26%, white);
+  background: color-mix(in srgb, var(--board) 25%, white);
   transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-  border-right: 1.5px solid color-mix(in srgb, var(--board) 42%, transparent);
+  border-right: 1.5px solid color-mix(in srgb, var(--board) 40%, transparent);
   pointer-events: none;
 }
 
 .subject-summary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px -8px color-mix(in srgb, var(--board) 35%, transparent);
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--board) 35%, transparent);
 }
 
 .summary-top {
@@ -100,54 +110,54 @@
   align-items: center;
   justify-content: space-between;
   gap: 6px;
+  flex-wrap: nowrap;
 }
 
 .summary-icon-wrap {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
+  flex-wrap: nowrap;
 }
 
 .board-icon {
   display: inline-grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.85);
-  font-size: 15px;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.88);
+  font-size: 13.5px;
   font-weight: 800;
   flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
 }
 
-.summary-title-group {
-  min-width: 0;
-}
-
-.summary-title-group strong {
-  display: block;
-  font-size: 15px;
+.summary-subject-name {
+  font-size: 14.5px;
   font-weight: 800;
-  line-height: 1.15;
+  line-height: 1.1;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.summary-title-group small {
-  display: block;
+.summary-subject-tag {
   font-size: 10.5px;
-  opacity: 0.75;
+  opacity: 0.72;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .summary-percent {
-  font-size: 13.5px;
+  font-size: 12px;
   font-weight: 800;
-  padding: 2px 7px;
+  padding: 1.5px 6px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.82);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .summary-bottom {
@@ -155,45 +165,43 @@
   align-items: center;
   justify-content: space-between;
   gap: 6px;
-  margin-top: 8px;
-  font-size: 12px;
+  margin-top: 6px;
+  font-size: 11.5px;
+  flex-wrap: nowrap;
 }
 
 .summary-count {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .summary-count strong {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
 }
 
-.summary-count em {
-  font-style: normal;
+.summary-pending-tag {
   font-size: 11px;
-  margin-left: 4px;
-  opacity: 0.85;
+  font-weight: 700;
+  opacity: 0.88;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.board-arrow {
-  display: grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.75);
-  font-size: 14px;
-  font-weight: 800;
-  line-height: 1;
+/* 中等宽度平板隐去副标题，确保语文/数学/英语与百分比永不碰撞 */
+@media (max-width: 1150px) {
+  .summary-subject-tag {
+    display: none;
+  }
 }
 
 /* ================= 任务表单星期选择器 & 完成庆祝烟花动效 ================= */
 #task-form .weekdays {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 7px;
-  margin: 12px 0 16px;
+  gap: 6px;
+  margin: 10px 0 14px;
 }
 
 #task-form .weekdays label {
@@ -214,12 +222,12 @@
 #task-form .weekdays span {
   display: grid;
   place-items: center;
-  height: 40px;
+  height: 38px;
   border: 1px solid #cbd5e1;
-  border-radius: 11px;
+  border-radius: 10px;
   background: #f8fafc;
   color: #475569;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
 }
 
@@ -250,7 +258,7 @@
   border-radius: 22px;
   box-shadow: 0 0 0 8px rgba(255, 207, 76, 0.26), 0 18px 70px rgba(0, 0, 0, 0.55);
   padding: 20px 30px;
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 800;
   text-align: center;
   width: max-content;
@@ -281,19 +289,19 @@
   12%, 85% { opacity: 1; }
 }
 
-/* ================= 手机端三科概览条极简紧凑适配 (单行3列胶囊，绝不挤占核心任务空间) ================= */
+/* ================= 手机端三科概览条极简紧凑适配 (单行3列胶囊，绝不换行) ================= */
 @media (max-width: 700px) {
   .home-board {
-    margin-bottom: 10px;
-    padding-bottom: 10px;
+    margin-bottom: 7px;
+    padding-bottom: 7px;
   }
 
   .board-heading {
-    margin-bottom: 6px;
+    margin-bottom: 5px;
   }
 
   .board-heading h2 {
-    font-size: 13.5px;
+    font-size: 13px;
   }
 
   .board-sub-hint {
@@ -301,43 +309,43 @@
   }
 
   .board-date-pill {
-    font-size: 10px;
-    padding: 1px 7px;
+    font-size: 9.5px;
+    padding: 1px 6px;
   }
 
   .home-subject-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
+    gap: 5px;
   }
 
   .subject-summary {
-    min-height: 58px;
-    padding: 7px 9px;
-    border-radius: 13px;
+    min-height: 48px;
+    padding: 6px 8px;
+    border-radius: 11px;
+  }
+
+  .summary-icon-wrap {
+    gap: 4px;
   }
 
   .board-icon {
-    width: 22px;
-    height: 22px;
-    font-size: 12px;
-    border-radius: 7px;
+    width: 20px;
+    height: 20px;
+    font-size: 11px;
+    border-radius: 6px;
   }
 
-  .summary-title-group strong {
-    font-size: 13px;
-  }
-
-  .summary-title-group small {
-    display: none;
+  .summary-subject-name {
+    font-size: 12.5px;
   }
 
   .summary-percent {
-    font-size: 11px;
-    padding: 1px 5px;
+    font-size: 10.5px;
+    padding: 1px 4px;
   }
 
   .summary-bottom {
-    margin-top: 4px;
+    margin-top: 3px;
   }
 
   .summary-count {
@@ -345,11 +353,10 @@
   }
 
   .summary-count strong {
-    font-size: 12px;
+    font-size: 11.5px;
   }
 
-  .summary-count em,
-  .board-arrow {
-    display: none;
+  .summary-pending-tag {
+    font-size: 10px;
   }
 }

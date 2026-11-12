@@ -20,13 +20,16 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({
 document.addEventListener('gesturestart', e => e.preventDefault());
 document.addEventListener('gesturechange', e => e.preventDefault());
 
+const __memLS = {};
 function safeGetStorage(key) {
-  try { return localStorage.getItem(key); } catch (e) { return null; }
+  try { return localStorage.getItem(key) ?? __memLS[key] ?? null; } catch (e) { return __memLS[key] ?? null; }
 }
 function safeSetStorage(key, val) {
+  __memLS[key] = String(val);
   try { localStorage.setItem(key, val); } catch (e) {}
 }
 function safeRemoveStorage(key) {
+  delete __memLS[key];
   try { localStorage.removeItem(key); } catch (e) {}
 }
 
@@ -166,15 +169,15 @@ async function seedStarterTasks(silent = false) {
   for (const item of samples) {
     saveTask(data, item);
   }
-  // 默认标记部分今日与往日任务已完成，使进度环和周报趋势图立即呈现丰富效果
+  // 标记往日任务全部完成（避免往期未完成任务叠加到今日产生重复卡片），今日完成 2 项、待学 3 项
+  for (let offset = 1; offset <= 5; offset++) {
+    const pastDate = shiftDate(d, -offset);
+    const pastList = instances(data, pastDate, false);
+    pastList.forEach(item => complete(data, item));
+  }
   const todayList = instances(data, d, false);
   if (todayList[0]) complete(data, todayList[0]);
   if (todayList[2]) complete(data, todayList[2]);
-  for (let offset = 1; offset <= 4; offset++) {
-    const pastDate = shiftDate(d, -offset);
-    const pastList = instances(data, pastDate, false);
-    pastList.slice(0, Math.max(1, 5 - offset)).forEach(item => complete(data, item));
-  }
   recordLog('add', '初始化语数英核心学习计划（5项）', 'all', '包含语文、数学、英语每日核心任务');
   safeSetStorage('lyc_study_seeded_v1', '1');
   if (!silent) toast('已载入 5 项语数英学习任务 🌟');
@@ -776,11 +779,11 @@ function render() {
       : screen === 'reports'
         ? reportsHTML()
         : `<div class="ipad-shell ${centerDrawerCollapsed ? 'center-collapsed' : ''} ${drawerCascadeAnim ? 'ios-drawer-cascade' : ''}">
+          <button type="button" class="drawer-edge-handle" id="toggle-center-drawer" aria-label="${centerDrawerCollapsed ? '展开概览抽屉' : '收起概览抽屉'}" title="${centerDrawerCollapsed ? '拉开概览抽屉' : '收起概览抽屉'}">
+            <span>${centerDrawerCollapsed ? '›' : '‹'}</span>
+          </button>
           <!-- 第二段：中间概览与日历抽屉 (Stage 2 Center Drawer) -->
           <div class="ipad-center">
-            <button type="button" class="drawer-edge-handle" id="toggle-center-drawer" aria-label="${centerDrawerCollapsed ? '展开概览抽屉' : '收起概览抽屉'}" title="${centerDrawerCollapsed ? '拉开概览抽屉' : '收起概览抽屉'}">
-              <span>${centerDrawerCollapsed ? '›' : '‹'}</span>
-            </button>
 
             <!-- 顶部紧凑主题横幅（手机端自动融合成轻量状态条） -->
             <section class="hero-banner hero-${home ? 'home' : subject}">
@@ -808,7 +811,6 @@ function render() {
               <div class="planner-heading">
                 <h2>📅 ${home ? '学习日历' : theme.name + '日历'}</h2>
                 <label class="date" aria-label="选择日期">
-                  <span>跳至</span>
                   <input type="date" id="date" value="${date}" aria-label="查看日期">
                 </label>
               </div>
@@ -845,7 +847,7 @@ function render() {
                 <strong>${view.pending}<small> 项</small></strong>
               </button>
               <button type="button" class="stat green ${filter === 'done' ? 'stat-active' : ''}" data-filter="done">
-                <span class="stat-label">✅ ${esc(day)}已学</span>
+                <span class="stat-label">✅ 已学习</span>
                 <strong>${view.done}<small> 项</small></strong>
               </button>
             </section>
@@ -865,10 +867,12 @@ function render() {
 
           <!-- 第三段：右侧核心学习任务抽屉 (Stage 3 Primary Task Drawer) -->
           <div class="ipad-right">
-            ${centerDrawerCollapsed ? `<button type="button" class="expand-center-banner" id="expand-center-btn">
-              <span>⇥ 展开左侧「${esc(day)}日历与进度概览」抽屉</span>
-              <strong>${view.done}/${view.total} 项 (${view.percent}%)</strong>
-            </button>` : ''}
+            <div class="right-top-status-bar ${centerDrawerCollapsed ? 'always-show' : 'portrait-only'}">
+              <button type="button" class="expand-center-banner" id="expand-center-btn">
+                <span>⇥ ${centerDrawerCollapsed ? '展开' : '日历与概览抽屉'} · ${esc(day)} (${date.slice(5)})</span>
+                <strong>已完成 ${view.done}/${view.total} 项 (${view.percent}%)</strong>
+              </button>
+            </div>
 
             ${home ? homeBoard(data, date) : ''}
 
@@ -1104,8 +1108,7 @@ function cardHTML(t, idx = 0) {
         <div class="task-heading">
           <span class="subject-tag ${subMeta.cls}"><b>${subMeta.icon}</b> ${subMeta.name}</span>
           <span class="state ${t.done ? 'state-done' : 'state-pending'}">${t.done ? '✅ 已完成' : '🔥 待学习'}</span>
-          <span class="duration-pill">⏱ ${mins}分钟</span>
-          ${t.reminderTime ? `<span class="time-pill">⏰ ${esc(t.reminderTime)}</span>` : ''}
+          <span class="duration-pill">⏱ ${mins}分</span>
         </div>
         ${(allowEdit || allowDel) ? `<div class="task-actions">
           ${allowEdit ? `<button type="button" data-action="edit" data-key="${esc(t.key)}" aria-label="编辑任务">编辑</button>` : ''}
@@ -1116,6 +1119,7 @@ function cardHTML(t, idx = 0) {
       ${t.description ? `<p>${esc(t.description)}</p>` : ''}
       <div class="meta">
         <span>📅 ${t.date}</span>
+        ${t.reminderTime ? `<span>⏰ ${esc(t.reminderTime)}</span>` : ''}
         <span>↻ ${esc(repeatLabel(t.repeatRule))}</span>
         ${t.done && t.completedAt ? `<span class="done-time-tag">🎉 完成于 ${esc(new Date(t.completedAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }))}</span>` : ''}
       </div>

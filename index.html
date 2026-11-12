@@ -4,6 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#eff7ff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="小小学习家">
   <meta name="description" content="儿童学习计划与家庭同步。">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
@@ -13,29 +17,38 @@
   <title>小小学习家 · Kids Study Planner</title>
   <style id="inline-fallback-styles">
 :root {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Segoe UI', sans-serif;
   color: #1e293b;
-  background: #f1f5f9;
-  font-size: 16px;
-  line-height: 1.5;
+  background: #eef2f8;
+  font-size: 15px;
+  line-height: 1.45;
   font-synthesis: none;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 * {
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
-html {
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  user-select: none;
+  -webkit-user-select: none;
+  background: #eef2f8;
 }
 
-body {
-  margin: 0;
-  touch-action: pan-y;
-  background: #eef2f8;
-  overflow-x: hidden;
+input, textarea {
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 button, input, select, textarea {
@@ -46,12 +59,12 @@ button {
   cursor: pointer;
   border: 0;
   border-radius: 12px;
-  padding: 10px 16px;
+  padding: 8px 14px;
   color: inherit;
   background: #e2e8f0;
   font-weight: 600;
+  white-space: nowrap;
   transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), background 0.2s ease, box-shadow 0.2s ease;
-  -webkit-tap-highlight-color: transparent;
 }
 
 button:hover {
@@ -63,7 +76,7 @@ button:active {
 }
 
 button:focus-visible, a:focus-visible {
-  outline: 3px solid #f59e0b;
+  outline: 2.5px solid #f59e0b;
   outline-offset: 2px;
 }
 
@@ -74,6 +87,22 @@ a {
 
 [hidden] {
   display: none !important;
+}
+
+/* 精致自定义桌面级滚动条 */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.38);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.55);
 }
 
 /* ================= 六大页面专属主题色彩系统 ================= */
@@ -87,7 +116,9 @@ a {
   --page-bg: radial-gradient(1200px 600px at 15% 0%, rgba(147, 197, 253, 0.28), transparent 70%),
              radial-gradient(900px 500px at 90% 10%, rgba(199, 210, 254, 0.25), transparent 65%),
              #eef2f8;
-  min-height: 100vh;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
   background: var(--page-bg);
   transition: background 0.4s ease;
 }
@@ -131,118 +162,132 @@ a {
              #eef8f4 !important;
 }
 
-/* ================= 第一段：左侧加宽美学 iOS 玻璃导航栏 (Stage 1 Sidebar) ================= */
+/* ================= 第一段：左侧桌面级毛玻璃导航栏 (Stage 1 Sidebar) ================= */
 aside.app-sidebar {
   position: fixed;
   inset: 0 auto 0 0;
-  width: 244px;
-  background: rgba(255, 255, 255, 0.86);
+  width: 224px;
+  height: 100dvh;
+  background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(28px) saturate(190%);
   -webkit-backdrop-filter: blur(28px) saturate(190%);
-  border-right: 1px solid rgba(226, 232, 240, 0.9);
-  box-shadow: 12px 0 36px -14px rgba(15, 23, 42, 0.08);
-  padding: 22px 16px 18px;
+  border-right: 1px solid rgba(226, 232, 240, 0.92);
+  box-shadow: 10px 0 32px -14px rgba(15, 23, 42, 0.08);
+  padding: 18px 14px 14px;
   display: flex;
   flex-direction: column;
   z-index: 40;
 }
 
 .sidebar-brand-head {
-  padding: 2px 6px 14px;
+  padding: 0 4px 12px;
   border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+  flex-shrink: 0;
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .brand-logo {
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   color: white;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 800;
-  box-shadow: 0 8px 18px -6px color-mix(in srgb, var(--accent) 55%, transparent);
+  box-shadow: 0 6px 16px -4px color-mix(in srgb, var(--accent) 55%, transparent);
   flex-shrink: 0;
+}
+
+.brand-text {
+  min-width: 0;
 }
 
 .brand-text strong {
   display: block;
-  font-size: 18px;
+  font-size: 16.5px;
   font-weight: 800;
   color: #0f172a;
   letter-spacing: -0.01em;
   line-height: 1.2;
+  white-space: nowrap;
 }
 
 .brand-text small {
   display: block;
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   color: #64748b;
-  margin-top: 2px;
+  margin-top: 1px;
+  white-space: nowrap;
 }
 
 .nav-caption {
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 700;
   color: #94a3b8;
-  margin: 16px 10px 8px;
-  letter-spacing: 0.06em;
+  margin: 12px 8px 6px;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 aside.app-sidebar nav {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 aside.app-sidebar nav button {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
   margin: 0;
   background: transparent;
-  padding: 10px 12px;
+  padding: 9px 10px;
   text-align: left;
-  border-radius: 16px;
+  border-radius: 14px;
   color: #334155;
-  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  flex-shrink: 0;
+  transition: all 0.24s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 aside.app-sidebar nav button:hover {
-  background: rgba(241, 245, 249, 0.85);
+  background: rgba(241, 245, 249, 0.9);
   transform: translateX(2px);
 }
 
 aside.app-sidebar nav button.active {
   color: var(--deep);
-  background: linear-gradient(135deg, var(--soft), rgba(255, 255, 255, 0.95));
+  background: linear-gradient(135deg, var(--soft), rgba(255, 255, 255, 0.96));
   box-shadow:
     inset 3.5px 0 0 var(--accent),
-    0 8px 20px -8px color-mix(in srgb, var(--accent) 28%, transparent),
+    0 6px 16px -6px color-mix(in srgb, var(--accent) 28%, transparent),
     0 0 0 1px var(--soft-border);
 }
 
 .nav-icon {
   display: inline-grid;
   place-items: center;
-  flex: 0 0 38px;
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  font-size: 18px;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  font-size: 16px;
   font-weight: 800;
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 aside.app-sidebar nav button.active .nav-icon {
@@ -263,18 +308,19 @@ aside.app-sidebar nav button.active .nav-icon {
 
 .nav-label-group strong {
   display: block;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   line-height: 1.2;
   color: inherit;
+  white-space: nowrap;
 }
 
 .nav-label-group small {
   display: block;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 500;
   color: #64748b;
-  margin-top: 2px;
+  margin-top: 1px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -286,17 +332,18 @@ aside.app-sidebar nav button.active .nav-label-group small {
 }
 
 aside.app-sidebar nav b {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
   background: linear-gradient(135deg, #f43f5e, #e11d48);
   color: white;
   border-radius: 999px;
-  min-width: 22px;
-  height: 22px;
-  line-height: 22px;
-  padding: 0 6px;
+  min-width: 20px;
+  height: 20px;
+  line-height: 20px;
+  padding: 0 5px;
   text-align: center;
-  box-shadow: 0 3px 8px rgba(225, 29, 72, 0.3);
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(225, 29, 72, 0.28);
 }
 
 aside.app-sidebar nav b.badge-soft {
@@ -307,15 +354,16 @@ aside.app-sidebar nav b.badge-soft {
 
 /* 左栏抽屉收展控制胶囊 */
 .drawer-stage-control {
-  margin-top: 12px;
-  padding: 0 4px;
+  margin-top: 8px;
+  padding: 0 2px;
+  flex-shrink: 0;
 }
 
 .drawer-pill-btn {
   width: 100%;
-  padding: 8px 12px;
-  border-radius: 12px;
-  font-size: 12.5px;
+  padding: 7px 10px;
+  border-radius: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: #475569;
   background: #f1f5f9;
@@ -323,7 +371,8 @@ aside.app-sidebar nav b.badge-soft {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
+  white-space: nowrap;
 }
 
 .drawer-pill-btn:hover {
@@ -333,31 +382,32 @@ aside.app-sidebar nav b.badge-soft {
 
 /* 左栏底部：账号卡片 + 同步状态胶囊 */
 .aside-bottom {
-  margin-top: auto;
-  padding-top: 14px;
+  margin-top: 10px;
+  padding-top: 10px;
   border-top: 1px solid rgba(226, 232, 240, 0.8);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
+  flex-shrink: 0;
 }
 
 .sidebar-user-box {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 11px;
-  border-radius: 16px;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 14px;
   background: linear-gradient(135deg, #f8fafc, #f1f5f9);
   border: 1px solid #e2e8f0;
 }
 
 .user-avatar-circle {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   color: white;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
   display: grid;
   place-items: center;
@@ -371,14 +421,17 @@ aside.app-sidebar nav b.badge-soft {
 
 .user-box-info strong {
   display: block;
-  font-size: 13.5px;
+  font-size: 13px;
   color: #0f172a;
-  line-height: 1.2;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .user-box-info small {
   display: block;
-  font-size: 11px;
+  font-size: 10.5px;
   color: #64748b;
   margin-top: 1px;
   white-space: nowrap;
@@ -387,8 +440,8 @@ aside.app-sidebar nav b.badge-soft {
 }
 
 .switch-user-btn {
-  padding: 5px 10px;
-  font-size: 12px;
+  padding: 4px 9px;
+  font-size: 11.5px;
   border-radius: 999px;
   background: white;
   color: var(--accent);
@@ -401,21 +454,25 @@ aside.app-sidebar nav b.badge-soft {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  padding: 8px 12px;
-  border-radius: 12px;
-  background: rgba(241, 245, 249, 0.8);
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 11px;
+  background: rgba(241, 245, 249, 0.85);
   color: #64748b;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sync-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: #f59e0b;
   box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18);
+  flex-shrink: 0;
 }
 
 .sync-dot.ok {
@@ -428,19 +485,24 @@ aside.app-sidebar nav b.badge-soft {
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18);
 }
 
-/* ================= 主工作区容器 & 左中右三段式 iOS 抽屉架构 ================= */
+/* ================= 桌面级固定视口壳容器 & 左中右三段式 iOS 抽屉架构 ================= */
 main {
-  margin-left: 244px;
-  padding: 18px 22px 32px;
-  max-width: 1680px;
-  min-height: 100vh;
+  margin-left: 224px;
+  padding: 14px 16px;
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .ipad-shell {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
   display: grid;
-  grid-template-columns: 334px minmax(0, 1fr);
-  gap: 18px;
-  align-items: start;
+  grid-template-columns: 302px minmax(0, 1fr);
+  gap: 14px;
+  align-items: stretch;
   position: relative;
   transition: grid-template-columns 0.42s cubic-bezier(0.22, 1, 0.36, 1), gap 0.42s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -455,18 +517,20 @@ main {
   position: relative;
   z-index: 20;
   min-width: 0;
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-width: none;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  background: rgba(255, 255, 255, 0.72);
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.78);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.92);
-  border-radius: 26px;
-  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.94);
+  border-radius: 24px;
+  padding: 12px;
   box-shadow:
-    14px 8px 36px -12px rgba(15, 23, 42, 0.08),
-    0 2px 10px rgba(15, 23, 42, 0.03),
+    12px 6px 32px -12px rgba(15, 23, 42, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.95);
   transform-origin: left center;
   transition:
@@ -474,6 +538,10 @@ main {
     opacity 0.34s ease,
     padding 0.34s ease,
     border-width 0.34s ease;
+}
+
+.ipad-center::-webkit-scrollbar {
+  display: none;
 }
 
 .ipad-shell.center-collapsed .ipad-center {
@@ -488,22 +556,26 @@ main {
 /* 中栏右侧边缘的 iOS 抽屉推拉把手 */
 .drawer-edge-handle {
   position: absolute;
-  right: -13px;
+  left: 295px;
   top: 50%;
   transform: translateY(-50%);
-  width: 24px;
-  height: 56px;
+  width: 20px;
+  height: 54px;
   border-radius: 999px;
   background: white;
-  border: 1px solid #dbe3ef;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
-  color: #64748b;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+  color: #475569;
   padding: 0;
   display: grid;
   place-items: center;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 800;
-  z-index: 25;
+  z-index: 35;
+  transition: left 0.42s cubic-bezier(0.22, 1, 0.36, 1), transform 0.2s ease;
+}
+.ipad-shell.center-collapsed .drawer-edge-handle {
+  left: -6px;
 }
 
 .drawer-edge-handle:hover {
@@ -517,39 +589,52 @@ main {
   position: relative;
   z-index: 10;
   min-width: 0;
-  background: rgba(255, 255, 255, 0.82);
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(22px) saturate(175%);
   -webkit-backdrop-filter: blur(22px) saturate(175%);
-  border: 1px solid rgba(255, 255, 255, 0.94);
-  border-radius: 26px;
-  padding: 18px 20px 24px;
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 24px;
+  padding: 14px 18px 16px;
   box-shadow:
-    0 16px 42px -14px rgba(15, 23, 42, 0.08),
+    0 14px 38px -14px rgba(15, 23, 42, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.95);
-  min-height: calc(100vh - 38px);
   transform-origin: left center;
 }
 
-/* 中栏收起时右侧顶部的快速拉开横幅 */
+.right-top-status-bar {
+  display: none;
+  flex-shrink: 0;
+  margin-bottom: 10px;
+}
+
+.right-top-status-bar.always-show {
+  display: block;
+}
+
 .expand-center-banner {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px;
-  margin-bottom: 14px;
-  border-radius: 14px;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 12px;
   background: var(--soft);
   border: 1px solid var(--soft-border);
   color: var(--deep);
-  font-size: 13.5px;
+  font-size: 12.5px;
+  white-space: nowrap;
 }
 
 /* ================= iOS 物理弹簧三段式抽屉拉出关键帧动效 ================= */
 @keyframes iosDrawerPullCenter {
   0% {
     opacity: 0;
-    transform: translate3d(-68px, 0, 0) scale(0.96);
+    transform: translate3d(-64px, 0, 0) scale(0.96);
   }
   65% {
     opacity: 1;
@@ -563,7 +648,7 @@ main {
 @keyframes iosDrawerPullRight {
   0% {
     opacity: 0;
-    transform: translate3d(-115px, 0, 0) scale(0.95);
+    transform: translate3d(-108px, 0, 0) scale(0.95);
   }
   60% {
     opacity: 1;
@@ -577,7 +662,7 @@ main {
 @keyframes iosCardSlideUp {
   0% {
     opacity: 0;
-    transform: translate3d(0, 14px, 0) scale(0.985);
+    transform: translate3d(0, 12px, 0) scale(0.985);
   }
   100% {
     opacity: 1;
@@ -586,26 +671,26 @@ main {
 }
 
 .ios-drawer-cascade:not(.center-collapsed) .ipad-center {
-  animation: iosDrawerPullCenter 0.48s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: iosDrawerPullCenter 0.46s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .ios-drawer-cascade .ipad-right,
-. single-stage-drawer.ios-drawer-cascade,
 .single-stage-drawer.ios-drawer-cascade {
-  animation: iosDrawerPullRight 0.56s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both;
+  animation: iosDrawerPullRight 0.54s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both;
 }
 
 .ios-drawer-cascade .task {
-  animation: iosCardSlideUp 0.42s cubic-bezier(0.22, 1, 0.36, 1) calc(0.08s + var(--card-idx, 0) * 0.035s) both;
+  animation: iosCardSlideUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) calc(0.07s + var(--card-idx, 0) * 0.03s) both;
 }
 
-/* ================= 中栏小组件设计 (Widgets in Stage 2 Center Drawer) ================= */
+/* ================= 中栏小组件设计（严禁文字换行干涉） ================= */
 .widget-card {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.94);
   border: 1px solid #e6edf7;
-  border-radius: 20px;
-  padding: 14px 15px;
-  box-shadow: 0 4px 14px -4px rgba(15, 23, 42, 0.04);
+  border-radius: 18px;
+  padding: 12px 13px;
+  box-shadow: 0 4px 12px -4px rgba(15, 23, 42, 0.04);
+  flex-shrink: 0;
 }
 
 /* 1. 顶部主题横幅 Hero Banner */
@@ -614,13 +699,14 @@ main {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 18px;
-  border-radius: 20px;
+  padding: 14px 15px;
+  border-radius: 18px;
   overflow: hidden;
   margin: 0;
-  min-height: 112px;
-  box-shadow: 0 8px 24px -10px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  min-height: 94px;
+  flex-shrink: 0;
+  box-shadow: 0 6px 20px -10px rgba(15, 23, 42, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.88);
 }
 
 .hero-home {
@@ -648,26 +734,28 @@ main {
   z-index: 2;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  max-width: 72%;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
 }
 
 .hero-badges {
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .hero-pill {
   display: inline-flex;
   align-items: center;
-  padding: 3px 10px;
+  padding: 2.5px 9px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.84);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
 }
 
 .mobile-inline-progress {
@@ -680,7 +768,7 @@ main {
 
 .hero-banner h1 {
   margin: 2px 0 0;
-  font-size: 21px;
+  font-size: 18.5px;
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1.2;
@@ -688,29 +776,35 @@ main {
   align-items: baseline;
   gap: 6px;
   color: var(--deep);
+  white-space: nowrap;
 }
 
 .hero-banner h1 span {
-  font-size: 0.65em;
+  font-size: 0.68em;
   font-weight: 600;
   opacity: 0.78;
+  white-space: nowrap;
 }
 
 .hero-sub {
   margin: 0;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 500;
-  opacity: 0.8;
+  opacity: 0.82;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .hero-visual {
   position: absolute;
-  right: -8px;
+  right: -10px;
   top: 50%;
   transform: translateY(-50%);
-  width: 145px;
-  height: 106px;
+  width: 112px;
+  height: 84px;
   z-index: 1;
+  opacity: 0.82;
   pointer-events: none;
 }
 
@@ -730,41 +824,41 @@ main {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+  flex-wrap: nowrap;
 }
 
 .planner-heading h2 {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 800;
   color: #1e293b;
   margin: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .date {
   display: flex;
   align-items: center;
-  gap: 6px;
   margin: 0;
-  font-size: 12px;
-  color: #64748b;
-  font-weight: 600;
+  flex-shrink: 0;
 }
 
 .date input {
-  width: 126px;
+  width: 122px;
   margin: 0;
-  padding: 4px 8px;
+  padding: 3.5px 7px;
   background: #f8fafc;
   border: 1px solid #dbe3ef;
-  border-radius: 9px;
-  font-size: 12.5px;
+  border-radius: 8px;
+  font-size: 12px;
   color: #334155;
 }
 
 .day-tabs {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 6px;
+  gap: 5px;
 }
 
 .day-tabs button {
@@ -773,28 +867,30 @@ main {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  padding: 8px 4px 7px;
+  gap: 1px;
+  padding: 6px 2px 5px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 13px;
+  border-radius: 11px;
   color: #334155;
 }
 
 .day-tabs span {
-  font-size: 13.5px;
+  font-size: 12.5px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .day-tabs small {
-  font-size: 11px;
+  font-size: 10px;
   color: #64748b;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .day-dot {
-  width: 5px;
-  height: 5px;
+  width: 4.5px;
+  height: 4.5px;
   border-radius: 50%;
   margin-top: 2px;
 }
@@ -807,11 +903,11 @@ main {
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   border-color: transparent;
   color: white;
-  box-shadow: 0 6px 14px -4px color-mix(in srgb, var(--accent) 42%, transparent);
+  box-shadow: 0 5px 12px -3px color-mix(in srgb, var(--accent) 42%, transparent);
 }
 
 .day-tabs .selected small {
-  color: rgba(255, 255, 255, 0.86);
+  color: rgba(255, 255, 255, 0.88);
 }
 
 .day-tabs .selected .day-dot {
@@ -822,44 +918,45 @@ main {
 .stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 9px;
+  gap: 8px;
   margin: 0;
 }
 
 .stat {
   border: 1px solid #e2e8f0;
   background: #f8fafc;
-  border-radius: 15px;
-  padding: 11px 13px;
+  border-radius: 13px;
+  padding: 9px 11px;
   text-align: left;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
+  min-width: 0;
 }
 
 .stat.progress {
   grid-column: 1 / -1;
   background: linear-gradient(135deg, #ffffff, var(--soft));
   border-color: var(--soft-border);
-  padding: 12px 14px;
+  padding: 10px 12px;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 11px;
 }
 
 .progress-ring-box {
   position: relative;
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
   flex-shrink: 0;
   display: grid;
   place-items: center;
 }
 
 .mini-ring-svg {
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
   transform: rotate(-90deg);
 }
 
@@ -879,13 +976,14 @@ main {
 
 .mini-ring-pct {
   position: absolute;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
   color: var(--deep);
+  white-space: nowrap;
 }
 
 .mini-ring-pct small {
-  font-size: 10px;
+  font-size: 9px;
 }
 
 .progress-meta-text {
@@ -897,21 +995,24 @@ main {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 13.5px;
+  gap: 4px;
+  font-size: 12.5px;
   font-weight: 700;
   color: #1e293b;
+  white-space: nowrap;
 }
 
 .progress-meta-text > span b {
   color: var(--accent);
-  font-size: 13px;
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 .track {
-  height: 8px;
+  height: 7px;
   background: rgba(203, 213, 225, 0.55);
   border-radius: 999px;
-  margin: 7px 0 5px;
+  margin: 6px 0 4px;
   overflow: hidden;
 }
 
@@ -924,24 +1025,29 @@ main {
 }
 
 .progress-meta-text > small {
-  font-size: 11.5px;
+  font-size: 11px;
   color: #64748b;
   display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .stat .stat-label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .stat strong {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 800;
-  line-height: 1.1;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .stat strong small {
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 600;
 }
 
@@ -973,200 +1079,237 @@ main {
 .subject-feature-widget {
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), var(--soft));
   border-color: var(--soft-border);
+  margin-top: auto;
 }
 
 .feature-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 6px;
+  gap: 6px;
+  margin-bottom: 5px;
+  flex-wrap: nowrap;
 }
 
 .feature-head strong {
-  font-size: 13.5px;
+  font-size: 12.5px;
   color: var(--deep);
+  white-space: nowrap;
 }
 
 .feature-tag {
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 700;
-  padding: 2px 8px;
+  padding: 2px 7px;
   border-radius: 999px;
   background: white;
   color: var(--accent);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .subject-feature-widget p {
-  margin: 0 0 9px;
-  font-size: 12.5px;
-  line-height: 1.45;
+  margin: 0 0 7px;
+  font-size: 11.5px;
+  line-height: 1.4;
   color: #475569;
 }
 
 .feature-pills {
   display: flex;
-  gap: 6px;
+  gap: 5px;
   flex-wrap: wrap;
 }
 
 .feature-pills span {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
-  padding: 3px 9px;
+  padding: 2px 8px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.88);
   color: var(--deep);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  white-space: nowrap;
 }
 
-/* ================= 右栏：核心学习任务区与各页面专属底纹特色 ================= */
+/* ================= 右栏：核心学习任务区（桌面级内部独立滚动） ================= */
 .workspace {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   position: relative;
 }
 
-/* 各科目工作区专属底纹装饰 */
 .workspace-chinese {
-  background-image: radial-gradient(rgba(217, 119, 6, 0.06) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(217, 119, 6, 0.05) 1px, transparent 1px);
   background-size: 20px 20px;
-  border-radius: 20px;
 }
 
 .workspace-math {
   background-image:
-    linear-gradient(to right, rgba(124, 58, 237, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(124, 58, 237, 0.04) 1px, transparent 1px);
+    linear-gradient(to right, rgba(124, 58, 237, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(124, 58, 237, 0.035) 1px, transparent 1px);
   background-size: 24px 24px;
-  border-radius: 20px;
 }
 
 .workspace-english {
-  background-image: radial-gradient(circle at 10px 10px, rgba(5, 150, 105, 0.05) 2px, transparent 0);
+  background-image: radial-gradient(circle at 10px 10px, rgba(5, 150, 105, 0.045) 2px, transparent 0);
   background-size: 26px 26px;
-  border-radius: 20px;
 }
 
 .section-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
+  gap: 10px;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+}
+
+.section-title-group {
+  min-width: 0;
+  flex: 1;
 }
 
 .section-title-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-wrap: nowrap;
 }
 
 .section-head h2 {
-  font-size: 22px;
+  font-size: 19px;
   font-weight: 800;
   color: #0f172a;
   margin: 0;
   letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 
 .task-count-pill {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 800;
-  padding: 3px 10px;
+  padding: 2px 9px;
   border-radius: 999px;
   background: var(--soft);
   color: var(--accent);
   border: 1px solid var(--soft-border);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .section-head p {
-  font-size: 13px;
+  font-size: 12px;
   color: #64748b;
-  margin: 3px 0 0;
+  margin: 2px 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .section-head p b {
   color: var(--deep);
 }
 
+.section-head-actions {
+  flex-shrink: 0;
+}
+
 .primary {
   color: white;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  padding: 10px 18px;
-  border-radius: 14px;
-  box-shadow: 0 6px 16px -4px color-mix(in srgb, var(--accent) 42%, transparent);
+  padding: 8px 15px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  box-shadow: 0 5px 14px -4px color-mix(in srgb, var(--accent) 42%, transparent);
 }
 
 .toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin: 14px 0;
+  gap: 8px;
+  flex-wrap: nowrap;
+  margin: 10px 0;
+  flex-shrink: 0;
 }
 
 .filters {
   display: inline-flex;
   gap: 4px;
-  padding: 4px;
+  padding: 3.5px;
   background: #f1f5f9;
-  border-radius: 13px;
+  border-radius: 11px;
+  flex-shrink: 0;
 }
 
 .filters button {
   background: transparent;
-  font-size: 13.5px;
-  padding: 6px 14px;
-  border-radius: 10px;
+  font-size: 12.5px;
+  padding: 5px 12px;
+  border-radius: 8px;
   color: #64748b;
+  white-space: nowrap;
 }
 
 .filters .selected {
   color: var(--deep);
   background: white;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.07);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.07);
 }
 
 .subject-quick-pills {
   display: flex;
-  gap: 6px;
+  gap: 5px;
+  flex-shrink: 0;
 }
 
 .sub-mini-pill {
-  padding: 5px 11px;
-  font-size: 12px;
+  padding: 4px 10px;
+  font-size: 11.5px;
   border-radius: 999px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .pill-chinese { background: #fef3c7; color: #b45309; }
 .pill-math { background: #ede9fe; color: #6d28d9; }
 .pill-english { background: #d1fae5; color: #047857; }
 
-/* 核心学习任务卡片网格与卡片设计 (.cards & .task) */
+/* 核心学习任务卡片滚动容器与卡片设计 (.cards & .task) */
 .cards {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  align-content: start;
+  gap: 10px;
+  padding-right: 4px;
+  padding-bottom: 12px;
 }
 
 .task {
   position: relative;
   display: flex;
   align-items: flex-start;
-  gap: 14px;
-  padding: 16px 18px;
+  gap: 12px;
+  padding: 14px 15px;
   background: white;
   border: 1px solid #e2e8f0;
   border-left: 5px solid var(--accent);
-  border-radius: 18px;
-  box-shadow: 0 6px 18px -6px rgba(15, 23, 42, 0.06);
-  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+  border-radius: 16px;
+  box-shadow: 0 4px 14px -6px rgba(15, 23, 42, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .task:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 26px -8px rgba(15, 23, 42, 0.11);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px -8px rgba(15, 23, 42, 0.1);
 }
 
 .task-chinese { border-left-color: #d97706; }
@@ -1174,15 +1317,15 @@ main {
 .task-english { border-left-color: #059669; }
 
 .check {
-  flex: 0 0 34px;
-  width: 34px;
-  height: 34px;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
   background: #f8fafc;
   border: 2px solid #cbd5e1;
-  border-radius: 11px;
+  border-radius: 10px;
   padding: 0;
-  margin-top: 2px;
-  font-size: 19px;
+  margin-top: 1px;
+  font-size: 17px;
   font-weight: 800;
   display: grid;
   place-items: center;
@@ -1198,32 +1341,35 @@ main {
 .task-body {
   flex: 1;
   min-width: 0;
-  overflow-wrap: anywhere;
 }
 
 .task-top-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 6px;
+  flex-wrap: nowrap;
 }
 
 .task-heading {
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  gap: 5px;
+  flex-wrap: nowrap;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .subject-tag {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 11.5px;
+  gap: 3px;
+  font-size: 11px;
   font-weight: 700;
-  padding: 2.5px 9px;
+  padding: 2px 8px;
   border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .tag-chinese { background: #fef3c7; color: #b45309; }
@@ -1232,10 +1378,12 @@ main {
 .tag-all { background: #dbeafe; color: #1d4ed8; }
 
 .state {
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 700;
-  padding: 2px 8px;
+  padding: 2px 7px;
   border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .state-pending {
@@ -1248,26 +1396,30 @@ main {
   color: #047857;
 }
 
-.duration-pill, .time-pill {
-  font-size: 11px;
+.duration-pill {
+  font-size: 10.5px;
   font-weight: 600;
   color: #64748b;
   background: #f1f5f9;
-  padding: 2px 8px;
+  padding: 2px 7px;
   border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .task-actions {
   display: flex;
-  gap: 5px;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .task-actions button {
-  font-size: 11.5px;
-  padding: 4px 9px;
+  font-size: 11px;
+  padding: 3px 8px;
   background: #f1f5f9;
   color: #475569;
-  border-radius: 8px;
+  border-radius: 7px;
+  white-space: nowrap;
 }
 
 .task-actions button:hover {
@@ -1276,28 +1428,34 @@ main {
 }
 
 .task h3 {
-  font-size: 17.5px;
-  margin: 8px 0 5px;
+  font-size: 16px;
+  margin: 6px 0 4px;
   font-weight: 800;
   color: #0f172a;
   line-height: 1.35;
+  overflow-wrap: break-word;
 }
 
 .task p {
-  font-size: 14px;
+  font-size: 13px;
   color: #475569;
-  margin: 0 0 10px;
-  line-height: 1.45;
+  margin: 0 0 8px;
+  line-height: 1.42;
   white-space: pre-wrap;
+  overflow-wrap: break-word;
 }
 
 .meta {
   display: flex;
-  gap: 8px 14px;
+  gap: 6px 12px;
   flex-wrap: wrap;
   color: #64748b;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 500;
+}
+
+.meta span {
+  white-space: nowrap;
 }
 
 .done-time-tag {
@@ -1314,7 +1472,7 @@ main {
   background: linear-gradient(135deg, #10b981, #059669);
   border-color: #059669;
   color: white;
-  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 3px 8px rgba(16, 185, 129, 0.28);
 }
 
 .task.completed h3 {
@@ -1322,14 +1480,14 @@ main {
   text-decoration: line-through;
 }
 
-/* 空状态与示例任务按钮 */
+/* 空状态与暂停计划 */
 .empty {
   grid-column: 1 / -1;
   text-align: center;
   border: 1.5px dashed #cbd5e1;
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 20px;
-  padding: 32px 20px;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 18px;
+  padding: 28px 18px;
 }
 
 .empty-symbol {
@@ -1337,38 +1495,35 @@ main {
   background: var(--soft);
   display: inline-grid;
   place-items: center;
-  width: 54px;
-  height: 54px;
-  border-radius: 16px;
-  font-size: 28px;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  font-size: 24px;
   font-weight: 800;
 }
 
 .empty h3 {
-  font-size: 18px;
-  margin: 12px 0 4px;
+  font-size: 16.5px;
+  margin: 10px 0 4px;
   color: #1e293b;
 }
 
 .empty p {
-  font-size: 13.5px;
+  font-size: 13px;
   color: #64748b;
-  margin: 0 auto 14px;
-  max-width: 420px;
-}
-
-.seed-btn {
-  margin-top: 4px;
+  margin: 0 auto 12px;
+  max-width: 400px;
 }
 
 .plans {
-  font-size: 14px;
-  margin-top: 18px;
+  font-size: 13px;
+  margin-top: 8px;
   color: #475569;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 12px 16px;
+  border-radius: 12px;
+  padding: 8px 12px;
+  flex-shrink: 0;
 }
 
 .plans summary {
@@ -1380,21 +1535,30 @@ main {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   background: white;
-  padding: 10px 12px;
-  border-radius: 12px;
-  margin: 8px 0 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  margin: 6px 0 0;
   border: 1px solid #e2e8f0;
 }
 
-/* ================= 学习周报与管理看板（星际数据驾驶舱全面重设计） ================= */
-.reports-view {
-  max-width: 1260px;
+/* ================= 学习周报与管理看板 & 设置页（内部独立滚动） ================= */
+.reports-view,
+.settings {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 4px;
+  padding-bottom: 24px;
+  width: 100%;
+  max-width: 1240px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 
 .reports-hero {
@@ -1403,15 +1567,16 @@ main {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  padding: 26px 30px;
-  border-radius: 26px;
+  gap: 20px;
+  padding: 20px 24px;
+  border-radius: 22px;
+  flex-shrink: 0;
   background:
     radial-gradient(600px 280px at 88% 15%, rgba(56, 189, 248, 0.28), transparent 70%),
     radial-gradient(500px 300px at 15% 90%, rgba(168, 85, 247, 0.25), transparent 70%),
     linear-gradient(135deg, #0f172a 0%, #1e1b4b 52%, #312e81 100%);
   color: white;
-  box-shadow: 0 20px 44px -15px rgba(30, 27, 75, 0.35);
+  box-shadow: 0 16px 36px -14px rgba(30, 27, 75, 0.35);
 }
 
 .reports-hero-main {
@@ -1424,28 +1589,26 @@ main {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
-.report-badge-pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  backdrop-filter: blur(8px);
-}
-
+.report-badge-pill,
 .report-medal-pill {
   display: inline-flex;
   align-items: center;
-  padding: 4px 12px;
+  padding: 3.5px 11px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
+  white-space: nowrap;
+}
+
+.report-badge-pill {
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.report-medal-pill {
   background: linear-gradient(135deg, rgba(251, 191, 36, 0.28), rgba(245, 158, 11, 0.38));
   border: 1px solid rgba(252, 211, 77, 0.45);
   color: #fef3c7;
@@ -1453,15 +1616,15 @@ main {
 
 .reports-hero h1 {
   color: white;
-  font-size: clamp(1.45rem, 3vw, 2rem);
+  font-size: clamp(1.3rem, 2.4vw, 1.75rem);
   font-weight: 800;
-  margin: 0 0 6px;
+  margin: 0 0 4px;
   letter-spacing: -0.02em;
 }
 
 .reports-hero-sub {
-  margin: 0 0 16px;
-  font-size: 13.5px;
+  margin: 0 0 12px;
+  font-size: 12.5px;
   color: rgba(226, 232, 240, 0.86);
 }
 
@@ -1471,25 +1634,26 @@ main {
 
 .range-switch {
   display: inline-flex;
-  gap: 6px;
-  padding: 5px;
-  border-radius: 14px;
+  gap: 5px;
+  padding: 4px;
+  border-radius: 12px;
   background: rgba(15, 23, 42, 0.45);
   border: 1px solid rgba(255, 255, 255, 0.14);
 }
 
 .range-switch button {
-  padding: 7px 15px;
-  font-size: 13px;
-  border-radius: 10px;
+  padding: 6px 13px;
+  font-size: 12px;
+  border-radius: 9px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.78);
+  color: rgba(255, 255, 255, 0.8);
+  white-space: nowrap;
 }
 
 .range-switch button.selected {
   background: white;
   color: #1e1b4b;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
 }
 
 .audit-filter-switch {
@@ -1504,26 +1668,25 @@ main {
 .audit-filter-switch button.selected {
   background: white;
   color: #0f172a;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
 }
 
-/* 顶栏右侧动态圆环仪表 */
 .reports-hero-ring {
   position: relative;
-  width: 118px;
-  height: 118px;
+  width: 108px;
+  height: 108px;
   flex-shrink: 0;
   display: grid;
   place-items: center;
   background: rgba(255, 255, 255, 0.07);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 24px;
-  padding: 6px;
+  border-radius: 22px;
+  padding: 5px;
 }
 
 .ring-svg {
-  width: 104px;
-  height: 104px;
+  width: 96px;
+  height: 96px;
   transform: rotate(-90deg);
 }
 
@@ -1548,94 +1711,104 @@ main {
 
 .ring-center-text strong {
   display: block;
-  font-size: 24px;
+  font-size: 21px;
   font-weight: 800;
   color: white;
+  white-space: nowrap;
 }
 
 .ring-center-text strong small {
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .ring-center-text span {
-  font-size: 10.5px;
+  font-size: 10px;
   color: rgba(226, 232, 240, 0.8);
+  white-space: nowrap;
 }
 
 /* 4 张高颜值玻璃拟态 KPI 卡片 (.report-kpis) */
 .report-kpis {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 .kpi-card {
   position: relative;
   overflow: hidden;
-  border-radius: 22px;
-  padding: 18px 20px;
+  border-radius: 18px;
+  padding: 14px 16px;
   background: white;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 10px 26px -10px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 8px 22px -10px rgba(15, 23, 42, 0.06);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .kpi-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 4px;
+  gap: 6px;
+  margin-bottom: 2px;
 }
 
 .kpi-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
   display: grid;
   place-items: center;
-  font-size: 18px;
+  font-size: 16px;
+  flex-shrink: 0;
 }
 
 .kpi-tag {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
-  padding: 3px 9px;
+  padding: 2px 8px;
   border-radius: 999px;
+  white-space: nowrap;
 }
 
 .kpi-card strong {
-  font-size: 32px;
+  font-size: 26px;
   font-weight: 800;
   line-height: 1.15;
   letter-spacing: -0.02em;
+  white-space: nowrap;
 }
 
 .kpi-card strong small {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
 }
 
 .kpi-label {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: #334155;
+  white-space: nowrap;
 }
 
 .kpi-card em {
   font-style: normal;
-  font-size: 12px;
+  font-size: 11px;
   color: #64748b;
-  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .kpi-mini-bar {
-  height: 6px;
+  height: 5px;
   border-radius: 999px;
   background: #dbeafe;
   overflow: hidden;
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
 .kpi-mini-bar i {
@@ -1669,59 +1842,61 @@ main {
 .report-grid {
   display: grid;
   grid-template-columns: 1fr 1.15fr;
-  gap: 18px;
+  gap: 14px;
+  flex-shrink: 0;
 }
 
 .panel {
   background: white;
   border: 1px solid #e2e8f0;
-  border-radius: 24px;
-  padding: 22px 24px;
+  border-radius: 20px;
+  padding: 18px 20px;
   margin: 0;
-  box-shadow: 0 10px 28px -12px rgba(15, 23, 42, 0.05);
+  flex-shrink: 0;
+  box-shadow: 0 8px 24px -12px rgba(15, 23, 42, 0.05);
 }
 
 .report-panel-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 
 .report-panel-head h2 {
-  font-size: 18px;
+  font-size: 16.5px;
   font-weight: 800;
   color: #0f172a;
-  margin: 0 0 3px;
+  margin: 0 0 2px;
 }
 
 .report-panel-head p {
-  font-size: 12.5px;
+  font-size: 12px;
   color: #64748b;
   margin: 0;
 }
 
 .panel-chip {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
-  padding: 4px 10px;
+  padding: 3px 9px;
   border-radius: 999px;
   background: #f1f5f9;
   color: #475569;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
-/* 三科进度对比条 (.sub-bars) */
 .sub-bars {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .sub-bar-card {
-  padding: 13px 15px;
-  border-radius: 16px;
+  padding: 11px 13px;
+  border-radius: 14px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
 }
@@ -1729,8 +1904,8 @@ main {
 .sub-bar-head {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
+  gap: 10px;
+  margin-bottom: 6px;
 }
 
 .sub-bar-title {
@@ -1742,15 +1917,16 @@ main {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 15px;
+  font-size: 14px;
   color: #0f172a;
+  white-space: nowrap;
 }
 
 .sub-bar-title strong em {
   font-style: normal;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
-  padding: 1px 7px;
+  padding: 1px 6px;
   border-radius: 999px;
   background: white;
   color: #64748b;
@@ -1759,26 +1935,31 @@ main {
 
 .sub-bar-title small {
   display: block;
-  font-size: 12px;
+  font-size: 11.5px;
   color: #64748b;
-  margin-top: 2px;
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sub-bar-pct-wrap {
   text-align: right;
+  flex-shrink: 0;
 }
 
 .sub-bar-pct {
   display: block;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 800;
   color: #0f172a;
   line-height: 1.1;
 }
 
 .sub-bar-pct-wrap small {
-  font-size: 11px;
+  font-size: 10.5px;
   color: #64748b;
+  white-space: nowrap;
 }
 
 .bar-chinese { background: linear-gradient(90deg, #f59e0b, #d97706) !important; }
@@ -1789,40 +1970,41 @@ main {
 .daily-chart {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(28px, 1fr);
-  gap: 8px;
+  grid-auto-columns: minmax(26px, 1fr);
+  gap: 6px;
   align-items: end;
-  height: 224px;
-  padding: 16px 10px 8px;
+  height: 204px;
+  padding: 14px 8px 6px;
   background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
   border: 1px solid #e2e8f0;
-  border-radius: 18px;
+  border-radius: 16px;
 }
 
 .chart-col {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   height: 100%;
   justify-content: flex-end;
 }
 
 .chart-rate-lbl {
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 700;
   color: #64748b;
+  white-space: nowrap;
 }
 
 .chart-bar-wrap {
   width: 100%;
-  max-width: 30px;
+  max-width: 26px;
   flex: 1;
   background: rgba(203, 213, 225, 0.38);
   border-radius: 999px;
   display: flex;
   align-items: flex-end;
-  padding: 3px;
+  padding: 2.5px;
   overflow: hidden;
 }
 
@@ -1834,12 +2016,10 @@ main {
 
 .chart-bar.is-full {
   background: linear-gradient(180deg, #34d399, #059669);
-  box-shadow: 0 4px 10px rgba(5, 150, 105, 0.3);
 }
 
 .chart-bar.is-partial {
   background: linear-gradient(180deg, #60a5fa, #3b82f6);
-  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.25);
 }
 
 .chart-bar.is-zero {
@@ -1851,13 +2031,14 @@ main {
 }
 
 .chart-col strong {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
   color: #334155;
+  white-space: nowrap;
 }
 
 .chart-col small {
-  font-size: 10.5px;
+  font-size: 10px;
   color: #64748b;
   white-space: nowrap;
 }
@@ -1868,35 +2049,31 @@ main {
 }
 
 /* 宝宝权限动态控制面板 & iOS 开关样式 (.perm-panel) */
-.perm-panel {
-  background: linear-gradient(135deg, #ffffff, #f8fafc);
-}
-
 .perm-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
-.perm-header h2 {
-  font-size: 18px;
-  margin: 0 0 4px;
+.perm-header h2, .audit-head h2 {
+  font-size: 16.5px;
+  margin: 0 0 3px;
 }
 
-.perm-header p {
-  font-size: 13px;
+.perm-header p, .audit-head p {
+  font-size: 12.5px;
   margin: 0;
   color: #64748b;
 }
 
 .perm-meta {
-  font-size: 11.5px;
+  font-size: 11px;
   color: #4f46e5;
   background: #eef2ff;
-  padding: 4px 10px;
+  padding: 3px 9px;
   border-radius: 999px;
   font-weight: 600;
 }
@@ -1904,20 +2081,19 @@ main {
 .perm-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 
 .perm-switch-card {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   margin: 0 !important;
-  padding: 14px 16px;
-  border-radius: 16px;
+  padding: 12px 14px;
+  border-radius: 14px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 
 .perm-switch-card.is-on {
@@ -1926,14 +2102,14 @@ main {
 }
 
 .perm-card-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
   background: white;
   border: 1px solid #e2e8f0;
   display: grid;
   place-items: center;
-  font-size: 18px;
+  font-size: 16px;
   flex-shrink: 0;
 }
 
@@ -1944,22 +2120,26 @@ main {
 
 .perm-card-text strong {
   display: block;
-  font-size: 14.5px;
+  font-size: 13.5px;
   color: #0f172a;
+  white-space: nowrap;
 }
 
 .perm-card-text small {
   display: block;
-  font-size: 12px;
+  font-size: 11.5px;
   color: #64748b;
-  margin-top: 2px;
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 input.ios-switch {
   appearance: none;
   -webkit-appearance: none;
-  width: 46px;
-  height: 26px;
+  width: 44px;
+  height: 24px;
   border-radius: 999px;
   background: #cbd5e1;
   position: relative;
@@ -1974,13 +2154,13 @@ input.ios-switch {
 input.ios-switch::after {
   content: '';
   position: absolute;
-  top: 3px;
-  left: 3px;
+  top: 2px;
+  left: 2px;
   width: 20px;
   height: 20px;
   border-radius: 50%;
   background: white;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -1992,31 +2172,19 @@ input.ios-switch:checked::after {
   transform: translateX(20px);
 }
 
-/* 审计日志面板 (.audit-panel) */
 .audit-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.audit-head h2 {
-  font-size: 18px;
-  margin: 0 0 3px;
-}
-
-.audit-head p {
-  font-size: 13px;
-  margin: 0;
-  color: #64748b;
+  gap: 10px;
+  margin-bottom: 12px;
 }
 
 .audit-list {
   display: grid;
-  gap: 10px;
-  max-height: 400px;
+  gap: 8px;
+  max-height: 320px;
   overflow-y: auto;
   padding-right: 4px;
 }
@@ -2025,10 +2193,10 @@ input.ios-switch:checked::after {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
-  padding: 12px 16px;
-  border-radius: 15px;
+  padding: 10px 14px;
+  border-radius: 13px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
 }
@@ -2037,9 +2205,9 @@ input.ios-switch:checked::after {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 10px;
+  padding: 3px 9px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -2055,30 +2223,29 @@ input.ios-switch:checked::after {
 
 .audit-sub-pill {
   display: inline-block;
-  padding: 1px 7px;
-  border-radius: 6px;
+  padding: 1px 6px;
+  border-radius: 5px;
   background: #e2e8f0;
   color: #334155;
-  font-size: 11.5px;
-  margin-right: 6px;
+  font-size: 11px;
+  margin-right: 5px;
 }
 
 .audit-main strong {
   display: block;
-  font-size: 14.5px;
+  font-size: 13.5px;
   color: #0f172a;
 }
 
 .audit-main small {
   display: block;
-  font-size: 12px;
+  font-size: 11.5px;
   color: #64748b;
-  margin-top: 2px;
 }
 
 .audit-meta {
   text-align: right;
-  font-size: 12px;
+  font-size: 11.5px;
   color: #64748b;
 }
 
@@ -2088,30 +2255,22 @@ input.ios-switch:checked::after {
 }
 
 .audit-meta time {
-  font-size: 11px;
+  font-size: 10.5px;
   color: #94a3b8;
 }
 
-/* ================= 设置与云端同步页（苹果系统设置风） ================= */
-.settings {
-  max-width: 960px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
+/* 设置页样式 */
 .settings-hero {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 14px;
   flex-wrap: wrap;
-  padding: 22px 26px;
-  border-radius: 24px;
+  padding: 18px 22px;
+  border-radius: 20px;
+  flex-shrink: 0;
   background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
   color: white;
-  box-shadow: 0 14px 34px -12px rgba(15, 23, 42, 0.25);
 }
 
 .settings-hero .hero-pill {
@@ -2121,8 +2280,8 @@ input.ios-switch:checked::after {
 
 .settings-hero h1 {
   color: white;
-  font-size: 24px;
-  margin: 6px 0 4px;
+  font-size: 21px;
+  margin: 5px 0 3px;
 }
 
 .settings-hero .hero-sub {
@@ -2132,38 +2291,33 @@ input.ios-switch:checked::after {
 .settings-status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
+  gap: 7px;
+  padding: 6px 12px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  font-size: 13px;
-}
-
-.settings-two-col {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
+  font-size: 12.5px;
+  white-space: nowrap;
 }
 
 .pin-panel-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .pin-panel-head h2 {
-  margin: 0 0 4px;
-  font-size: 18px;
+  margin: 0 0 3px;
+  font-size: 16.5px;
 }
 
 .pin-eye-btn {
-  font-size: 13px;
-  padding: 7px 12px;
-  border-radius: 10px;
+  font-size: 12px;
+  padding: 6px 11px;
+  border-radius: 9px;
   background: #f1f5f9;
   color: #334155;
 }
@@ -2171,31 +2325,32 @@ input.ios-switch:checked::after {
 .pin-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 8px;
+  gap: 10px;
+  margin-top: 6px;
 }
 
 .pin-card {
   margin: 0 !important;
-  padding: 12px 14px;
-  border-radius: 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
 }
 
 .pin-card span {
   display: block;
-  font-size: 13px;
+  font-size: 12.5px;
   color: #334155;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
+  white-space: nowrap;
 }
 
 label {
   display: block;
-  font-size: 14.5px;
+  font-size: 13.5px;
   font-weight: 600;
   color: #334155;
-  margin: 12px 0;
+  margin: 10px 0;
 }
 
 input, select, textarea {
@@ -2203,12 +2358,12 @@ input, select, textarea {
   width: 100%;
   min-width: 0;
   border: 1px solid #cbd5e1;
-  border-radius: 11px;
-  padding: 10px 12px;
+  border-radius: 10px;
+  padding: 9px 11px;
   background: #f8fafc;
   color: #0f172a;
-  font-size: 15px;
-  margin-top: 6px;
+  font-size: 14px;
+  margin-top: 5px;
 }
 
 input:focus, select:focus, textarea:focus {
@@ -2217,57 +2372,58 @@ input:focus, select:focus, textarea:focus {
 }
 
 input[type="checkbox"]:not(.ios-switch) {
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
   display: inline-block;
   margin: 0;
   accent-color: var(--accent);
 }
 
 .hint, .panel .hint {
-  font-size: 13px;
+  font-size: 12px;
   color: #64748b;
 }
 
 .buttons {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .file-button {
   display: inline-flex;
   align-items: center;
-  border-radius: 12px;
+  border-radius: 11px;
   background: #e2e8f0;
-  padding: 10px 16px;
+  padding: 8px 14px;
   margin: 0;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .form-row.two-cols {
   display: grid;
   grid-template-columns: 1fr 1fr !important;
-  gap: 12px;
+  gap: 10px;
 }
 
 .weekdays {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
 .weekdays label, .inline {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
 }
 
 .full {
   width: 100%;
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 .danger {
@@ -2278,11 +2434,11 @@ input[type="checkbox"]:not(.ios-switch) {
 /* ================= 弹窗与登录页样式 ================= */
 dialog {
   border: 0;
-  border-radius: 24px;
-  width: 540px;
+  border-radius: 22px;
+  width: 500px;
   max-width: calc(100vw - 24px);
-  max-height: 92dvh;
-  padding: 24px;
+  max-height: 90dvh;
+  padding: 20px 22px;
   color: #1e293b;
   box-shadow: 0 25px 80px rgba(15, 23, 42, 0.25);
 }
@@ -2300,30 +2456,31 @@ dialog::backdrop {
 }
 
 .modal-head h2 {
-  font-size: 20px;
+  font-size: 18px;
   margin: 0;
 }
 
 .modal-head button {
   background: #f1f5f9;
-  padding: 6px 10px;
+  padding: 5px 9px;
 }
 
 .history-modal-list p {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 12px;
-  border-radius: 12px;
+  padding: 9px 11px;
+  border-radius: 10px;
   background: #f8fafc;
-  margin: 8px 0;
+  margin: 6px 0;
+  font-size: 13px;
 }
 
 .login-screen {
-  min-height: 100vh;
+  height: 100dvh;
   display: grid;
   place-items: center;
-  padding: 20px;
+  padding: 18px;
   background:
     radial-gradient(800px 400px at 20% 10%, rgba(96, 165, 250, 0.28), transparent 70%),
     radial-gradient(700px 400px at 85% 85%, rgba(167, 139, 250, 0.25), transparent 70%),
@@ -2332,12 +2489,12 @@ dialog::backdrop {
 
 .login-card {
   width: 100%;
-  max-width: 420px;
-  background: rgba(255, 255, 255, 0.92);
+  max-width: 400px;
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(24px);
   border: 1px solid white;
-  border-radius: 28px;
-  padding: 32px 28px;
+  border-radius: 26px;
+  padding: 28px 24px;
   box-shadow: 0 24px 60px -15px rgba(30, 58, 138, 0.16);
   text-align: center;
 }
@@ -2345,42 +2502,43 @@ dialog::backdrop {
 .login-brand span {
   display: inline-grid;
   place-items: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 18px;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
   background: linear-gradient(135deg, #2563eb, #7c3aed);
   color: white;
-  font-size: 28px;
+  font-size: 25px;
   font-weight: 800;
   box-shadow: 0 10px 24px -6px rgba(37, 99, 235, 0.45);
 }
 
 .login-card h1 {
-  font-size: 26px;
-  margin: 12px 0 4px;
+  font-size: 24px;
+  margin: 10px 0 4px;
   color: #0f172a;
 }
 
 .login-subtitle {
-  font-size: 13.5px;
+  font-size: 13px;
   color: #64748b;
-  margin: 0 0 18px;
+  margin: 0 0 16px;
 }
 
 .role-selector {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: 6px;
+  margin-bottom: 12px;
 }
 
 .role-chip {
-  padding: 9px 6px;
-  font-size: 12.5px;
-  border-radius: 12px;
+  padding: 8px 4px;
+  font-size: 12px;
+  border-radius: 11px;
   background: #f1f5f9;
   color: #475569;
   border: 1.5px solid transparent;
+  white-space: nowrap;
 }
 
 .role-chip.selected {
@@ -2395,8 +2553,8 @@ dialog::backdrop {
 
 .login-error {
   color: #e11d48;
-  font-size: 13px;
-  min-height: 20px;
+  font-size: 12.5px;
+  min-height: 18px;
   margin: 4px 0;
 }
 
@@ -2406,64 +2564,146 @@ dialog::backdrop {
 
 #toast {
   position: fixed;
-  bottom: 30px;
+  bottom: 26px;
   left: 50%;
   transform: translateX(-50%);
   max-width: 90vw;
   background: rgba(15, 23, 42, 0.92);
   backdrop-filter: blur(12px);
   color: white;
-  font-size: 14.5px;
+  font-size: 13.5px;
   font-weight: 600;
-  padding: 12px 22px;
+  padding: 10px 20px;
   border-radius: 999px;
   opacity: 0;
   pointer-events: none;
   z-index: 100;
   transition: opacity 0.25s ease;
+  white-space: nowrap;
 }
 
 #toast.show {
   opacity: 1;
 }
 
-/* ================= iPad 端适配 (701px ~ 1180px)：加宽美学左栏 + 三段式 iOS 抽屉 ================= */
-@media (min-width: 701px) and (max-width: 1180px) {
+/* ================= iPad 横屏适配 (961px ~ 1180px)：紧凑桌面级三栏抽屉 ================= */
+@media (min-width: 961px) and (max-width: 1180px) {
   aside.app-sidebar {
-    width: 204px;
-    padding: 18px 12px 14px;
+    width: 196px;
+    padding: 16px 11px 12px;
   }
   .brand-logo {
-    width: 36px;
-    height: 36px;
-    font-size: 19px;
-  }
-  .brand-text strong {
-    font-size: 16px;
-  }
-  aside.app-sidebar nav button {
-    padding: 9px 10px;
-    gap: 10px;
-  }
-  .nav-icon {
-    flex: 0 0 34px;
     width: 34px;
     height: 34px;
-    font-size: 16px;
+    font-size: 18px;
+  }
+  .brand-text strong {
+    font-size: 15.5px;
+  }
+  aside.app-sidebar nav button {
+    padding: 8px 9px;
+    gap: 9px;
+  }
+  .nav-icon {
+    flex: 0 0 32px;
+    width: 32px;
+    height: 32px;
+    font-size: 15px;
   }
   .nav-label-group strong {
-    font-size: 14px;
+    font-size: 13.5px;
   }
   .nav-label-group small {
     font-size: 10px;
   }
   main {
-    margin-left: 204px;
-    padding: 14px 16px 28px;
+    margin-left: 196px;
+    padding: 12px 14px;
   }
   .ipad-shell {
-    grid-template-columns: 288px minmax(0, 1fr);
-    gap: 14px;
+    grid-template-columns: 282px minmax(0, 1fr);
+    gap: 12px;
+  }
+  .drawer-edge-handle {
+    left: 276px;
+  }
+  .cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ================= iPad 竖屏适配 (701px ~ 960px)：左栏固定 + 上下双抽屉全宽无挤压布局 ================= */
+@media (min-width: 701px) and (max-width: 960px) {
+  aside.app-sidebar {
+    width: 186px;
+    padding: 16px 10px 12px;
+  }
+  .brand-logo {
+    width: 34px;
+    height: 34px;
+    font-size: 18px;
+  }
+  .brand-text strong {
+    font-size: 15px;
+  }
+  aside.app-sidebar nav button {
+    padding: 8px 9px;
+    gap: 8px;
+  }
+  .nav-icon {
+    flex: 0 0 32px;
+    width: 32px;
+    height: 32px;
+    font-size: 15px;
+  }
+  main {
+    margin-left: 186px;
+    padding: 12px 14px;
+  }
+  /* iPad 竖屏下中栏转为顶部横向两列概览抽屉，右栏占满全宽，彻底杜绝窄列挤压换行！ */
+  .ipad-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: 100%;
+    overflow: hidden;
+  }
+  .ipad-center {
+    height: auto;
+    flex-shrink: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 11px;
+    border-radius: 20px;
+    overflow: visible;
+  }
+  .ipad-shell.center-collapsed .ipad-center {
+    display: none;
+  }
+  .drawer-edge-handle,
+  .subject-feature-widget {
+    display: none !important;
+  }
+  .ipad-center .hero-banner {
+    min-height: 82px;
+    padding: 12px 14px;
+  }
+  .ipad-center .stats {
+    grid-column: 1 / -1;
+    grid-template-columns: 1.4fr 0.8fr 0.8fr;
+    gap: 8px;
+  }
+  .ipad-center .stat.progress {
+    grid-column: auto;
+    padding: 8px 11px;
+  }
+  .ipad-right {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+    padding: 14px 16px;
+    border-radius: 20px;
   }
   .cards {
     grid-template-columns: 1fr;
@@ -2471,12 +2711,14 @@ dialog::backdrop {
   .report-kpis {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .report-grid {
+  .report-grid,
+  .perm-grid,
+  .pin-grid {
     grid-template-columns: 1fr;
   }
 }
 
-/* ================= 手机端 (<= 700px)：以核心学习任务卡片为绝对核心，辅助区域极简压缩 ================= */
+/* ================= iPhone 端适配 (<= 700px)：原生 iOS 固定视口壳 + 核心学习任务绝对优先 ================= */
 @media (max-width: 700px) {
   aside.app-sidebar {
     display: none !important;
@@ -2484,68 +2726,79 @@ dialog::backdrop {
 
   main {
     margin: 0;
-    padding: 8px 12px calc(98px + env(safe-area-inset-bottom));
+    height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: max(8px, env(safe-area-inset-top)) 10px calc(74px + env(safe-area-inset-bottom));
   }
 
   .ipad-shell {
+    flex: 1;
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
+    overflow: hidden;
   }
 
-  /* 手机端隐藏中栏卡片外框与非核心小组件，把顶部辅助区压缩到极致 */
+  /* 手机端顶部辅助区极简定高，不占任务空间 */
   .ipad-center {
+    height: auto;
+    flex-shrink: 0;
     background: transparent;
     backdrop-filter: none;
     border: 0;
     box-shadow: none;
     padding: 0;
-    gap: 7px;
+    gap: 6px;
+    overflow: visible;
   }
 
   .drawer-edge-handle,
-  .expand-center-banner,
+  .right-top-status-bar,
   .subject-feature-widget,
   .stats {
     display: none !important;
   }
 
-  /* 手机端顶部紧凑主题与状态合一横幅（仅约 52px 高） */
+  /* 手机端顶部紧凑主题与状态合一横幅（仅约 48px 高） */
   .hero-banner {
-    min-height: 54px;
-    padding: 9px 12px;
-    border-radius: 16px;
+    min-height: 48px;
+    padding: 7px 11px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
+    gap: 6px;
   }
 
   .hero-content {
     max-width: none;
     flex: 1;
     min-width: 0;
-    gap: 2px;
+    gap: 1px;
   }
 
   .hero-pill {
-    font-size: 10px;
-    padding: 2px 7px;
+    font-size: 9.5px;
+    padding: 1.5px 6px;
   }
 
   .mobile-inline-progress {
     display: inline-flex;
     align-items: center;
-    font-size: 10.5px;
+    font-size: 10px;
     font-weight: 800;
-    padding: 2px 8px;
+    padding: 1.5px 7px;
     border-radius: 999px;
     background: var(--accent);
     color: white;
+    white-space: nowrap;
   }
 
   .hero-banner h1 {
-    font-size: 17px;
+    font-size: 16px;
     margin: 1px 0 0;
     white-space: nowrap;
     overflow: hidden;
@@ -2560,7 +2813,7 @@ dialog::backdrop {
   .hero-right-actions {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     position: relative;
     z-index: 3;
     flex-shrink: 0;
@@ -2569,116 +2822,136 @@ dialog::backdrop {
   .mobile-account-chip {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 5px 10px;
+    gap: 4px;
+    padding: 4px 9px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.95);
-    font-size: 12px;
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.96);
+    font-size: 11.5px;
     font-weight: 700;
     color: #1e293b;
+    white-space: nowrap;
   }
 
   .mobile-account-chip small {
-    font-size: 10.5px;
+    font-size: 10px;
     color: var(--accent);
   }
 
   .user-dot {
-    width: 7px;
-    height: 7px;
+    width: 6.5px;
+    height: 6.5px;
     border-radius: 50%;
     background: #10b981;
+    flex-shrink: 0;
   }
 
   .mobile-icon-chip {
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
     padding: 0;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.88);
     display: grid;
     place-items: center;
-    font-size: 14px;
+    font-size: 13.5px;
+    flex-shrink: 0;
   }
 
-  /* 手机端五日日历条：单行紧凑胶囊（仅约 44px 高） */
+  /* 手机端五日日历条：单行紧凑胶囊（仅约 38px 高） */
   .day-planner.widget-card {
-    padding: 6px 8px;
-    border-radius: 14px;
+    padding: 4px 6px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
   }
 
   .planner-heading {
     margin: 0;
     flex-shrink: 0;
+    order: 2;
   }
 
-  .planner-heading h2,
-  .date span {
+  .planner-heading h2 {
     display: none;
   }
 
   .date input {
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
     padding: 0;
     font-size: 0;
-    border-radius: 10px;
-    background: #f1f5f9 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>') no-repeat center;
+    border-radius: 8px;
+    background: #f1f5f9 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="%23475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>') no-repeat center;
     cursor: pointer;
   }
 
   .day-tabs {
     flex: 1;
     gap: 4px;
+    order: 1;
   }
 
   .day-tabs button {
-    padding: 4px 2px;
-    border-radius: 10px;
+    padding: 3px 2px;
+    border-radius: 8px;
     gap: 0;
   }
 
   .day-tabs span {
-    font-size: 12px;
-  }
-
-  .day-tabs small {
-    font-size: 9.5px;
-  }
-
-  .day-dot {
-    width: 4px;
-    height: 4px;
-    margin-top: 1px;
-  }
-
-  /* 手机端右侧主工作区：突出核心学习任务卡片！ */
-  .ipad-right {
-    padding: 12px 12px 18px;
-    border-radius: 20px;
-    min-height: auto;
-  }
-
-  .section-head h2 {
-    font-size: 18px;
-  }
-
-  .section-head p {
     font-size: 11.5px;
   }
 
+  .day-tabs small {
+    font-size: 9px;
+  }
+
+  .day-dot {
+    width: 3.5px;
+    height: 3.5px;
+    margin-top: 1px;
+  }
+
+  /* 手机端右侧主工作区：填满剩余全部屏幕高度，内部独立滚动任务卡 */
+  .ipad-right {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+    padding: 10px 11px 8px;
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .section-head {
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+
+  .section-head h2 {
+    font-size: 16px;
+  }
+
+  .task-count-pill {
+    font-size: 10.5px;
+    padding: 1.5px 7px;
+  }
+
+  .section-head p {
+    font-size: 11px;
+    margin-top: 1px;
+  }
+
   .add-task-btn {
-    padding: 8px 13px;
-    font-size: 13px;
-    border-radius: 11px;
+    padding: 6px 11px;
+    font-size: 12px;
+    border-radius: 10px;
   }
 
   .toolbar {
-    margin: 10px 0;
+    margin: 7px 0;
     gap: 6px;
   }
 
@@ -2686,11 +2959,12 @@ dialog::backdrop {
     width: 100%;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
+    padding: 3px;
   }
 
   .filters button {
-    font-size: 12.5px;
-    padding: 6px 4px;
+    font-size: 12px;
+    padding: 4.5px 4px;
     text-align: center;
   }
 
@@ -2698,73 +2972,123 @@ dialog::backdrop {
     display: none;
   }
 
-  /* 手机端核心任务卡片：饱满、醒目、占主导视觉 */
+  /* 手机端核心任务卡片：单行顶部标签无折行，饱满清晰 */
   .cards {
     grid-template-columns: 1fr;
-    gap: 11px;
+    gap: 9px;
+    padding-right: 2px;
+    padding-bottom: 10px;
   }
 
   .task {
-    padding: 15px 14px;
-    gap: 12px;
-    border-radius: 16px;
-    border-left-width: 5px;
+    padding: 12px 12px;
+    gap: 10px;
+    border-radius: 14px;
+    border-left-width: 4.5px;
   }
 
   .check {
-    flex: 0 0 34px;
-    width: 34px;
-    height: 34px;
-    border-radius: 11px;
-    margin-top: 2px;
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    margin-top: 1px;
+    font-size: 15px;
   }
 
   .task h3 {
-    font-size: 16.5px;
-    margin: 6px 0 4px;
+    font-size: 15px;
+    margin: 5px 0 3px;
   }
 
   .task p {
-    font-size: 13.5px;
-    margin: 0 0 8px;
+    font-size: 12.5px;
+    margin: 0 0 6px;
   }
 
-  /* 手机端周报与设置适配 */
+  .meta {
+    font-size: 11px;
+    gap: 4px 10px;
+  }
+
+  /* 手机端周报与设置适配：保持左右紧凑横排，杜绝顶栏过高与文字断行 */
   .reports-hero {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 18px;
-    gap: 14px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 15px;
+    gap: 10px;
+    border-radius: 18px;
   }
-
+  .reports-hero-badges {
+    gap: 5px;
+    margin-bottom: 4px;
+  }
+  .report-badge-pill, .report-medal-pill {
+    font-size: 10px;
+    padding: 2px 8px;
+  }
+  .reports-hero h1 {
+    font-size: 17.5px;
+    margin: 0 0 3px;
+    white-space: nowrap;
+  }
+  .reports-hero-sub {
+    font-size: 11px;
+    margin: 0 0 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .range-switch {
+    padding: 3px;
+    gap: 4px;
+  }
+  .range-switch button {
+    padding: 4.5px 9px;
+    font-size: 11px;
+  }
   .reports-hero-ring {
-    align-self: center;
+    width: 78px;
+    height: 78px;
+    border-radius: 18px;
+    padding: 4px;
+  }
+  .ring-svg {
+    width: 68px;
+    height: 68px;
+  }
+  .ring-center-text strong {
+    font-size: 16px;
+  }
+  .ring-center-text span {
+    font-size: 8.5px;
   }
 
   .report-kpis {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+    gap: 8px;
   }
 
   .kpi-card {
-    padding: 14px;
+    padding: 12px;
   }
 
   .kpi-card strong {
-    font-size: 24px;
+    font-size: 22px;
   }
 
   .report-grid,
   .perm-grid,
   .pin-grid,
-  .settings-two-col,
   .form-row.two-cols {
     grid-template-columns: 1fr !important;
   }
 
   .panel {
-    padding: 16px;
-    border-radius: 18px;
+    padding: 14px;
+    border-radius: 16px;
   }
 
   /* 手机端 Apple 液态玻璃底部悬浮 Tab 栏 */
@@ -2776,16 +3100,16 @@ dialog::backdrop {
     position: fixed;
     left: 50%;
     transform: translateX(-50%);
-    bottom: calc(10px + env(safe-area-inset-bottom));
-    width: calc(100% - 24px);
-    max-width: 400px;
-    padding: 5px 7px;
+    bottom: calc(8px + env(safe-area-inset-bottom));
+    width: calc(100% - 20px);
+    max-width: 390px;
+    padding: 4px 6px;
     border-radius: 999px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(248, 250, 255, 0.75) 100%);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 255, 0.82) 100%);
     backdrop-filter: blur(28px) saturate(210%);
     -webkit-backdrop-filter: blur(28px) saturate(210%);
-    border: 1px solid rgba(255, 255, 255, 0.88);
-    box-shadow: 0 14px 34px -8px rgba(15, 23, 42, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.92);
+    box-shadow: 0 12px 30px -8px rgba(15, 23, 42, 0.18);
     z-index: 50;
   }
 
@@ -2796,25 +3120,26 @@ dialog::backdrop {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
+    gap: 1px;
     margin: 0;
-    padding: 6px 0 5px;
+    padding: 5px 0 4px;
     border-radius: 999px;
     background: transparent;
     color: #64748b;
   }
 
   .mobile-nav .nav-icon {
-    width: 26px;
-    height: 24px;
-    flex-basis: 24px;
-    font-size: 18px;
+    width: 24px;
+    height: 22px;
+    flex-basis: 22px;
+    font-size: 16.5px;
     background: transparent;
   }
 
   .mobile-nav small {
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 700;
+    white-space: nowrap;
   }
 
   .mobile-nav .active {
@@ -2825,17 +3150,17 @@ dialog::backdrop {
 
   .mobile-badge {
     position: absolute;
-    right: calc(50% - 20px);
-    top: 2px;
-    min-width: 16px;
-    height: 16px;
-    padding: 0 4px;
+    right: calc(50% - 19px);
+    top: 1px;
+    min-width: 15px;
+    height: 15px;
+    padding: 0 3.5px;
     border-radius: 999px;
     background: linear-gradient(135deg, #ff6b7b, #e11d48);
     color: white;
-    font-size: 10px;
+    font-size: 9.5px;
     font-weight: 800;
-    line-height: 14px;
+    line-height: 13px;
     text-align: center;
     border: 1.5px solid white;
   }
@@ -2849,52 +3174,62 @@ dialog::backdrop {
 }
 
 
-/* ================= 首页右侧紧凑自适应三科进度卡片条 (Compact Adaptive Subject Strip) ================= */
+/* ================= 首页右侧紧凑自适应三科进度卡片条（零换行干涉） ================= */
 .home-board {
-  margin-bottom: 16px;
-  padding-bottom: 14px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
   border-bottom: 1px dashed #e2e8f0;
+  flex-shrink: 0;
 }
 
 .board-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 8px;
+  margin-bottom: 7px;
+  flex-wrap: nowrap;
 }
 
 .board-heading-left {
   display: flex;
   align-items: baseline;
   gap: 8px;
+  min-width: 0;
 }
 
 .board-heading h2 {
-  font-size: 15.5px;
+  font-size: 14.5px;
   font-weight: 800;
   color: #1e293b;
   margin: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .board-sub-hint {
-  font-size: 11.5px;
+  font-size: 11px;
   color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .board-date-pill {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
-  padding: 2px 9px;
+  padding: 2px 8px;
   border-radius: 999px;
   background: #f1f5f9;
   color: #475569;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .home-subject-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 .subject-summary {
@@ -2908,15 +3243,15 @@ dialog::backdrop {
   flex-direction: column;
   justify-content: space-between;
   width: 100%;
-  min-height: 82px;
+  min-height: 68px;
   margin: 0;
-  padding: 11px 13px;
+  padding: 9px 11px;
   text-align: left;
-  border-radius: 16px;
+  border-radius: 14px;
   background: var(--board-light);
   border: 1px solid color-mix(in srgb, var(--board) 28%, white);
   color: var(--board-ink);
-  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.22s ease;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease;
 }
 
 .subject-summary.board-math {
@@ -2935,15 +3270,15 @@ dialog::backdrop {
   position: absolute;
   inset: 0 auto 0 0;
   z-index: -1;
-  background: color-mix(in srgb, var(--board) 26%, white);
+  background: color-mix(in srgb, var(--board) 25%, white);
   transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-  border-right: 1.5px solid color-mix(in srgb, var(--board) 42%, transparent);
+  border-right: 1.5px solid color-mix(in srgb, var(--board) 40%, transparent);
   pointer-events: none;
 }
 
 .subject-summary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px -8px color-mix(in srgb, var(--board) 35%, transparent);
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--board) 35%, transparent);
 }
 
 .summary-top {
@@ -2951,54 +3286,54 @@ dialog::backdrop {
   align-items: center;
   justify-content: space-between;
   gap: 6px;
+  flex-wrap: nowrap;
 }
 
 .summary-icon-wrap {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
+  flex-wrap: nowrap;
 }
 
 .board-icon {
   display: inline-grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.85);
-  font-size: 15px;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.88);
+  font-size: 13.5px;
   font-weight: 800;
   flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
 }
 
-.summary-title-group {
-  min-width: 0;
-}
-
-.summary-title-group strong {
-  display: block;
-  font-size: 15px;
+.summary-subject-name {
+  font-size: 14.5px;
   font-weight: 800;
-  line-height: 1.15;
+  line-height: 1.1;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.summary-title-group small {
-  display: block;
+.summary-subject-tag {
   font-size: 10.5px;
-  opacity: 0.75;
+  opacity: 0.72;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .summary-percent {
-  font-size: 13.5px;
+  font-size: 12px;
   font-weight: 800;
-  padding: 2px 7px;
+  padding: 1.5px 6px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.82);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .summary-bottom {
@@ -3006,45 +3341,43 @@ dialog::backdrop {
   align-items: center;
   justify-content: space-between;
   gap: 6px;
-  margin-top: 8px;
-  font-size: 12px;
+  margin-top: 6px;
+  font-size: 11.5px;
+  flex-wrap: nowrap;
 }
 
 .summary-count {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .summary-count strong {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
 }
 
-.summary-count em {
-  font-style: normal;
+.summary-pending-tag {
   font-size: 11px;
-  margin-left: 4px;
-  opacity: 0.85;
+  font-weight: 700;
+  opacity: 0.88;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.board-arrow {
-  display: grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.75);
-  font-size: 14px;
-  font-weight: 800;
-  line-height: 1;
+/* 中等宽度平板隐去副标题，确保语文/数学/英语与百分比永不碰撞 */
+@media (max-width: 1150px) {
+  .summary-subject-tag {
+    display: none;
+  }
 }
 
 /* ================= 任务表单星期选择器 & 完成庆祝烟花动效 ================= */
 #task-form .weekdays {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 7px;
-  margin: 12px 0 16px;
+  gap: 6px;
+  margin: 10px 0 14px;
 }
 
 #task-form .weekdays label {
@@ -3065,12 +3398,12 @@ dialog::backdrop {
 #task-form .weekdays span {
   display: grid;
   place-items: center;
-  height: 40px;
+  height: 38px;
   border: 1px solid #cbd5e1;
-  border-radius: 11px;
+  border-radius: 10px;
   background: #f8fafc;
   color: #475569;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
 }
 
@@ -3101,7 +3434,7 @@ dialog::backdrop {
   border-radius: 22px;
   box-shadow: 0 0 0 8px rgba(255, 207, 76, 0.26), 0 18px 70px rgba(0, 0, 0, 0.55);
   padding: 20px 30px;
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 800;
   text-align: center;
   width: max-content;
@@ -3132,19 +3465,19 @@ dialog::backdrop {
   12%, 85% { opacity: 1; }
 }
 
-/* ================= 手机端三科概览条极简紧凑适配 (单行3列胶囊，绝不挤占核心任务空间) ================= */
+/* ================= 手机端三科概览条极简紧凑适配 (单行3列胶囊，绝不换行) ================= */
 @media (max-width: 700px) {
   .home-board {
-    margin-bottom: 10px;
-    padding-bottom: 10px;
+    margin-bottom: 7px;
+    padding-bottom: 7px;
   }
 
   .board-heading {
-    margin-bottom: 6px;
+    margin-bottom: 5px;
   }
 
   .board-heading h2 {
-    font-size: 13.5px;
+    font-size: 13px;
   }
 
   .board-sub-hint {
@@ -3152,43 +3485,43 @@ dialog::backdrop {
   }
 
   .board-date-pill {
-    font-size: 10px;
-    padding: 1px 7px;
+    font-size: 9.5px;
+    padding: 1px 6px;
   }
 
   .home-subject-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
+    gap: 5px;
   }
 
   .subject-summary {
-    min-height: 58px;
-    padding: 7px 9px;
-    border-radius: 13px;
+    min-height: 48px;
+    padding: 6px 8px;
+    border-radius: 11px;
+  }
+
+  .summary-icon-wrap {
+    gap: 4px;
   }
 
   .board-icon {
-    width: 22px;
-    height: 22px;
-    font-size: 12px;
-    border-radius: 7px;
+    width: 20px;
+    height: 20px;
+    font-size: 11px;
+    border-radius: 6px;
   }
 
-  .summary-title-group strong {
-    font-size: 13px;
-  }
-
-  .summary-title-group small {
-    display: none;
+  .summary-subject-name {
+    font-size: 12.5px;
   }
 
   .summary-percent {
-    font-size: 11px;
-    padding: 1px 5px;
+    font-size: 10.5px;
+    padding: 1px 4px;
   }
 
   .summary-bottom {
-    margin-top: 4px;
+    margin-top: 3px;
   }
 
   .summary-count {
@@ -3196,12 +3529,11 @@ dialog::backdrop {
   }
 
   .summary-count strong {
-    font-size: 12px;
+    font-size: 11.5px;
   }
 
-  .summary-count em,
-  .board-arrow {
-    display: none;
+  .summary-pending-tag {
+    font-size: 10px;
   }
 }
 
@@ -3564,7 +3896,7 @@ function homeBoard(data, date) {
     <div class="board-heading">
       <div class="board-heading-left">
         <h2>📚 三科概览</h2>
-        <span class="board-sub-hint">点击切换单科抽屉</span>
+        <span class="board-sub-hint">点击卡片切换单科视图</span>
       </div>
       <span class="board-date-pill">${dayLabel}学科进度</span>
     </div>
@@ -3581,16 +3913,14 @@ function homeBoard(data, date) {
           <div class="summary-top">
             <span class="summary-icon-wrap">
               <span class="board-icon">${meta.badge}</span>
-              <span class="summary-title-group">
-                <strong>${s.name}</strong>
-                <small>${meta.tag}</small>
-              </span>
+              <strong class="summary-subject-name">${s.name}</strong>
+              <small class="summary-subject-tag">${meta.tag}</small>
             </span>
             <span class="summary-percent" role="progressbar" aria-label="${s.name}完成进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}">${percent}%</span>
           </div>
           <div class="summary-bottom">
-            <span class="summary-count"><strong>${done}</strong>/${total} 项 <em class="${pending > 0 ? 'has-pending' : 'all-clear'}">${total ? (pending ? `待学 ${pending}` : '已全部完成') : '暂无任务'}</em></span>
-            <span class="board-arrow" aria-hidden="true">›</span>
+            <span class="summary-count">已完成 <strong>${done}</strong>/${total}</span>
+            <span class="summary-pending-tag ${pending > 0 ? 'has-pending' : 'all-clear'}">${total ? (pending ? `待学 ${pending} ›` : '已完成 ✓') : '无任务'}</span>
           </div>
         </button>`;
       }).join('')}
@@ -3620,13 +3950,16 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({
 document.addEventListener('gesturestart', e => e.preventDefault());
 document.addEventListener('gesturechange', e => e.preventDefault());
 
+const __memLS = {};
 function safeGetStorage(key) {
-  try { return localStorage.getItem(key); } catch (e) { return null; }
+  try { return localStorage.getItem(key) ?? __memLS[key] ?? null; } catch (e) { return __memLS[key] ?? null; }
 }
 function safeSetStorage(key, val) {
+  __memLS[key] = String(val);
   try { localStorage.setItem(key, val); } catch (e) {}
 }
 function safeRemoveStorage(key) {
+  delete __memLS[key];
   try { localStorage.removeItem(key); } catch (e) {}
 }
 
@@ -3766,15 +4099,15 @@ async function seedStarterTasks(silent = false) {
   for (const item of samples) {
     saveTask(data, item);
   }
-  // 默认标记部分今日与往日任务已完成，使进度环和周报趋势图立即呈现丰富效果
+  // 标记往日任务全部完成（避免往期未完成任务叠加到今日产生重复卡片），今日完成 2 项、待学 3 项
+  for (let offset = 1; offset <= 5; offset++) {
+    const pastDate = shiftDate(d, -offset);
+    const pastList = instances(data, pastDate, false);
+    pastList.forEach(item => complete(data, item));
+  }
   const todayList = instances(data, d, false);
   if (todayList[0]) complete(data, todayList[0]);
   if (todayList[2]) complete(data, todayList[2]);
-  for (let offset = 1; offset <= 4; offset++) {
-    const pastDate = shiftDate(d, -offset);
-    const pastList = instances(data, pastDate, false);
-    pastList.slice(0, Math.max(1, 5 - offset)).forEach(item => complete(data, item));
-  }
   recordLog('add', '初始化语数英核心学习计划（5项）', 'all', '包含语文、数学、英语每日核心任务');
   safeSetStorage('lyc_study_seeded_v1', '1');
   if (!silent) toast('已载入 5 项语数英学习任务 🌟');
@@ -4376,11 +4709,11 @@ function render() {
       : screen === 'reports'
         ? reportsHTML()
         : `<div class="ipad-shell ${centerDrawerCollapsed ? 'center-collapsed' : ''} ${drawerCascadeAnim ? 'ios-drawer-cascade' : ''}">
+          <button type="button" class="drawer-edge-handle" id="toggle-center-drawer" aria-label="${centerDrawerCollapsed ? '展开概览抽屉' : '收起概览抽屉'}" title="${centerDrawerCollapsed ? '拉开概览抽屉' : '收起概览抽屉'}">
+            <span>${centerDrawerCollapsed ? '›' : '‹'}</span>
+          </button>
           <!-- 第二段：中间概览与日历抽屉 (Stage 2 Center Drawer) -->
           <div class="ipad-center">
-            <button type="button" class="drawer-edge-handle" id="toggle-center-drawer" aria-label="${centerDrawerCollapsed ? '展开概览抽屉' : '收起概览抽屉'}" title="${centerDrawerCollapsed ? '拉开概览抽屉' : '收起概览抽屉'}">
-              <span>${centerDrawerCollapsed ? '›' : '‹'}</span>
-            </button>
 
             <!-- 顶部紧凑主题横幅（手机端自动融合成轻量状态条） -->
             <section class="hero-banner hero-${home ? 'home' : subject}">
@@ -4408,7 +4741,6 @@ function render() {
               <div class="planner-heading">
                 <h2>📅 ${home ? '学习日历' : theme.name + '日历'}</h2>
                 <label class="date" aria-label="选择日期">
-                  <span>跳至</span>
                   <input type="date" id="date" value="${date}" aria-label="查看日期">
                 </label>
               </div>
@@ -4445,7 +4777,7 @@ function render() {
                 <strong>${view.pending}<small> 项</small></strong>
               </button>
               <button type="button" class="stat green ${filter === 'done' ? 'stat-active' : ''}" data-filter="done">
-                <span class="stat-label">✅ ${esc(day)}已学</span>
+                <span class="stat-label">✅ 已学习</span>
                 <strong>${view.done}<small> 项</small></strong>
               </button>
             </section>
@@ -4465,10 +4797,12 @@ function render() {
 
           <!-- 第三段：右侧核心学习任务抽屉 (Stage 3 Primary Task Drawer) -->
           <div class="ipad-right">
-            ${centerDrawerCollapsed ? `<button type="button" class="expand-center-banner" id="expand-center-btn">
-              <span>⇥ 展开左侧「${esc(day)}日历与进度概览」抽屉</span>
-              <strong>${view.done}/${view.total} 项 (${view.percent}%)</strong>
-            </button>` : ''}
+            <div class="right-top-status-bar ${centerDrawerCollapsed ? 'always-show' : 'portrait-only'}">
+              <button type="button" class="expand-center-banner" id="expand-center-btn">
+                <span>⇥ ${centerDrawerCollapsed ? '展开' : '日历与概览抽屉'} · ${esc(day)} (${date.slice(5)})</span>
+                <strong>已完成 ${view.done}/${view.total} 项 (${view.percent}%)</strong>
+              </button>
+            </div>
 
             ${home ? homeBoard(data, date) : ''}
 
@@ -4704,8 +5038,7 @@ function cardHTML(t, idx = 0) {
         <div class="task-heading">
           <span class="subject-tag ${subMeta.cls}"><b>${subMeta.icon}</b> ${subMeta.name}</span>
           <span class="state ${t.done ? 'state-done' : 'state-pending'}">${t.done ? '✅ 已完成' : '🔥 待学习'}</span>
-          <span class="duration-pill">⏱ ${mins}分钟</span>
-          ${t.reminderTime ? `<span class="time-pill">⏰ ${esc(t.reminderTime)}</span>` : ''}
+          <span class="duration-pill">⏱ ${mins}分</span>
         </div>
         ${(allowEdit || allowDel) ? `<div class="task-actions">
           ${allowEdit ? `<button type="button" data-action="edit" data-key="${esc(t.key)}" aria-label="编辑任务">编辑</button>` : ''}
@@ -4716,6 +5049,7 @@ function cardHTML(t, idx = 0) {
       ${t.description ? `<p>${esc(t.description)}</p>` : ''}
       <div class="meta">
         <span>📅 ${t.date}</span>
+        ${t.reminderTime ? `<span>⏰ ${esc(t.reminderTime)}</span>` : ''}
         <span>↻ ${esc(repeatLabel(t.repeatRule))}</span>
         ${t.done && t.completedAt ? `<span class="done-time-tag">🎉 完成于 ${esc(new Date(t.completedAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }))}</span>` : ''}
       </div>

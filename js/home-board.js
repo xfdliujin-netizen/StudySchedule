@@ -21,7 +21,7 @@ export function homeBoard(data, date) {
     <div class="board-heading">
       <div class="board-heading-left">
         <h2>📚 三科概览</h2>
-        <span class="board-sub-hint">点击切换单科抽屉</span>
+        <span class="board-sub-hint">点击卡片切换单科视图</span>
       </div>
       <span class="board-date-pill">${dayLabel}学科进度</span>
     </div>
@@ -38,16 +38,14 @@ export function homeBoard(data, date) {
           <div class="summary-top">
             <span class="summary-icon-wrap">
               <span class="board-icon">${meta.badge}</span>
-              <span class="summary-title-group">
-                <strong>${s.name}</strong>
-                <small>${meta.tag}</small>
-              </span>
+              <strong class="summary-subject-name">${s.name}</strong>
+              <small class="summary-subject-tag">${meta.tag}</small>
             </span>
             <span class="summary-percent" role="progressbar" aria-label="${s.name}完成进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}">${percent}%</span>
           </div>
           <div class="summary-bottom">
-            <span class="summary-count"><strong>${done}</strong>/${total} 项 <em class="${pending > 0 ? 'has-pending' : 'all-clear'}">${total ? (pending ? `待学 ${pending}` : '已全部完成') : '暂无任务'}</em></span>
-            <span class="board-arrow" aria-hidden="true">›</span>
+            <span class="summary-count">已完成 <strong>${done}</strong>/${total}</span>
+            <span class="summary-pending-tag ${pending > 0 ? 'has-pending' : 'all-clear'}">${total ? (pending ? `待学 ${pending} ›` : '已完成 ✓') : '无任务'}</span>
           </div>
         </button>`;
       }).join('')}
