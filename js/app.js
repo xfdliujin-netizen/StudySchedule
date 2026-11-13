@@ -1243,7 +1243,8 @@ function remove(t) {
       <h2>🗑️ 删除学习任务</h2>
       <button type="button" data-close>✕</button>
     </div>
-    <p>确定删除「${esc(t.title)}」？历史完成记录会保留。</p>
+    <p>确定删除「${esc(t.title)}」（${esc(t.date)}）？历史完成记录会保留。</p>
+    <p class="hint">仅删除此执行日，会保留其他日期的同名待办；删除整个任务系列，才会移除该任务的全部卡片。</p>
     <label>删除范围
       <select name="scope">
         <option value="day">仅删除此执行日</option>
@@ -1265,6 +1266,8 @@ function remove(t) {
     recordLog('delete', t.title, t.subjectId, scopeLabels[scope] || '');
     await persist();
     dialog.close();
+    render();
+    if (!storageFailed) toast(scope === 'series' ? '该任务系列已删除' : `${t.date} 的任务已删除，其他日期按所选范围保留`);
   };
 }
 
