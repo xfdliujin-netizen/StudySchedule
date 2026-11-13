@@ -1,5 +1,10 @@
-const CACHE = 'study-planner-v32';
+const CACHE = 'study-planner-v33';
 const FILES = [
+  './css/compact.css',
+  './manifest.json',
+  './assets/icon-180.png',
+  './assets/icon-192.png',
+  './assets/icon-512.png',
   './css/refinements.css',
   './css/daily.css',
   './',
