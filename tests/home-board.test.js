@@ -9,7 +9,7 @@ test('home columns group tasks by subject and respect completion filter',()=>{
  const seen=[];
  const html=homeBoard(d,'2026-11-13',t=>{seen.push(t.id);return `<article>${t.id}</article>`;},'pending');
  assert.deepEqual(seen,['math']);
- assert.match(html,/height:100%/);assert.match(html,/height:0%/);
+ assert.match(html,/--progress:100%/);assert.match(html,/--progress:0%/);
  assert.equal((html.match(/class="subject-column board-/g)||[]).length,3);
  assert.equal((html.match(/class="column-task-list"/g)||[]).length,3);
 });

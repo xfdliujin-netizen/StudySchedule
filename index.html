@@ -11,11 +11,12 @@
   <meta name="description" content="儿童学习计划与家庭同步。">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
-  <link rel="apple-touch-icon" sizes="180x180" href="assets/icon-180.svg">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icon-180.png">
   <link rel="stylesheet" href="css/learning.css?v=28">
   <link rel="stylesheet" href="css/board.css?v=28">
   <link rel="stylesheet" href="css/daily.css">
   <link rel="stylesheet" href="css/refinements.css">
+  <link rel="stylesheet" href="css/compact.css">
   <title>小小学习家 · Kids Study Planner</title>
   <style id="inline-fallback-styles">
 :root {
@@ -3642,6 +3643,43 @@ dialog::backdrop {
  .column-task-list .meta{overflow-wrap:anywhere}
 }
 </style>
+<style>
+/* Compact subject headers with rings; no tall filling columns. */
+.subject-column-overview{padding:10px 12px}
+.column-label{justify-content:space-between;gap:6px}
+.subject-ring{display:grid;place-items:center;width:38px;height:38px;flex:0 0 38px;border-radius:50%;background:conic-gradient(var(--column-color) var(--progress),#ffffffa6 0)}
+.subject-ring>span{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--column-soft);font-size:10px;color:var(--column-color);font-weight:700}
+.compact-count{display:block;margin-top:5px;font-size:11px;line-height:1.4;font-weight:400}
+.home-workspace .task-heading-bar .section-title-group{flex:1}
+.home-workspace .task-heading-bar .section-head-actions{order:0;margin-left:auto}
+.home-workspace .task-heading-bar>.toolbar{order:1}
+.task-form-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;position:sticky;bottom:0;background:#f8faff;padding-top:8px;z-index:3}
+.task-form-actions button{min-height:42px;margin:0;width:100%;font-size:14px}
+@media(max-width:700px){
+ #task-form .form-row.two-cols{grid-template-columns:1fr 1fr;gap:8px}
+ #task-form .form-row label{min-width:0}
+ #task-form textarea{height:44px;min-height:44px}
+ #task-form .inline{margin:5px 0}
+ .subject-column-overview{padding:8px}
+ .column-label{font-size:14px}
+ .subject-ring{width:30px;height:30px;flex-basis:30px}
+ .subject-ring>span{width:24px;height:24px;font-size:9px}
+ .compact-count{font-size:10px}
+ .home-workspace .task-heading-bar .section-head{gap:6px}
+ .home-workspace .add-task-btn{font-size:12px;padding:8px}
+}
+/* Shared rounded panels and quiet navigation, aligned with the center/right panes. */
+@media(min-width:701px){
+ aside.app-sidebar{border-radius:0 22px 22px 0;background:rgba(255,255,255,.85);backdrop-filter:blur(22px) saturate(175%);border:1px solid #ffffffed;box-shadow:0 14px 38px -14px #0f172a14}
+ aside.app-sidebar nav button{border-radius:12px;border:1px solid transparent;min-height:48px;padding:9px 10px}
+ aside.app-sidebar nav button.active{background:var(--soft);border-color:var(--soft-border);box-shadow:none}
+ aside.app-sidebar nav button:hover{transform:none}
+ aside.app-sidebar nav button.active .nav-icon{transform:none}
+ aside.app-sidebar .nav-icon{border-radius:9px}
+ aside.app-sidebar .nav-label-group small{font-size:10px;opacity:.75}
+ .ipad-center,.ipad-right{border-radius:22px}
+}
+</style>
 </head>
 <body>
   <div id="app"></div>
@@ -3996,18 +4034,14 @@ const SUBJECT_META = {
 
 function homeBoard(data, date, renderCard, filter = 'all') {
   return `<section class="home-board column-board" aria-label="各科学习进度">
-    <div class="board-heading"><h2>三科学习进度</h2><span class="board-date-pill">${esc(relativeDay(date))} · 深色为已完成比例</span></div>
+    <div class="board-heading"><h2>三科学习进度</h2><span class="board-date-pill">${esc(relativeDay(date))} · 完成进度</span></div>
     <div class="subject-columns">${subjects.map(s => {
       const v = learningView(data, s.id, date), meta = SUBJECT_META[s.id];
       const rows = v.rows.filter(t => filter === 'all' || (filter === 'done' ? t.done : !t.done));
       return `<section class="subject-column board-${s.id}" aria-label="${s.name}任务">
         <button type="button" class="subject-column-overview" data-sub="${s.id}" aria-label="进入${s.name}学习计划">
-          <span class="column-label"><b>${meta.badge}</b><strong>${s.name}</strong><span>↗</span></span>
-          <span class="column-numbers"><strong>${v.percent}%</strong><small>${v.done}/${v.total} 项完成</small></span>
-          <span class="column-chart" role="progressbar" aria-label="${s.name}完成进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${v.percent}">
-            <span class="column-chart-fill" style="height:${v.percent}%"></span>
-            <span class="column-chart-caption">${v.total ? (v.pending ? '待学习 '+v.pending+' 项' : '全部完成 ✓') : '暂无计划'}</span>
-          </span>
+          <span class="column-label"><strong>${s.name}</strong><span class="subject-ring" style="--progress:${v.percent}%" role="progressbar" aria-label="${s.name}完成进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${v.percent}"><span>${v.percent}%</span></span></span>
+          <span class="compact-count">${v.done}/${v.total} 完成 · ${v.pending} 待学</span>
         </button>
         ${renderCard ? `<div class="column-task-list">${rows.map((t,i)=>renderCard(t,i)).join('') || '<p class="column-empty">'+(v.total ? '此筛选下暂无任务' : '还没有安排任务')+'</p>'}</div>` : ''}
       </section>`;
@@ -4963,9 +4997,7 @@ function render() {
                     ['done', `已学习 (${view.done})`]
                   ].map(([id, name]) => `<button type="button" data-filter="${id}" class="${filter === id ? 'selected' : ''}">${name}</button>`).join('')}
                 </div>
-                ${home ? `<div class="subject-quick-pills">
-                  ${subjects.map(s => `<button type="button" class="sub-mini-pill pill-${s.id}" data-sub="${s.id}">${s.name} ›</button>`).join('')}
-                </div>` : ''}
+                
               </div>
 
               </div>
@@ -5207,7 +5239,7 @@ function show(content) {
   }
   dialog.innerHTML = content;
   dialog.showModal();
-  dialog.querySelector('[data-close]')?.addEventListener('click', () => dialog.close());
+  dialog.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click', () => dialog.close()));
 }
 
 function edit(t) {
@@ -5263,7 +5295,7 @@ function edit(t) {
     </label>
     <label class="inline"><input name="enabled" type="checkbox" ${initial.enabled ? 'checked' : ''}> 启用此学习计划</label>
     ${t ? '<label>修改范围<select name="scope"><option value="day">仅修改此执行日</option><option value="future">此执行日及以后的计划</option></select></label>' : ''}
-    <button type="submit" class="primary full">${t ? '确认保存修改' : '确认添加任务'}</button>
+    <div class="task-form-actions"><button type="button" data-close>取消</button><button type="submit" class="primary">${t ? '确认保存修改' : '确认添加任务'}</button></div>
   </form>`);
   const update = () => {
     $('#weekly').hidden = $('#repeat').value !== 'weekly';

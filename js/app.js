@@ -946,9 +946,7 @@ function render() {
                     ['done', `已学习 (${view.done})`]
                   ].map(([id, name]) => `<button type="button" data-filter="${id}" class="${filter === id ? 'selected' : ''}">${name}</button>`).join('')}
                 </div>
-                ${home ? `<div class="subject-quick-pills">
-                  ${subjects.map(s => `<button type="button" class="sub-mini-pill pill-${s.id}" data-sub="${s.id}">${s.name} ›</button>`).join('')}
-                </div>` : ''}
+                
               </div>
 
               </div>
@@ -1190,7 +1188,7 @@ function show(content) {
   }
   dialog.innerHTML = content;
   dialog.showModal();
-  dialog.querySelector('[data-close]')?.addEventListener('click', () => dialog.close());
+  dialog.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click', () => dialog.close()));
 }
 
 function edit(t) {
@@ -1246,7 +1244,7 @@ function edit(t) {
     </label>
     <label class="inline"><input name="enabled" type="checkbox" ${initial.enabled ? 'checked' : ''}> 启用此学习计划</label>
     ${t ? '<label>修改范围<select name="scope"><option value="day">仅修改此执行日</option><option value="future">此执行日及以后的计划</option></select></label>' : ''}
-    <button type="submit" class="primary full">${t ? '确认保存修改' : '确认添加任务'}</button>
+    <div class="task-form-actions"><button type="button" data-close>取消</button><button type="submit" class="primary">${t ? '确认保存修改' : '确认添加任务'}</button></div>
   </form>`);
   const update = () => {
     $('#weekly').hidden = $('#repeat').value !== 'weekly';

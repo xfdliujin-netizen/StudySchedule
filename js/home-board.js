@@ -17,18 +17,14 @@ const SUBJECT_META = {
 
 export function homeBoard(data, date, renderCard, filter = 'all') {
   return `<section class="home-board column-board" aria-label="各科学习进度">
-    <div class="board-heading"><h2>三科学习进度</h2><span class="board-date-pill">${esc(relativeDay(date))} · 深色为已完成比例</span></div>
+    <div class="board-heading"><h2>三科学习进度</h2><span class="board-date-pill">${esc(relativeDay(date))} · 完成进度</span></div>
     <div class="subject-columns">${subjects.map(s => {
       const v = learningView(data, s.id, date), meta = SUBJECT_META[s.id];
       const rows = v.rows.filter(t => filter === 'all' || (filter === 'done' ? t.done : !t.done));
       return `<section class="subject-column board-${s.id}" aria-label="${s.name}任务">
         <button type="button" class="subject-column-overview" data-sub="${s.id}" aria-label="进入${s.name}学习计划">
-          <span class="column-label"><b>${meta.badge}</b><strong>${s.name}</strong><span>↗</span></span>
-          <span class="column-numbers"><strong>${v.percent}%</strong><small>${v.done}/${v.total} 项完成</small></span>
-          <span class="column-chart" role="progressbar" aria-label="${s.name}完成进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${v.percent}">
-            <span class="column-chart-fill" style="height:${v.percent}%"></span>
-            <span class="column-chart-caption">${v.total ? (v.pending ? '待学习 '+v.pending+' 项' : '全部完成 ✓') : '暂无计划'}</span>
-          </span>
+          <span class="column-label"><strong>${s.name}</strong><span class="subject-ring" style="--progress:${v.percent}%" role="progressbar" aria-label="${s.name}完成进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${v.percent}"><span>${v.percent}%</span></span></span>
+          <span class="compact-count">${v.done}/${v.total} 完成 · ${v.pending} 待学</span>
         </button>
         ${renderCard ? `<div class="column-task-list">${rows.map((t,i)=>renderCard(t,i)).join('') || '<p class="column-empty">'+(v.total ? '此筛选下暂无任务' : '还没有安排任务')+'</p>'}</div>` : ''}
       </section>`;
