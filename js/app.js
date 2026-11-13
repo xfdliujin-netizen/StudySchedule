@@ -1135,6 +1135,10 @@ function pausedHTML() {
 }
 
 function show(content) {
+  const themeStyle = getComputedStyle($('#app'));
+  for (const name of ['--accent', '--accent-2']) {
+    dialog.style.setProperty(name, themeStyle.getPropertyValue(name).trim() || (name === '--accent' ? '#3b82f6' : '#6366f1'));
+  }
   dialog.innerHTML = content;
   dialog.showModal();
   dialog.querySelector('[data-close]')?.addEventListener('click', () => dialog.close());
@@ -1193,7 +1197,7 @@ function edit(t) {
     </label>
     <label class="inline"><input name="enabled" type="checkbox" ${initial.enabled ? 'checked' : ''}> 启用此学习计划</label>
     ${t ? '<label>修改范围<select name="scope"><option value="day">仅修改此执行日</option><option value="future">此执行日及以后的计划</option></select></label>' : ''}
-    <button class="primary full">保存学习计划</button>
+    <button type="submit" class="primary full">${t ? '确认保存修改' : '确认添加任务'}</button>
   </form>`);
   const update = () => {
     $('#weekly').hidden = $('#repeat').value !== 'weekly';
