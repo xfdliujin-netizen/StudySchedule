@@ -1,0 +1,17 @@
+/* Task title and filters share a row on tablets and desktops. */
+@media(min-width:701px){
+ .task-heading-bar{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;margin-bottom:10px;flex-shrink:0}
+ .task-heading-bar>.section-head{display:contents}
+ .task-heading-bar .section-title-group{flex:0 1 auto;order:0}
+ .task-heading-bar>.toolbar{order:1;margin:0;flex:0 1 auto;gap:5px}
+ .task-heading-bar .section-head-actions{order:2;margin-left:auto}
+ .task-heading-bar .section-title-row{flex-wrap:wrap;gap:5px}
+ .task-heading-bar .filters{gap:2px}
+ .task-heading-bar .filters button{font-size:12px;padding:6px 7px}
+ .task-heading-bar h2{font-size:18px}
+ .task-heading-bar .task-count-pill{display:none}
+ .subject-feature-widget.daily-feature{display:block!important}
+ .ipad-center .daily-feature{grid-column:1/-1}
+}
+.daily-feature p{font-size:17px;line-height:1.65;font-weight:650;overflow-wrap:anywhere}
+.daily-feature .daily-note{display:block;margin:7px 0 0;color:var(--deep,#334155);font-size:13px;line-height:1.6}

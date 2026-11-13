@@ -3540,6 +3540,25 @@ dialog::backdrop {
 }
 
   </style>
+<style>
+/* Task title and filters share a row on tablets and desktops. */
+@media(min-width:701px){
+ .task-heading-bar{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;margin-bottom:10px;flex-shrink:0}
+ .task-heading-bar>.section-head{display:contents}
+ .task-heading-bar .section-title-group{flex:0 1 auto;order:0}
+ .task-heading-bar>.toolbar{order:1;margin:0;flex:0 1 auto;gap:5px}
+ .task-heading-bar .section-head-actions{order:2;margin-left:auto}
+ .task-heading-bar .section-title-row{flex-wrap:wrap;gap:5px}
+ .task-heading-bar .filters{gap:2px}
+ .task-heading-bar .filters button{font-size:12px;padding:6px 7px}
+ .task-heading-bar h2{font-size:18px}
+ .task-heading-bar .task-count-pill{display:none}
+ .subject-feature-widget.daily-feature{display:block!important}
+ .ipad-center .daily-feature{grid-column:1/-1}
+}
+.daily-feature p{font-size:17px;line-height:1.65;font-weight:650;overflow-wrap:anywhere}
+.daily-feature .daily-note{display:block;margin:7px 0 0;color:var(--deep,#334155);font-size:13px;line-height:1.6}
+</style>
 </head>
 <body>
   <div id="app"></div>
@@ -4610,6 +4629,53 @@ function reportsHTML() {
 }
 
 // ================= 4. 主界面渲染（左中右三段式 iOS 抽屉 + 手机端任务核心优先） =================
+
+// Daily learning snippets rotate by local calendar day, identically on every device.
+function dailySubjectContent(subjectId, day = today()) {
+  const library = {
+    chinese: [
+      ['欲穷千里目，更上一层楼。','王之涣《登鹳雀楼》'],
+      ['谁言寸草心，报得三春晖。','孟郊《游子吟》'],
+      ['春眠不觉晓，处处闻啼鸟。','孟浩然《春晓》'],
+      ['海内存知己，天涯若比邻。','王勃《送杜少府之任蜀州》'],
+      ['会当凌绝顶，一览众山小。','杜甫《望岳》'],
+      ['千里之行，始于足下。','《老子》'],
+      ['学而时习之，不亦说乎？','《论语·学而》'],
+      ['少壮不努力，老大徒伤悲。','汉乐府《长歌行》'],
+      ['读书破万卷，下笔如有神。','杜甫《奉赠韦左丞丈二十二韵》'],
+      ['但愿人长久，千里共婵娟。','苏轼《水调歌头》']
+    ],
+    math: [
+      ['长方形面积 = 长 × 宽','长 6 cm、宽 4 cm，面积是 24 cm²。'],
+      ['正方形周长 = 边长 × 4','边长 5 cm，周长是 20 cm。'],
+      ['三角形面积 = 底 × 高 ÷ 2','底 6 cm、对应高 4 cm，面积是 12 cm²。'],
+      ['平均数 = 总和 ÷ 个数','3、5、7 的平均数是 (3 + 5 + 7) ÷ 3 = 5。'],
+      ['路程 = 速度 × 时间','每小时走 4 km，走 2 小时的路程是 8 km。'],
+      ['平行四边形面积 = 底 × 高','底 5 cm、对应高 3 cm，面积是 15 cm²。'],
+      ['梯形面积 = (上底 + 下底) × 高 ÷ 2','上底 3 cm、下底 5 cm、高 4 cm，面积是 16 cm²。'],
+      ['长方体体积 = 长 × 宽 × 高','长 4 cm、宽 3 cm、高 2 cm，体积是 24 cm³。'],
+      ['a × (b + c) = a × b + a × c','乘法分配律：4 × (10 + 2) = 40 + 8。'],
+      ['圆的周长 = 2 × π × 半径','半径 3 cm，取 π ≈ 3.14，周长约 18.84 cm。']
+    ],
+    english: [
+      ['curious · 好奇的','I am curious about the stars.','我对星星很好奇。'],
+      ['brave · 勇敢的','Be brave and try again.','勇敢一点，再试一次。'],
+      ['share · 分享','I share my books with my friends.','我和朋友们分享我的书。'],
+      ['learn · 学习','I learn something new every day.','我每天都学到新东西。'],
+      ['kind · 友善的','Be kind to others.','友善地对待他人。'],
+      ['dream · 梦想','My dream is to be a teacher.','我的梦想是成为一名老师。'],
+      ['garden · 花园','There are flowers in the garden.','花园里有花。'],
+      ['practice · 练习','I practice English every day.','我每天练习英语。'],
+      ['help · 帮助','Can you help me, please?','请问你能帮助我吗？'],
+      ['smile · 微笑','Your smile makes me happy.','你的微笑让我开心。']
+    ]
+  };
+  const entries = library[subjectId];
+  if (!entries) return null;
+  const item = entries[Math.floor(Date.parse(day+'T00:00:00Z')/86400000)%entries.length];
+  return { title: {chinese:'📖 每日诗文',math:'🧮 每日公式',english:'🔤 每日英语'}[subjectId], text:item[0], notes:item.slice(1) };
+}
+
 function render() {
   verifySavedSession();
   if (!currentUser) {
@@ -4628,6 +4694,7 @@ function render() {
   if (!allowRep && screen === 'reports') screen = 'tasks';
 
   const theme = themes[subject];
+  const dailyContent = dailySubjectContent(subject);
   const view = learningView(data, subject, date);
   const rows = view.rows;
   const day = relativeDay(date);
@@ -4785,14 +4852,14 @@ function render() {
             </section>
 
             <!-- 中栏核心组件 3：各页面专属特色学习锦囊（填补中栏结构，手机端自动隐藏不占空间） -->
-            <section class="subject-feature-widget widget-card feature-${subject}">
+            <section class="subject-feature-widget widget-card feature-${subject} ${dailyContent ? 'daily-feature' : ''}">
               <div class="feature-head">
-                <strong>${theme.quoteTitle}</strong>
-                <span class="feature-tag">${theme.tag}</span>
+                <strong>${esc(dailyContent?.title || theme.quoteTitle)}</strong>
+                <span class="feature-tag">${dailyContent ? today().slice(5).replace('-', '/') : theme.tag}</span>
               </div>
-              <p>${theme.quoteText}</p>
+              <p>${esc(dailyContent?.text || theme.quoteText)}</p>
               <div class="feature-pills">
-                ${theme.focusTags.map(t => `<span>✦ ${t}</span>`).join('')}
+                ${dailyContent ? dailyContent.notes.map(t => `<span class="daily-note">${esc(t)}</span>`).join('') : theme.focusTags.map(t => `<span>✦ ${t}</span>`).join('')}
               </div>
             </section>
           </div>
@@ -4809,13 +4876,13 @@ function render() {
             ${home ? homeBoard(data, date) : ''}
 
             <section class="workspace ${home ? 'home-workspace' : 'subject-workspace'} workspace-${subject}">
-              <div class="section-head">
+              <div class="task-heading-bar"><div class="section-head">
                 <div class="section-title-group">
                   <div class="section-title-row">
                     <h2>${home ? `🎯 ${esc(day)}核心学习任务` : `${esc(day)}${theme.name}学习任务`}</h2>
                     <span class="task-count-pill">${filteredRows.length} 项</span>
                   </div>
-                  <p>${view.total} 项当日计划 · 待学 <b>${view.pending}</b> 项 / 已学 <b>${view.done}</b> 项${date === today() ? '（含往期待办）' : ''}</p>
+
                 </div>
                 <div class="section-head-actions">
                   ${allowAdd ? `<button type="button" class="primary add-task-btn" id="add">＋ 添加任务</button>` : ''}
@@ -4835,6 +4902,7 @@ function render() {
                 </div>` : ''}
               </div>
 
+              </div>
               <div class="cards">
                 ${filteredRows.map((t, idx) => cardHTML(t, idx)).join('') || `
                   <div class="empty">
