@@ -1,4 +1,4 @@
-const CACHE = 'study-planner-v29';
+const CACHE = 'study-planner-v30';
 const FILES = [
   './',
   './index.html',
