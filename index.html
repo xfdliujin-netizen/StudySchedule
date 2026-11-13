@@ -5453,13 +5453,11 @@ function updateSyncStatus() {
 // ================= 实时推送同步模块 (MQTT over WebSocket) =================
 const myDeviceId = 'dev_' + Math.random().toString(36).slice(2, 10);
 let mqttClient = null, currentTopic = '', pendingRemotePull = false;
-
+let mqttLoading = false, pendingNotification = false, realtimeReady = false;
+let retrySyncAt = 0, retryTimer, mqttRetryTimer;
 function getSyncTopic() {
-  const repoPath = (config.owner && config.repo) ? `${config.owner}_${config.repo}` : 'xfdliujin-netizen_online';
-  return `lyc_study_planner_sync_2026/${repoPath}`;
+  return 'lyc_study_planner_sync_2026/' + ((config.owner && config.repo) ? config.owner+'_'+config.repo : 'xfdliujin-netizen_online');
 }
-
-let mqttLoading = false;
 function ensureMqttLoaded(cb) {
   if (window.mqtt) { cb(); return; }
   if (mqttLoading || !navigator.onLine) return;
@@ -5467,58 +5465,68 @@ function ensureMqttLoaded(cb) {
   const sc = document.createElement('script');
   sc.async = true;
   sc.src = 'https://cdn.jsdelivr.net/npm/mqtt@5.10.3/dist/mqtt.min.js';
-  sc.onload = () => { mqttLoading = false; if (window.mqtt) cb(); };
-  sc.onerror = () => { mqttLoading = false; };
-  document.head.appendChild(sc);
+  let finished=false;
+  const finish=()=>{
+    if(finished)return;finished=true;clearTimeout(timeout);mqttLoading=false;
+    if(window.mqtt)cb();
+    else {sc.remove();clearTimeout(mqttRetryTimer);mqttRetryTimer=setTimeout(()=>ensureMqttLoaded(cb),10000);}
+  };
+  const timeout=setTimeout(finish,15000);
+  sc.onload=finish;sc.onerror=finish;document.head.appendChild(sc);
 }
-
-function setupRealtimePush() {
-  if (!window.mqtt) { ensureMqttLoaded(setupRealtimePush); return; }
-  const topic = getSyncTopic();
-  if (mqttClient) {
-    if (currentTopic && currentTopic !== topic) {
-      mqttClient.unsubscribe(currentTopic);
-      mqttClient.subscribe(topic);
-      currentTopic = topic;
+function subscribeRealtime() {
+  if(!mqttClient?.connected)return;
+  const topic=currentTopic;
+  mqttClient.subscribe(topic,{qos:1},(error,granted)=>{
+    if(topic!==currentTopic)return;
+    realtimeReady=!error&&!!granted?.length&&granted.every(g=>g.qos<128);
+    if(realtimeReady){
+      if(pendingNotification)notifyOtherDevices();
+      pendingRemotePull=true;autoSync(true);
     }
+  });
+}
+function setupRealtimePush() {
+  if(!config.token)return;
+  if(!window.mqtt){ensureMqttLoaded(setupRealtimePush);return;}
+  const topic=getSyncTopic();
+  if(mqttClient){
+    if(currentTopic!==topic){mqttClient.unsubscribe(currentTopic);currentTopic=topic;realtimeReady=false;subscribeRealtime();}
     return;
   }
-  currentTopic = topic;
-  mqttClient = window.mqtt.connect('wss://broker.emqx.io:8084/mqtt', { keepalive: 60, reconnectPeriod: 5000 });
-  mqttClient.on('connect', () => {
-    if (currentTopic) mqttClient.subscribe(currentTopic);
-  });
-  mqttClient.on('message', (t, message) => {
-    if (t !== currentTopic) return;
-    try {
-      const payload = JSON.parse(message.toString());
-      if (payload.sender !== myDeviceId) {
-        lastAutoSync = 0;
-        if (isEditing() || busy) {
-          pendingRemotePull = true;
-        } else {
-          autoSync(true);
-        }
-      }
-    } catch (e) {}
+  currentTopic=topic;
+  mqttClient=window.mqtt.connect('wss://broker.emqx.io:8084/mqtt',{keepalive:30,reconnectPeriod:3000,connectTimeout:10000});
+  mqttClient.on('connect',subscribeRealtime);
+  for(const event of ['offline','close','error'])mqttClient.on(event,()=>{realtimeReady=false;});
+  mqttClient.on('message',(topic,message)=>{
+    if(topic!==currentTopic)return;
+    try{
+      const payload=JSON.parse(message.toString());
+      if(payload.sender!==myDeviceId){pendingRemotePull=true;autoSync(true);}
+    }catch{}
   });
 }
-
 function notifyOtherDevices() {
-  if (mqttClient && mqttClient.connected && currentTopic) {
-    mqttClient.publish(currentTopic, JSON.stringify({ sender: myDeviceId, time: Date.now() }));
-  }
+  pendingNotification=true;
+  if(!mqttClient?.connected||!currentTopic)return;
+  pendingNotification=false;
+  mqttClient.publish(currentTopic,JSON.stringify({sender:myDeviceId,time:Date.now()}),{qos:1},error=>{
+    if(error)pendingNotification=true;
+  });
 }
-
-async function autoSync(force = false) {
-  if (document.hidden || isEditing() || busy || !navigator.onLine || !config.token || storageFailed || (!force && Date.now() - lastAutoSync < 60000)) return;
-  lastAutoSync = Date.now();
-  await sync({ quiet: true });
+async function autoSync(force=false) {
+  if(document.hidden||isEditing()||busy||!navigator.onLine||!config.token||storageFailed||Date.now()<retrySyncAt)return;
+  if(!force&&!pendingRemotePull&&Date.now()-lastAutoSync<60000)return;
+  lastAutoSync=Date.now();pendingRemotePull=false;
+  await sync({quiet:true});
 }
 
 async function sync(options = {}) {
   const quiet = options.quiet === true;
-  if (busy || !config.token || storageFailed) return;
+  if (busy) { pendingRemotePull = true; return; }
+  if (!config.token || storageFailed) return;
+  if (Date.now() < retrySyncAt) { pendingRemotePull = true; return; }
+  setupRealtimePush();
   if (!navigator.onLine) {
     status = '等待同步（离线）';
     if (!quiet && !isEditing()) render();
@@ -5533,6 +5541,7 @@ async function sync(options = {}) {
     for (let n = 0; n < 3; n++) {
       const remote = await api.pull();
       if (quiet && isEditing()) {
+        pendingRemotePull = true;
         status = '编辑中，稍后继续同步';
         return;
       }
@@ -5558,17 +5567,21 @@ async function sync(options = {}) {
       break;
     }
     if (!synced) throw Error('多设备正在修改，请稍后重试');
-    status = '已同步';
+    retrySyncAt = 0;
+    if (JSON.stringify(data) !== JSON.stringify(base)) pendingRemotePull = true;
+    status = pendingRemotePull ? '等待上传最新修改' : '已同步';
     if (pushed) notifyOtherDevices();
   } catch (e) {
-    status = '同步失败：' + e.message;
+    pendingRemotePull = true;
+    retrySyncAt = Date.now() + Math.max(10000, e.retryAfterMs || 0);
+    clearTimeout(retryTimer);retryTimer=setTimeout(()=>autoSync(true),Math.max(10000,e.retryAfterMs||0)+100);
+    status = '同步失败，将自动重试：' + e.message;
     if (!quiet) toast(e.message);
   } finally {
     busy = false;
     if (!isEditing()) render();
-    if (pendingRemotePull && !isEditing()) {
-      pendingRemotePull = false;
-      autoSync(true);
+    if (pendingRemotePull && !isEditing() && Date.now() >= retrySyncAt) {
+      clearTimeout(retryTimer);retryTimer=setTimeout(()=>autoSync(true),300);
     }
   }
 }
@@ -5601,6 +5614,7 @@ async function sync(options = {}) {
 })();
 
 window.addEventListener('online', () => {
+  setupRealtimePush();pendingRemotePull=true;
   lastAutoSync = 0;
   autoSync(true);
 });
@@ -5609,14 +5623,17 @@ window.addEventListener('offline', () => {
   if (!isEditing()) render();
 });
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) autoSync(false);
+  if (!document.hidden) { setupRealtimePush();pendingRemotePull=true;autoSync(true); }
 });
-dialog.addEventListener('close', () => {
-  if (pendingRemotePull) {
-    pendingRemotePull = false;
-    autoSync(true);
-  }
-});
+dialog.addEventListener('close',()=>{if(pendingRemotePull)autoSync(true);});
+window.addEventListener('focus',()=>{setupRealtimePush();pendingRemotePull=true;autoSync(true);});
+document.addEventListener('focusout',()=>{if(pendingRemotePull)setTimeout(()=>autoSync(true),0);});
+// Connection watchdog: only read GitHub periodically while push is disconnected.
+// Pending work is retried even when an editing dialog delayed its initial notification.
+setInterval(()=>{
+ setupRealtimePush();
+ if(pendingRemotePull||!realtimeReady)autoSync(true);
+},10000);
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.protocol === 'http:')) { navigator.serviceWorker.register('./sw.js').catch(() => {}); }
         })();
       }
