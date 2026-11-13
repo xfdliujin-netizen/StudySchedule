@@ -15,40 +15,23 @@ const SUBJECT_META = {
   english: { badge: 'Aa', tag: '世界对话', color: '#059669' }
 };
 
-export function homeBoard(data, date) {
-  const dayLabel = esc(relativeDay(date));
-  return `<section class="home-board" aria-label="各科学习进度">
-    <div class="board-heading">
-      <div class="board-heading-left">
-        <h2>📚 三科概览</h2>
-        <span class="board-sub-hint">点击卡片切换单科视图</span>
-      </div>
-      <span class="board-date-pill">${dayLabel}学科进度</span>
-    </div>
-    <div class="home-subject-grid">
-      ${subjects.map(s => {
-        const v = learningView(data, s.id, date);
-        const total = v.rows.length;
-        const done = v.rows.filter(t => t.done).length;
-        const pending = total - done;
-        const percent = total ? Math.round((done / total) * 100) : 0;
-        const meta = SUBJECT_META[s.id] || { badge: s.icon, tag: '学习计划' };
-        return `<button type="button" class="board-subject subject-summary board-${s.id}" data-sub="${s.id}" aria-label="进入${s.name}学习计划">
-          <span class="subject-card-fill" style="width:${percent}%" aria-hidden="true"></span>
-          <div class="summary-top">
-            <span class="summary-icon-wrap">
-              <span class="board-icon">${meta.badge}</span>
-              <strong class="summary-subject-name">${s.name}</strong>
-              <small class="summary-subject-tag">${meta.tag}</small>
-            </span>
-            <span class="summary-percent" role="progressbar" aria-label="${s.name}完成进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}">${percent}%</span>
-          </div>
-          <div class="summary-bottom">
-            <span class="summary-count">已完成 <strong>${done}</strong>/${total}</span>
-            <span class="summary-pending-tag ${pending > 0 ? 'has-pending' : 'all-clear'}">${total ? (pending ? `待学 ${pending} ›` : '已完成 ✓') : '无任务'}</span>
-          </div>
-        </button>`;
-      }).join('')}
-    </div>
+export function homeBoard(data, date, renderCard, filter = 'all') {
+  return `<section class="home-board column-board" aria-label="各科学习进度">
+    <div class="board-heading"><h2>三科学习进度</h2><span class="board-date-pill">${esc(relativeDay(date))} · 深色为已完成比例</span></div>
+    <div class="subject-columns">${subjects.map(s => {
+      const v = learningView(data, s.id, date), meta = SUBJECT_META[s.id];
+      const rows = v.rows.filter(t => filter === 'all' || (filter === 'done' ? t.done : !t.done));
+      return `<section class="subject-column board-${s.id}" aria-label="${s.name}任务">
+        <button type="button" class="subject-column-overview" data-sub="${s.id}" aria-label="进入${s.name}学习计划">
+          <span class="column-label"><b>${meta.badge}</b><strong>${s.name}</strong><span>↗</span></span>
+          <span class="column-numbers"><strong>${v.percent}%</strong><small>${v.done}/${v.total} 项完成</small></span>
+          <span class="column-chart" role="progressbar" aria-label="${s.name}完成进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${v.percent}">
+            <span class="column-chart-fill" style="height:${v.percent}%"></span>
+            <span class="column-chart-caption">${v.total ? (v.pending ? '待学习 '+v.pending+' 项' : '全部完成 ✓') : '暂无计划'}</span>
+          </span>
+        </button>
+        ${renderCard ? `<div class="column-task-list">${rows.map((t,i)=>renderCard(t,i)).join('') || '<p class="column-empty">'+(v.total ? '此筛选下暂无任务' : '还没有安排任务')+'</p>'}</div>` : ''}
+      </section>`;
+    }).join('')}</div>
   </section>`;
 }

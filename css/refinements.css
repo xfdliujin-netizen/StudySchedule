@@ -1,0 +1,79 @@
+/* Standalone iPad: keep every pane below the system status bar. */
+@media(display-mode:standalone) and (min-width:701px){
+ :root{--standalone-top:max(24px,env(safe-area-inset-top));--standalone-bottom:env(safe-area-inset-bottom)}
+ #app{padding-top:var(--standalone-top)}
+ #app main{height:calc(100dvh - var(--standalone-top));padding-bottom:max(14px,var(--standalone-bottom))}
+ #app aside.app-sidebar{top:var(--standalone-top);height:calc(100dvh - var(--standalone-top));bottom:0}
+ .login-screen{height:calc(100dvh - var(--standalone-top))}
+}
+/* Compact task editor with a persistent, visible save action. */
+#editor:has(#task-form){padding:0;overflow:hidden;max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 24px);width:520px;background:#f8faff}
+#task-form{padding:18px 20px;max-height:inherit;overflow-y:auto;overscroll-behavior:contain}
+#task-form .modal-head{margin:-18px -20px 12px;padding:16px 20px;background:linear-gradient(120deg,#eaf0ff,#f7f9ff);border-bottom:1px solid #e2e8f0}
+#task-form label{margin:8px 0;font-size:13px;font-weight:600}
+#task-form input,#task-form select,#task-form textarea{margin-top:4px;padding:8px 10px;min-height:40px;background:white;border-radius:10px}
+#task-form .form-row.two-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#task-form textarea{height:64px;min-height:64px;resize:vertical}
+#task-form .inline{font-weight:400;margin:8px 0}
+#task-form .inline input{min-height:0;margin:0}
+#task-form .weekdays{margin:6px 0;gap:5px}
+#task-form .weekdays label{margin:0}
+#task-form .weekdays span{height:35px}
+#task-form>.primary{position:sticky;bottom:0;z-index:2;min-height:44px;margin-top:8px;box-shadow:0 -5px 12px #f8faff;font-size:15px}
+@media(max-width:700px){
+ #editor:has(#task-form){width:calc(100vw - 20px);max-width:420px;border-radius:18px}
+ #task-form{padding:12px 14px}
+ #task-form .modal-head{margin:-12px -14px 8px;padding:12px 14px}
+ #task-form .modal-head h2{font-size:18px}
+ #task-form label{margin:5px 0;font-size:12px}
+ #task-form input,#task-form select,#task-form textarea{font-size:16px;padding:6px 9px;min-height:38px}
+ #task-form textarea{height:52px;min-height:52px}
+}
+/* Three subject columns: overview, bottom-up progress bar, then compact tasks. */
+.home-workspace>.cards{display:block}
+.column-board{padding:0;margin:0;border:0;width:100%}
+.column-board .board-heading{width:auto;margin:0 0 12px;flex-wrap:wrap}
+.column-board .board-heading h2{font-size:16px}
+.subject-columns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start}
+.subject-column{--column-color:#d97706;--column-soft:#fff3df;min-width:0}
+.subject-column.board-math{--column-color:#7c3aed;--column-soft:#efe8ff}
+.subject-column.board-english{--column-color:#059669;--column-soft:#ddf6ed}
+.subject-column-overview{display:block;width:100%;padding:12px;border:1px solid color-mix(in srgb,var(--column-color) 18%,white);background:var(--column-soft);color:#26344a;text-align:left;border-radius:16px;white-space:normal}
+.column-label{display:flex;align-items:center;gap:6px;font-size:17px}
+.column-label b{display:grid;place-items:center;border-radius:7px;width:25px;height:25px;background:#ffffffaa;color:var(--column-color);font-size:14px}
+.column-label>span:last-child{margin-left:auto;color:var(--column-color)}
+.column-numbers{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;margin:10px 0}
+.column-numbers>strong{font-size:25px;color:var(--column-color)}
+.column-numbers small{font-size:11px;font-weight:400}
+.column-chart{position:relative;display:block;isolation:isolate;overflow:hidden;height:100px;border-radius:10px;background:#ffffff9c}
+.column-chart-fill{position:absolute;inset:auto 0 0;background:var(--column-color);opacity:.32;transition:height .3s}
+.column-chart-caption{position:absolute;inset:auto 4px 9px;text-align:center;font-size:11px}
+.column-task-list{display:grid;gap:8px;margin-top:10px}
+.column-task-list .task{min-height:0;padding:10px 8px;gap:7px;border-left:3px solid var(--column-color);border-radius:12px;box-shadow:none}
+.column-task-list .check{width:23px;height:23px;flex:0 0 23px;margin:2px 0 0}
+.column-task-list .task-body{min-width:0}
+.column-task-list .task-top-row{display:block}
+.column-task-list .task-heading{display:none}
+.column-task-list .task-actions{position:static;margin:0 0 4px;width:auto;display:flex;flex-direction:row;justify-content:flex-end;gap:3px}
+.column-task-list .task-actions button{padding:4px 5px;font-size:11px;min-height:28px}
+.column-task-list .task h3{font-size:14px;line-height:1.4;padding:0;margin:3px 0;overflow-wrap:anywhere}
+.column-task-list .task p{font-size:12px;margin:4px 0}
+.column-task-list .meta{font-size:10px;gap:3px}
+.column-task-list .meta>span:not(:first-child){display:none}
+.column-empty{margin:0;padding:16px 6px;font-size:12px;text-align:center;color:#7b879b}
+@media(max-width:700px){
+ .subject-columns{gap:7px}
+ .subject-column-overview{padding:8px 6px;border-radius:12px}
+ .column-label{font-size:15px;gap:4px}
+ .column-label b{display:none}
+ .column-numbers{margin:7px 0;display:block}
+ .column-numbers>strong{display:block;font-size:22px}
+ .column-chart{height:72px}
+ .column-task-list .task{display:block;padding:7px}
+ .column-task-list .check{float:left;margin:0 4px 4px 0}
+ .column-task-list .task-body{overflow:visible}
+ .column-task-list .task-actions{clear:both;justify-content:flex-start}
+ .column-task-list .task h3{font-size:13px}
+ .column-task-list .task p{display:none}
+ .column-task-list .meta{overflow-wrap:anywhere}
+}

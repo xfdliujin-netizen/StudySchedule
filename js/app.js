@@ -922,7 +922,7 @@ function render() {
               </button>
             </div>
 
-            ${home ? homeBoard(data, date) : ''}
+            
 
             <section class="workspace ${home ? 'home-workspace' : 'subject-workspace'} workspace-${subject}">
               <div class="task-heading-bar"><div class="section-head">
@@ -953,7 +953,7 @@ function render() {
 
               </div>
               <div class="cards">
-                ${filteredRows.map((t, idx) => cardHTML(t, idx)).join('') || `
+                ${home ? homeBoard(data, date, cardHTML, filter) : filteredRows.map((t, idx) => cardHTML(t, idx)).join('') || `
                   <div class="empty">
                     <span class="empty-symbol">${theme.icon}</span>
                     <h3>${filter === 'done' ? '还没有已完成的任务哦' : filter === 'pending' ? `太棒了！${esc(day)}${home ? '' : theme.name}待办已全部完成 🎉` : `暂无${esc(day)}${home ? '' : theme.name}学习任务`}</h3>
@@ -1223,7 +1223,7 @@ function edit(t) {
       </label>
     </div>
     <label>学习内容与要求
-      <textarea name="description" maxlength="2000" rows="3" placeholder="写下具体的学习目标或页码要求…">${esc(initial.description)}</textarea>
+      <textarea name="description" maxlength="2000" rows="2" placeholder="写下具体的学习目标或页码要求…">${esc(initial.description)}</textarea>
     </label>
     <div class="form-row two-cols">
       <label>重复方式
