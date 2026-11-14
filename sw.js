@@ -1,4 +1,4 @@
-const CACHE = 'study-planner-v33';
+const CACHE = 'study-planner-v34';
 const FILES = [
   './css/compact.css',
   './manifest.json',
