@@ -1,3 +1,4 @@
+import {parseTaskSpeech} from './speech-task.js';
 window.__STUDY_PLANNER_BOOTED__ = true;
 import {homeBoard} from './home-board.js';
 import {allTodayDone, fireworks} from './celebration.js';
@@ -1209,6 +1210,14 @@ function edit(t) {
       <h2>${t ? '✏️ 编辑学习计划' : '➕ 添加学习任务'}</h2>
       <button type="button" data-close aria-label="关闭">✕</button>
     </div>
+
+    ${!t ? `<details class="speech-entry"><summary>🎙 语音／一句话安排</summary>
+      <p class="hint">一次安排一个任务。例如：明天开始，每周一三五读英语二十分钟。录音由浏览器语音服务处理，可能联网。</p>
+      <textarea id="speech-text" rows="2" maxlength="500" placeholder="说话或输入一句话"></textarea>
+      <div class="task-form-actions"><button type="button" id="speech-start">🎙 开始说话</button><button type="button" id="speech-parse">解析并填入</button></div>
+      <p id="speech-result" class="hint" role="status"></p>
+      <label>开始日期（可修改）<input type="date" name="speechDate" value="${esc(initial.startDate)}" required></label>
+    </details>` : ''}
     <label>任务名称
       <input name="title" required maxlength="100" value="${esc(initial.title)}" placeholder="例如：课外阅读 20 分钟">
     </label>
@@ -1217,7 +1226,7 @@ function edit(t) {
         <select name="subjectId">${subjects.map(s => `<option value="${s.id}" ${s.id === initial.subjectId ? 'selected' : ''}>${s.name}</option>`).join('')}</select>
       </label>
       <label>预计时长（分钟）
-        <input name="durationMinutes" type="number" min="5" max="240" step="5" value="${Number(initial.durationMinutes) || 20}">
+        <input name="durationMinutes" type="number" min="1" max="240" step="1" value="${Number(initial.durationMinutes) || 20}">
       </label>
     </div>
     <label>学习内容与要求
@@ -1252,6 +1261,35 @@ function edit(t) {
   };
   $('#repeat').onchange = update;
   update();
+
+  if (!t) {
+    const form=$('#task-form'),box=$('#speech-text'),note=$('#speech-result'),mic=$('#speech-start');
+    let recognition=null,recording=false;
+    const parse=()=>{
+      try{
+        const draft=parseTaskSpeech(box.value,today(),form.elements.subjectId.value);
+        form.elements.title.value=draft.title;form.elements.subjectId.value=draft.subjectId;
+        form.elements.durationMinutes.value=draft.durationMinutes;form.elements.speechDate.value=draft.startDate;
+        form.elements.description.value=draft.description;form.elements.repeat.value=draft.repeatRule.type;
+        form.querySelectorAll('[name="days"]').forEach(el=>el.checked=(draft.repeatRule.days||[]).includes(Number(el.value)));
+        form.elements.interval.value=draft.repeatRule.interval||2;update();
+        note.textContent='已填入，请核对下方字段后确认添加。'+draft.warnings.join('；');
+      }catch(e){note.textContent=e.message;}
+    };
+    $('#speech-parse').onclick=parse;
+    const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!Speech||!window.isSecureContext){mic.disabled=true;note.textContent='当前环境不支持录音，可用键盘语音输入或直接打字，再点解析。';}
+    else mic.onclick=()=>{
+      if(recording){recognition.stop();return;}
+      recognition=new Speech();recognition.lang='zh-CN';recognition.interimResults=false;recognition.continuous=false;
+      recognition.onresult=e=>{if(form.isConnected&&dialog.open){box.value=e.results[0][0].transcript;parse();}};
+      recognition.onerror=e=>{note.textContent= e.error==='not-allowed'?'麦克风权限未允许，可改用文字输入。':'语音识别未完成，请重试或输入文字。';};
+      recognition.onend=()=>{recording=false;mic.textContent='🎙 开始说话';};
+      try{recognition.start();recording=true;mic.textContent='停止录音';note.textContent='正在听，请说出任务…';}catch{note.textContent='无法启动录音，请使用文字输入。';}
+    };
+    dialog.addEventListener('close',()=>{recognition?.abort();},{once:true});
+  }
+
   $('#task-form').onsubmit = async e => {
     e.preventDefault();
     const f = new FormData(e.target),
@@ -1269,7 +1307,7 @@ function edit(t) {
       title,
       description: f.get('description'),
       subjectId: subId,
-      startDate: initial.startDate,
+      startDate: t ? initial.startDate : (f.get('speechDate') || initial.startDate),
       endDate: initial.endDate || '',
       reminderTime: f.get('reminderTime') || '',
       durationMinutes: Number(f.get('durationMinutes')) || 20,

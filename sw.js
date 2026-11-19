@@ -1,5 +1,6 @@
-const CACHE = 'study-planner-v34';
+const CACHE = 'study-planner-v35';
 const FILES = [
+  './js/speech-task.js',
   './css/compact.css',
   './manifest.json',
   './assets/icon-180.png',
