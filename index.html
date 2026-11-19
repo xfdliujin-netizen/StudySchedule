@@ -1548,7 +1548,7 @@ main {
   border: 1px solid #e2e8f0;
 }
 
-/* ================= 学习周报与管理看板 & 设置页（内部独立滚动） ================= */
+/* ================= 学习周报 & 设置页（内部独立滚动） ================= */
 .reports-view,
 .settings {
   flex: 1;
@@ -3709,12 +3709,13 @@ dialog::backdrop {
 @media(max-width:700px){.subject-cover-art{right:26px;width:42px;top:3px;opacity:.09}.subject-column-overview .column-label>strong{letter-spacing:0}.subject-column-overview .compact-count{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.subject-column-overview{transition:none}.subject-column-overview:hover{transform:none}}
 </style>
+<link rel="stylesheet" href="css/planner.css">
 </head>
 <body>
   <div id="app"></div>
   <dialog id="editor"></dialog>
   <div id="toast" role="status" aria-live="polite"></div>
-  <script type="module" src="js/app.js?v=28"></script>
+  <script type="module" src="js/app.js?v=36"></script>
   <script>
   window.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() {
@@ -4298,106 +4299,10 @@ async function persist() {
 
 // ================= 各页面专属视觉主题与特色配置 =================
 const themes = {
-  all: {
-    name: '首页',
-    navSub: '今日全科总览',
-    icon: '☀',
-    subtitle: '今日任务优先 · 每一份努力都闪闪发光',
-    tag: '今日星辰舱',
-    quoteTitle: '🌟 今日学习寄语',
-    quoteText: '先完成最重要的今日任务，每打勾一项都是一次小胜利！',
-    focusTags: ['专注当下', '今日事今日毕', '全科均衡'],
-    art: `<svg class="hero-svg" viewBox="0 0 220 140" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="165" cy="70" r="55" fill="url(#homeGlow)" opacity="0.55"/>
-      <circle cx="165" cy="70" r="38" stroke="currentColor" stroke-opacity="0.15" stroke-width="1.5" stroke-dasharray="4 4"/>
-      <path d="M95 115 C125 65, 165 45, 210 30" stroke="url(#homeLine)" stroke-width="2.5" stroke-linecap="round"/>
-      <g class="floating-badge" transform="translate(135, 32)">
-        <rect x="0" y="0" width="56" height="56" rx="18" fill="white" fill-opacity="0.82" stroke="white" stroke-width="1.5"/>
-        <path d="M28 12L32.5 23.5L44 28L32.5 32.5L28 44L23.5 32.5L12 28L23.5 23.5L28 12Z" fill="url(#starGrad)"/>
-      </g>
-      <circle cx="112" cy="88" r="5" fill="#3B82F6" fill-opacity="0.4"/>
-      <circle cx="195" cy="98" r="3.5" fill="#6366F1" fill-opacity="0.5"/>
-      <defs>
-        <radialGradient id="homeGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(165 70) scale(55)">
-          <stop stop-color="#60A5FA"/><stop offset="1" stop-color="#60A5FA" stop-opacity="0"/>
-        </radialGradient>
-        <linearGradient id="homeLine" x1="95" y1="115" x2="210" y2="30" gradientUnits="userSpaceOnUse">
-          <stop stop-color="#3B82F6" stop-opacity="0"/><stop offset="0.5" stop-color="#3B82F6" stop-opacity="0.45"/><stop offset="1" stop-color="#6366F1" stop-opacity="0.8"/>
-        </linearGradient>
-        <linearGradient id="starGrad" x1="12" y1="12" x2="44" y2="44" gradientUnits="userSpaceOnUse">
-          <stop stop-color="#2563EB"/><stop offset="1" stop-color="#7C3AED"/>
-        </linearGradient>
-      </defs>
-    </svg>`
-  },
-  chinese: {
-    name: '语文',
-    navSub: '诗书山海 · 阅读',
-    icon: '文',
-    subtitle: '晨诵暮读 · 字里行间见天地',
-    tag: '诗书山海',
-    quoteTitle: '📜 诗书山海 · 每日古训',
-    quoteText: '“读书破万卷，下笔如有神。” 每天坚持朗读与积累，语感自然水到渠成。',
-    focusTags: ['大声朗读', '好词摘录', '书写工整'],
-    art: `<svg class="hero-svg" viewBox="0 0 220 140" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M60 130 Q105 75 150 130 Z" fill="#D97706" fill-opacity="0.12"/>
-      <path d="M110 130 Q160 55 215 130 Z" fill="#B45309" fill-opacity="0.16"/>
-      <circle cx="178" cy="40" r="22" fill="#F59E0B" fill-opacity="0.24"/>
-      <g transform="translate(118, 28)">
-        <rect x="0" y="8" width="68" height="82" rx="12" transform="rotate(-6 0 8)" fill="white" fill-opacity="0.82" stroke="#F59E0B" stroke-opacity="0.35" stroke-width="1.5"/>
-        <line x1="18" y1="24" x2="18" y2="72" stroke="#D97706" stroke-opacity="0.35" stroke-width="2" stroke-linecap="round"/>
-        <line x1="34" y1="22" x2="34" y2="70" stroke="#D97706" stroke-opacity="0.35" stroke-width="2" stroke-linecap="round"/>
-        <line x1="50" y1="20" x2="50" y2="68" stroke="#D97706" stroke-opacity="0.35" stroke-width="2" stroke-linecap="round"/>
-        <rect x="42" y="48" width="36" height="36" rx="10" fill="#B45309" fill-opacity="0.92"/>
-        <text x="60" y="73" text-anchor="middle" fill="#FFFBEB" font-size="20" font-weight="700" font-family="serif">文</text>
-      </g>
-    </svg>`
-  },
-  math: {
-    name: '数学',
-    navSub: '逻辑宇宙 · 思维',
-    icon: 'π',
-    subtitle: '严谨推理 · 探索数字与几何的奥秘',
-    tag: '逻辑宇宙',
-    quoteTitle: '📐 逻辑宇宙 · 思维锦囊',
-    quoteText: '审题先圈关键词，草稿纸分区打草稿，算完逆向验算一遍，准确率提升 90%！',
-    focusTags: ['圈画条件', '规范草稿', '逆向验算'],
-    art: `<svg class="hero-svg" viewBox="0 0 220 140" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="160" cy="70" r="52" stroke="#7C3AED" stroke-opacity="0.16" stroke-width="1.5" stroke-dasharray="5 5"/>
-      <polygon points="155,18 202,98 110,98" fill="#8B5CF6" fill-opacity="0.12" stroke="#7C3AED" stroke-opacity="0.32" stroke-width="1.5" stroke-linejoin="round"/>
-      <g transform="translate(105, 32)">
-        <rect x="0" y="18" width="54" height="54" rx="16" transform="rotate(-10 0 18)" fill="white" fill-opacity="0.86" stroke="#8B5CF6" stroke-opacity="0.32" stroke-width="1.5"/>
-        <text x="27" y="54" text-anchor="middle" fill="#6D28D9" font-size="30" font-weight="800" font-family="serif" transform="rotate(-10 27 45)">π</text>
-      </g>
-      <g transform="translate(154, 62)">
-        <rect x="0" y="0" width="52" height="30" rx="9" fill="#6D28D9" fill-opacity="0.9"/>
-        <text x="26" y="19" text-anchor="middle" fill="white" font-size="11" font-weight="700">a²+b²=c²</text>
-      </g>
-    </svg>`
-  },
-  english: {
-    name: '英语',
-    navSub: '世界对话 · 语感',
-    icon: 'Aa',
-    subtitle: '听说先行 · 用声音与世界自信对话',
-    tag: '世界对话',
-    quoteTitle: '🌍 世界对话 · 语感秘籍',
-    quoteText: '“Practice makes perfect!” 先盲听抓大意，再逐句跟读模仿语音语调。',
-    focusTags: ['原声跟读', '自然拼读', '情境造句'],
-    art: `<svg class="hero-svg" viewBox="0 0 220 140" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="162" cy="70" r="48" fill="#10B981" fill-opacity="0.12"/>
-      <g transform="translate(104, 24)">
-        <rect x="0" y="0" width="76" height="46" rx="16" fill="white" fill-opacity="0.88" stroke="#10B981" stroke-opacity="0.32" stroke-width="1.5"/>
-        <path d="M18 46 L12 56 L28 46 Z" fill="white" fill-opacity="0.88"/>
-        <text x="38" y="29" text-anchor="middle" fill="#047857" font-size="16" font-weight="800">Hello!</text>
-      </g>
-      <g transform="translate(142, 62)">
-        <rect x="0" y="0" width="62" height="44" rx="14" fill="#059669" fill-opacity="0.92"/>
-        <path d="M46 44 L54 53 L36 44 Z" fill="#059669" fill-opacity="0.92"/>
-        <text x="31" y="29" text-anchor="middle" fill="white" font-size="18" font-weight="800">Aa</text>
-      </g>
-    </svg>`
-  }
+  all: { name: '首页', icon: '⌂' },
+  chinese: { name: '语文', icon: '文' },
+  math: { name: '数学', icon: 'π' },
+  english: { name: '英语', icon: 'Aa' }
 };
 
 // ================= 2. 登录界面渲染与事件 =================
@@ -4579,7 +4484,6 @@ function reportsHTML() {
   const ringRadius = 42;
   const ringCircum = +(2 * Math.PI * ringRadius).toFixed(1);
   const ringOffset = +(ringCircum * (1 - st.rate / 100)).toFixed(1);
-  const medalTitle = st.rate >= 85 ? '🏆 卓越学习之星' : st.rate >= 60 ? '🌟 稳步进阶达人' : '🌱 每日蓄力起航';
 
   const actionLabels = {
     add:    { text: '添加任务', cls: 'log-add',  icon: '➕' },
@@ -4590,11 +4494,8 @@ function reportsHTML() {
   return `<section class="reports-view single-stage-drawer ${drawerCascadeAnim ? 'ios-drawer-cascade' : ''}">
     <div class="reports-hero">
       <div class="reports-hero-main">
-        <div class="reports-hero-badges">
-          <span class="report-badge-pill">📊 ${isParent() ? '父母管理驾驶舱 · 统计与权限中心' : '专属学习成长报告'}</span>
-          <span class="report-medal-pill">${medalTitle}</span>
-        </div>
-        <h1>学习${reportRange === 'week' ? '周报' : '月报'}与管理看板</h1>
+
+        <h1>学习${reportRange === 'week' ? '周报' : '月报'}</h1>
         <p class="reports-hero-sub">统计周期：${st.startDate} 至 ${st.endDate}（近 ${days} 天） · 累计专注约 <strong>${st.doneMinutes}</strong> 分钟</p>
         <div class="range-switch">
           <button type="button" data-range="week" class="${reportRange === 'week' ? 'selected' : ''}">📅 近 7 天周报</button>
@@ -4637,7 +4538,7 @@ function reportsHTML() {
         <div class="kpi-top"><span class="kpi-icon">⏳</span><span class="kpi-tag">${st.pending ? '继续加油' : '全部清零'}</span></div>
         <strong>${st.pending}<small> 项</small></strong>
         <span class="kpi-label">周期内待完成</span>
-        <em>${st.pending === 0 ? '太棒了！无遗留任务' : '按步就班逐项击破'}</em>
+        <em>${st.pending === 0 ? '无遗留任务' : ''}</em>
       </div>
       <div class="kpi-card kpi-purple">
         <div class="kpi-top"><span class="kpi-icon">🔥</span><span class="kpi-tag">打卡习惯</span></div>
@@ -4727,7 +4628,7 @@ function reportsHTML() {
         </label>
         <label class="perm-switch-card ${perms.canReport ? 'is-on' : ''}">
           <span class="perm-card-icon">📊</span>
-          <div class="perm-card-text"><strong>允许查看统计周报</strong><small>开启后宝宝也能进入周报看板查看成长</small></div>
+          <div class="perm-card-text"><strong>允许查看统计周报</strong><small>允许查看学习统计</small></div>
           <input type="checkbox" class="ios-switch" data-perm="canReport" ${perms.canReport ? 'checked' : ''}>
         </label>
       </div>
@@ -4736,7 +4637,7 @@ function reportsHTML() {
     <section class="panel audit-panel">
       <div class="audit-head">
         <div>
-          <h2>📋 任务增删改安全审计日志</h2>
+          <h2>任务操作记录</h2>
           <p>自动记录每一次添加、修改和删除任务的责任人与精确时间（共 ${allLogs.length} 条记录）。</p>
         </div>
         <div class="range-switch audit-filter-switch">
@@ -4850,12 +4751,11 @@ function render() {
         <span class="brand-logo">✦</span>
         <div class="brand-text">
           <strong>小小学习家</strong>
-          <small>KIDS STUDY PLANNER</small>
+
         </div>
       </a>
     </div>
 
-    <div class="nav-caption">学习空间 · 抽屉导航</div>
     <nav aria-label="学习导航">
       ${Object.entries(themes).map(([id, s]) => {
         const n = id === 'all' ? learningView(data, 'all', date).pending : learningView(data, id, date).pending;
@@ -4864,7 +4764,7 @@ function render() {
           <span class="nav-icon icon-${id}">${s.icon}</span>
           <span class="nav-label-group">
             <strong>${s.name}</strong>
-            <small>${s.navSub}</small>
+
           </span>
           ${n ? `<b class="${id === 'all' ? 'badge-soft' : ''}">${n}</b>` : ''}
         </button>`;
@@ -4872,22 +4772,22 @@ function render() {
       ${allowRep ? `<button type="button" id="nav-reports" class="${screen === 'reports' ? 'active' : ''}">
         <span class="nav-icon icon-reports">📊</span>
         <span class="nav-label-group">
-          <strong>周报与看板</strong>
-          <small>统计 · 权限 · 日志</small>
+          <strong>学习统计</strong>
+
         </span>
       </button>` : ''}
       ${parentMode ? `<button type="button" id="settings" class="${screen === 'settings' ? 'active' : ''}">
         <span class="nav-icon icon-settings">⚙</span>
         <span class="nav-label-group">
           <strong>设置与同步</strong>
-          <small>密码 · 云端 · 备份</small>
+
         </span>
       </button>` : ''}
     </nav>
 
     ${screen === 'tasks' ? `<div class="drawer-stage-control">
       <button type="button" id="sidebar-drawer-toggle" class="drawer-pill-btn" title="展开或收起中间概览抽屉">
-        <span>${centerDrawerCollapsed ? '⇥ 展开中栏抽屉' : '⇤ 收起中栏抽屉'}</span>
+        <span>${centerDrawerCollapsed ? '⇥ 展开日历与进度' : '⇤ 收起日历与进度'}</span>
       </button>
     </div>` : ''}
 
@@ -4923,11 +4823,11 @@ function render() {
             <section class="hero-banner hero-${home ? 'home' : subject}">
               <div class="hero-content">
                 <div class="hero-badges">
-                  <span class="hero-pill">${home ? '✦ 今日闪闪发光' : `0${['chinese', 'math', 'english'].indexOf(subject) + 1} · ${theme.tag}`}</span>
+
                   <span class="mobile-inline-progress">${esc(day)} ${view.done}/${view.total} · ${view.percent}%</span>
                 </div>
                 <h1>${home ? '刘诣辰的学习计划' : `${theme.name}<span>学习计划</span>`}</h1>
-                <p class="hero-sub">${theme.subtitle}</p>
+
               </div>
               <div class="hero-right-actions">
                 <button type="button" class="mobile-account-chip" data-logout title="点击切换账号">
@@ -4937,7 +4837,7 @@ function render() {
                 </button>
                 ${parentMode ? `<button type="button" id="mobile-settings" class="mobile-icon-chip" aria-label="设置">⚙</button>` : ''}
               </div>
-              <div class="hero-visual" aria-hidden="true">${theme.art}</div>
+
             </section>
 
             <!-- 中栏核心组件 1：五日学习日历滑块 -->
@@ -4987,16 +4887,16 @@ function render() {
             </section>
 
             <!-- 中栏核心组件 3：各页面专属特色学习锦囊（填补中栏结构，手机端自动隐藏不占空间） -->
-            <section class="subject-feature-widget widget-card feature-${subject} ${dailyContent ? 'daily-feature' : ''}">
+            ${dailyContent ? `<section class="subject-feature-widget widget-card daily-feature">
               <div class="feature-head">
-                <strong>${esc(dailyContent?.title || theme.quoteTitle)}</strong>
-                <span class="feature-tag">${dailyContent ? today().slice(5).replace('-', '/') : theme.tag}</span>
+                <strong>${esc(dailyContent.title)}</strong>
+                <span class="feature-tag">${today().slice(5).replace('-', '/')}</span>
               </div>
-              <p>${esc(dailyContent?.text || theme.quoteText)}</p>
+              <p>${esc(dailyContent.text)}</p>
               <div class="feature-pills">
-                ${dailyContent ? dailyContent.notes.map(t => `<span class="daily-note">${esc(t)}</span>`).join('') : theme.focusTags.map(t => `<span>✦ ${t}</span>`).join('')}
+                ${dailyContent.notes.map(t => `<span class="daily-note">${esc(t)}</span>`).join('')}
               </div>
-            </section>
+            </section>` : ''}
           </div>
 
           <!-- 第三段：右侧核心学习任务抽屉 (Stage 3 Primary Task Drawer) -->
@@ -5014,7 +4914,7 @@ function render() {
               <div class="task-heading-bar"><div class="section-head">
                 <div class="section-title-group">
                   <div class="section-title-row">
-                    <h2>${home ? `🎯 ${esc(day)}核心学习任务` : `${esc(day)}${theme.name}学习任务`}</h2>
+                    <h2>${home ? `${esc(day)}学习任务` : `${esc(day)}${theme.name}学习任务`}</h2>
                     <span class="task-count-pill">${filteredRows.length} 项</span>
                   </div>
 
@@ -5040,13 +4940,8 @@ function render() {
                 ${home ? homeBoard(data, date, cardHTML, filter) : filteredRows.map((t, idx) => cardHTML(t, idx)).join('') || `
                   <div class="empty">
                     <span class="empty-symbol">${theme.icon}</span>
-                    <h3>${filter === 'done' ? '还没有已完成的任务哦' : filter === 'pending' ? `太棒了！${esc(day)}${home ? '' : theme.name}待办已全部完成 🎉` : `暂无${esc(day)}${home ? '' : theme.name}学习任务`}</h3>
-                    <p>${filter === 'done'
-                      ? '勾选任务左侧的方框即可打卡完成任务并燃放礼花！'
-                      : allowAdd
-                        ? `点击右上角「＋ 添加任务」安排${esc(day)}的学习计划，或一键载入示例任务体验。`
-                        : '今天还没有安排这项学习任务哦，稍后再来看看吧！'}</p>
-                    ${allowAdd && Object.keys(data.tasks || {}).length === 0 ? `<button type="button" class="primary seed-btn" id="seed-tasks">✨ 一键载入语数英示例任务</button>` : ''}
+                    <h3>${filter === 'done' ? '暂无已完成任务' : filter === 'pending' ? `暂无待学习任务` : `暂无${esc(day)}${home ? '' : theme.name}学习任务`}</h3>
+                    ${allowAdd && Object.keys(data.tasks || {}).length === 0 ? `<button type="button" class="primary seed-btn" id="seed-tasks">载入示例任务</button>` : ''}
                   </div>
                 `}
               </div>
@@ -5057,6 +4952,8 @@ function render() {
         </div>`
     }
   </main>
+
+  <button type="button" id="voice-fab" aria-label="语音添加任务" title="语音添加任务"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11v1a7 7 0 0 0 14 0v-1M12 19v3m-3 0h6"/></svg></button>
 
   <nav class="mobile-nav" aria-label="底部导航">
     ${Object.entries(themes).map(([id, s]) => `<button type="button" data-sub="${id}" class="${subject === id && screen === 'tasks' ? 'active' : ''}">
@@ -5071,6 +4968,11 @@ function render() {
 
   // 动画播放一次后复位标志，避免普通勾选时整栏重跳
   drawerCascadeAnim = false;
+
+  $('#voice-fab').onclick = () => {
+    if (!canAddTask()) return toast('当前账号没有添加任务的权限');
+    edit(undefined, { voice: true });
+  };
 
   // 绑定事件
   document.querySelectorAll('[data-logout]').forEach(b => (b.onclick = logout));
@@ -5207,7 +5109,7 @@ function render() {
           complete(data, t);
           persist().then(() => {
             if (!storageFailed && !wasDone && t.date === today() && allTodayDone(data)) fireworks();
-            else if (!t.done) toast('太棒了！完成一项学习任务 🌟');
+            else if (!t.done) toast('任务已完成');
           });
         }
         if (allowEdit && b.dataset.action === 'edit') edit(t);
@@ -5308,7 +5210,7 @@ function parseTaskSpeech(text, baseDate, fallbackSubject='chinese') {
  return {title,subjectId:matches[0]?.[0]||fallbackSubject,startDate,durationMinutes,repeatRule,warnings,description:raw};
 }
 
-function edit(t) {
+function edit(t, { voice = false } = {}) {
   if (t ? !canEditTask() : !canAddTask()) return;
   const initial = t || {
     subjectId: subject === 'all' ? 'chinese' : subject,
@@ -5327,7 +5229,7 @@ function edit(t) {
       <button type="button" data-close aria-label="关闭">✕</button>
     </div>
 
-    ${!t ? `<details class="speech-entry"><summary>🎙 语音／一句话安排</summary>
+    ${!t ? `<details class="speech-entry" ${voice ? 'open' : ''}><summary>🎙 语音／一句话安排</summary>
       <p class="hint">一次安排一个任务。例如：明天开始，每周一三五读英语二十分钟。录音由浏览器语音服务处理，可能联网。</p>
       <textarea id="speech-text" rows="2" maxlength="500" placeholder="说话或输入一句话"></textarea>
       <div class="task-form-actions"><button type="button" id="speech-start">🎙 开始说话</button><button type="button" id="speech-parse">解析并填入</button></div>
@@ -5404,6 +5306,10 @@ function edit(t) {
       try{recognition.start();recording=true;mic.textContent='停止录音';note.textContent='正在听，请说出任务…';}catch{note.textContent='无法启动录音，请使用文字输入。';}
     };
     dialog.addEventListener('close',()=>{recognition?.abort();},{once:true});
+    if (voice) {
+      if (mic.disabled) box.focus();
+      else mic.click();
+    }
   }
 
   $('#task-form').onsubmit = async e => {
@@ -5478,9 +5384,9 @@ function settingsHTML() {
   return `<section class="settings single-stage-drawer ${drawerCascadeAnim ? 'ios-drawer-cascade' : ''}">
     <div class="settings-hero">
       <div>
-        <span class="hero-pill">⚙ 系统控制室 · 父母专属</span>
+
         <h1>设置与云端数据同步</h1>
-        <p class="hero-sub">管理家庭成员登录密码、GitHub 私有仓库实时同步及本机安全备份。</p>
+
       </div>
       <div class="settings-status-badge">
         <span class="sync-dot ${status.includes('失败') ? 'err' : status.includes('已同步') ? 'ok' : ''}"></span>
