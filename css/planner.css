@@ -1,26 +1,136 @@
-/* Shared planner surfaces and persistent voice action. */
-#app[class]{background:#f3f5f8;--accent:#2758b7!important;--accent-2:#2758b7!important;--deep:#1e293b!important;--soft:#edf3ff!important;--soft-border:#cfdef7!important}
-#app :is(.app-sidebar,.ipad-center,.ipad-right,.reports-view,.settings){background:#fff;border-color:#dce3ec;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
-#app :is(.ipad-center,.ipad-right,.reports-view,.settings){border-radius:14px}
-#app :is(.widget-card,.task,.panel,.subject-column-overview,.sidebar-user-box){box-shadow:none;border-radius:10px}
-#app .hero-banner{min-height:0;padding:5px 0 10px;border:0;border-bottom:1px solid #e2e8f0;background:none;box-shadow:none;border-radius:0}
-#app .hero-banner h1{font-size:20px;line-height:1.25;color:#17243a;letter-spacing:0}
-#app :is(.settings-hero,.reports-hero){background:#f3f6fb;color:#17243a;box-shadow:none;border:1px solid #dce3ec;border-radius:12px}
-#app .reports-hero :is(h1,.reports-hero-sub,.reports-hero-sub strong,.ring-center-text strong,.ring-center-text span){color:#17243a}
-#app .reports-hero .ring-track{stroke:#dbe3ef}
-#app .reports-hero .range-switch{background:#e7edf6;border-color:#dce3ec}
-#app .reports-hero .range-switch button{color:#334155}
-#app .reports-hero .range-switch button.selected{color:#244b97;box-shadow:none}
-#app :is(.nav-icon,.brand-logo){box-shadow:none}
-#app .mobile-nav{background:#fff;backdrop-filter:none;-webkit-backdrop-filter:none;border-color:#dce3ec;box-shadow:none}
-#app .day-tabs button.selected{box-shadow:none}
-#app .subject-column-overview{background:var(--column-soft);border-color:#dce3ec;min-height:0}
-#app .subject-column-overview::before,#app .subject-column-overview::after,#app .subject-cover-art{display:none}
-#app .subject-column-overview .subject-ring{box-shadow:none}
-#app .task{background:#fff;animation:none}
-#app .ios-drawer-cascade :is(.ipad-center,.ipad-right,.task,.widget-card){animation:none}
-#voice-fab{position:fixed;z-index:70;right:max(16px,env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom));display:grid;place-items:center;width:48px;height:48px;padding:0;border-radius:50%;background:#2758b7;color:#fff;box-shadow:0 3px 12px #183b6640}
-#voice-fab svg{width:22px;height:22px}
-#app .cards,#app :is(.settings,.reports-view){padding-bottom:70px}
-@media(max-width:700px){#voice-fab{bottom:calc(76px + env(safe-area-inset-bottom))}#app .hero-banner h1{font-size:16px}}
+:root {
+  --paper: #fcf7e9;
+  --paper-edge: #f0e6d0;
+  --paper-line: #ded2b8;
+  --ink: #30291f;
+  --muted-ink: #655b4e;
+  --pen: #354f54;
+  --hand: "Kaiti SC", KaiTi, "STKaiti", "Noto Serif CJK SC", serif;
+}
+
+body, #app[class] {
+  background: var(--paper-edge);
+  color: var(--ink);
+}
+#app[class] {
+  --accent: #354f54 !important;
+  --accent-2: #354f54 !important;
+  --deep: #30291f !important;
+  --soft: #eee4cf !important;
+  --soft-border: #d9cbb0 !important;
+}
+#app :is(.app-sidebar,.ipad-center,.ipad-right,.reports-view,.settings) {
+  background: var(--paper);
+  border-color: var(--paper-line);
+  border-radius: 4px;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+#app .ipad-right {
+  background-image: repeating-linear-gradient(transparent 0 27px, #b9a98624 27px 28px);
+  background-attachment: local;
+}
+#app .app-sidebar { background: #f6eedc; }
+#app :is(.widget-card,.panel,.sidebar-user-box,.settings-hero,.reports-hero) {
+  background: var(--paper);
+  border: 1px solid var(--paper-line);
+  border-radius: 4px;
+  box-shadow: none;
+  color: var(--ink);
+}
+#app :is(.hero-banner,.section-head,.feature-head) { color: var(--ink); }
+#app .hero-banner {
+  min-height: 0; padding: 5px 0 10px; border: 0;
+  border-bottom: 1px solid var(--paper-line);
+  background: none; box-shadow: none; border-radius: 0;
+}
+#app :is(.hero-banner h1,.section-head h2,.board-heading h2,.task h3,.daily-feature p) {
+  font-family: var(--hand);
+  color: var(--ink);
+  letter-spacing: .02em;
+}
+#app .hero-banner h1 { font-size: 23px; line-height: 1.25; }
+#app :is(.primary,.brand-logo) { background: var(--pen); box-shadow: none; }
+#app :is(.nav-icon,.day-tabs button,.filters,.board-date-pill,.task-count-pill,.mobile-nav) {
+  background: #f4ebd8;
+  border-color: var(--paper-line);
+  box-shadow: none;
+}
+#app :is(.day-tabs .selected,.filters .selected,.mobile-nav .active) {
+  background: #e7ddc7;
+  color: var(--ink);
+}
+#app .day-tabs .selected small { color: var(--muted-ink); }
+#app .stat { background: transparent; border-color: var(--paper-line); box-shadow: none; }
+#app .subject-column-overview {
+  background: #f6efde;
+  border: 0;
+  border-bottom: 2px solid var(--column-color);
+  border-radius: 3px;
+  min-height: 0;
+  box-shadow: none;
+}
+#app .subject-column-overview::before,#app .subject-column-overview::after,#app .subject-cover-art { display: none; }
+#app .subject-ring { box-shadow: none; }
+#app .subject-ring > span { background: var(--paper); }
+#app .cards { row-gap: 0; padding-bottom: 68px; }
+#app .workspace:not(.home-workspace) .cards { grid-template-columns: minmax(0, 1fr); }
+#app .column-task-list { gap: 0; }
+#app .workspace .task {
+  display: flex;
+  align-items: flex-start;
+  min-width: 0;
+  padding: 9px 3px;
+  gap: 7px;
+  min-height: 0;
+  background: #fcf7e9bc;
+  border: 0;
+  border-bottom: 1px solid var(--paper-line);
+  border-radius: 0;
+  box-shadow: none;
+  animation: none;
+  transform: none;
+}
+#app .task .check {
+  margin: 2px 0 0; float: none; flex: 0 0 22px; width: 22px; height: 22px;
+  border-radius: 3px; border-color: #958a73;
+}
+#app .task-body { min-width: 0; flex: 1; }
+#app .task-top-row { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 2px 6px; }
+#app .task h3 { font-size: 17px; overflow-wrap: anywhere; line-height: 1.35; margin: 0; padding: 0; }
+#app .task.completed h3 { color: var(--muted-ink); text-decoration: line-through; }
+#app .task-actions { position: static; width: auto; margin: 0; gap: 2px; }
+#app .task-actions button { background: transparent; color: var(--muted-ink); min-height: 30px; padding: 3px 5px; }
+#app .task .meta { color: var(--muted-ink); font-size: 11px; }
+#app .task p { color: var(--muted-ink); }
+#app :is(.reports-view,.settings) { padding-bottom: 68px; }
+#app .reports-hero :is(h1,.reports-hero-sub,.reports-hero-sub strong,.ring-center-text strong,.ring-center-text span) { color: var(--ink); }
+#app .reports-hero .ring-track { stroke: var(--paper-line); }
+#app .reports-hero .range-switch { background: var(--paper-edge); border-color: var(--paper-line); }
+#app .reports-hero .range-switch button { color: var(--ink); }
+#app .reports-hero .range-switch button.selected { box-shadow: none; }
+#app .ios-drawer-cascade :is(.ipad-center,.ipad-right,.task,.widget-card) { animation: none; }
+#editor, #editor:has(#task-form), #task-form .modal-head, .task-form-actions { background: var(--paper); color: var(--ink); }
+#editor .modal-head { border-color: var(--paper-line); }
+#editor :is(input,textarea,select) { border-color: var(--paper-line); }
+.voice-note dl { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 15px; margin: 12px 0; }
+.voice-note dt { font-size: 12px; color: var(--muted-ink); }
+.voice-note dd { margin: 0; overflow-wrap: anywhere; }
+.voice-task-title { font-family: var(--hand); font-size: 24px; overflow-wrap: anywhere; margin: 14px 0 0; }
+#voice-fab {
+  position: fixed; z-index: 70; right: max(16px,env(safe-area-inset-right));
+  bottom: calc(16px + env(safe-area-inset-bottom)); display: grid; place-items: center;
+  width: 48px; height: 48px; padding: 0; border-radius: 50%;
+  background: var(--pen); color: #fff; box-shadow: 0 3px 10px #30291f30;
+}
+#voice-fab svg { width: 22px; height: 22px; }
+#voice-fab[aria-pressed="true"] { background: #973f39; outline: 3px solid #edc5b8; }
+@media (max-width:700px) {
+  #voice-fab { bottom: calc(76px + env(safe-area-inset-bottom)); }
+  #app .hero-banner h1 { font-size: 19px; }
+  #app .mobile-nav { border-radius: 10px; }
+  #app .home-workspace .subject-columns { grid-template-columns: minmax(0,1fr); gap: 12px; }
+  #app .home-workspace .column-task-list { margin-top: 3px; }
+  #app .home-workspace .column-task-list .task p { display: block; }
+}
 
