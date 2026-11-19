@@ -3709,13 +3709,13 @@ dialog::backdrop {
 @media(max-width:700px){.subject-cover-art{right:26px;width:42px;top:3px;opacity:.09}.subject-column-overview .column-label>strong{letter-spacing:0}.subject-column-overview .compact-count{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.subject-column-overview{transition:none}.subject-column-overview:hover{transform:none}}
 </style>
-<link rel="stylesheet" href="css/planner.css">
+<link rel="stylesheet" href="css/planner.css?v=37">
 </head>
 <body>
   <div id="app"></div>
   <dialog id="editor"></dialog>
   <div id="toast" role="status" aria-live="polite"></div>
-  <script type="module" src="js/app.js?v=36"></script>
+  <script type="module" src="js/app.js?v=37"></script>
   <script>
   window.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() {
@@ -4272,6 +4272,7 @@ async function seedStarterTasks(silent = false) {
 }
 
 const dialog = $('#editor');
+let activeVoiceRecognition = null;
 function toast(message) {
   const el = $('#toast');
   if (!el) return;
@@ -4969,9 +4970,10 @@ function render() {
   // 动画播放一次后复位标志，避免普通勾选时整栏重跳
   drawerCascadeAnim = false;
 
+  updateVoiceButton();
   $('#voice-fab').onclick = () => {
-    if (!canAddTask()) return toast('当前账号没有添加任务的权限');
-    edit(undefined, { voice: true });
+    if (activeVoiceRecognition) activeVoiceRecognition.stop();
+    else startVoiceTask();
   };
 
   // 绑定事件
@@ -5124,15 +5126,8 @@ function render() {
   }
 }
 
-const SUB_TAG_META = {
-  chinese: { name: '语文', icon: '文', cls: 'tag-chinese' },
-  math:    { name: '数学', icon: 'π',  cls: 'tag-math' },
-  english: { name: '英语', icon: 'Aa', cls: 'tag-english' }
-};
-
 function cardHTML(t, idx = 0) {
   const allowEdit = canEditTask(), allowDel = canDeleteTask();
-  const subMeta = SUB_TAG_META[t.subjectId] || { name: '综合', icon: '✦', cls: 'tag-all' };
   const mins = Number(t.durationMinutes) || 20;
   return `<article class="task task-${esc(t.subjectId)} ${t.done ? 'completed' : ''}" style="--card-idx:${Math.min(idx, 8)}">
     <button type="button" class="check" data-action="complete" data-key="${esc(t.key)}" aria-label="${t.done ? '撤销完成' : '完成任务'}">
@@ -5140,23 +5135,19 @@ function cardHTML(t, idx = 0) {
     </button>
     <div class="task-body">
       <div class="task-top-row">
-        <div class="task-heading">
-          <span class="subject-tag ${subMeta.cls}"><b>${subMeta.icon}</b> ${subMeta.name}</span>
-          <span class="state ${t.done ? 'state-done' : 'state-pending'}">${t.done ? '✅ 已完成' : '🔥 待学习'}</span>
-          <span class="duration-pill">⏱ ${mins}分</span>
-        </div>
+        <h3>${esc(t.title)}</h3>
         ${(allowEdit || allowDel) ? `<div class="task-actions">
           ${allowEdit ? `<button type="button" data-action="edit" data-key="${esc(t.key)}" aria-label="编辑任务">编辑</button>` : ''}
           ${allowDel ? `<button type="button" data-action="delete" data-key="${esc(t.key)}" aria-label="删除任务">删除</button>` : ''}
         </div>` : ''}
       </div>
-      <h3>${esc(t.title)}</h3>
       ${t.description ? `<p>${esc(t.description)}</p>` : ''}
       <div class="meta">
-        <span>📅 ${t.date}</span>
+        <span>${esc(t.date.slice(5).replace('-', '/'))}</span>
+        <span>${mins} 分钟</span>
         ${t.reminderTime ? `<span>⏰ ${esc(t.reminderTime)}</span>` : ''}
-        <span>↻ ${esc(repeatLabel(t.repeatRule))}</span>
-        ${t.done && t.completedAt ? `<span class="done-time-tag">🎉 完成于 ${esc(new Date(t.completedAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }))}</span>` : ''}
+        <span>${esc(repeatLabel(t.repeatRule))}</span>
+        ${t.done && t.completedAt ? `<span class="done-time-tag">完成于 ${esc(new Date(t.completedAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }))}</span>` : ''}
       </div>
     </div>
   </article>`;
@@ -5210,7 +5201,128 @@ function parseTaskSpeech(text, baseDate, fallbackSubject='chinese') {
  return {title,subjectId:matches[0]?.[0]||fallbackSubject,startDate,durationMinutes,repeatRule,warnings,description:raw};
 }
 
-function edit(t, { voice = false } = {}) {
+function startVoiceTask() {
+  if (!canAddTask()) return toast('当前账号没有添加任务的权限');
+  if (dialog.open || activeVoiceRecognition) return;
+  const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!Speech || !window.isSecureContext) {
+    showVoiceTranscript('当前浏览器无法直接听写，可使用键盘听写。');
+    return;
+  }
+
+  let recognition;
+  let resultShown = false;
+  const finish = () => {
+    if (activeVoiceRecognition !== recognition) return;
+    activeVoiceRecognition = null;
+    updateVoiceButton();
+  };
+  const fallback = message => {
+    if (activeVoiceRecognition !== recognition || resultShown) return;
+    resultShown = true;
+    finish();
+    if (!dialog.open && canAddTask()) showVoiceTranscript(message);
+  };
+  try {
+    recognition = new Speech();
+    recognition.lang = 'zh-CN';
+    recognition.onresult = event => {
+      if (activeVoiceRecognition !== recognition || resultShown) return;
+      resultShown = true;
+      const transcript = event.results[event.resultIndex || 0][0].transcript;
+      if (!dialog.open && canAddTask()) showVoiceTranscript('', transcript);
+    };
+    recognition.onerror = event => fallback(event.error === 'not-allowed'
+      ? '麦克风未授权，可使用键盘听写。' : '听写未完成，可重试或使用键盘听写。');
+    recognition.onend = () => {
+      if (!resultShown) fallback('没有听到任务，可重试或使用键盘听写。');
+      finish();
+    };
+    activeVoiceRecognition = recognition;
+    recognition.start();
+    updateVoiceButton();
+  } catch {
+    finish();
+    showVoiceTranscript('无法启动麦克风，可使用键盘听写。');
+  }
+}
+
+function updateVoiceButton() {
+  const button = $('#voice-fab');
+  if (!button) return;
+  const label = activeVoiceRecognition ? '停止听写' : '语音添加任务';
+  button.setAttribute('aria-label', label);
+  button.setAttribute('aria-pressed', String(Boolean(activeVoiceRecognition)));
+  button.title = label;
+}
+
+function showVoiceTranscript(message, transcript = '') {
+  let draft;
+  if (transcript) {
+    try {
+      draft = parseTaskSpeech(transcript, today(), subject === 'all' ? 'chinese' : subject);
+      if (draft.title.length > 100) throw Error('任务名称请控制在 100 字以内。');
+    } catch (error) {
+      message = error.message;
+      draft = null;
+    }
+  }
+  if (!draft) {
+    show(`<form id="voice-transcript" class="voice-note">
+      <div class="modal-head"><h2>一句话添加任务</h2><button type="button" data-close aria-label="关闭">×</button></div>
+      <p class="hint">${esc(message)}</p>
+      <label>任务内容<textarea name="transcript" rows="2" maxlength="500" required placeholder="例如：明天背十个英语单词">${esc(transcript)}</textarea></label>
+      <div class="task-form-actions"><button type="button" id="voice-retry">重新听写</button><button type="submit" class="primary">查看任务</button></div>
+    </form>`);
+    $('#voice-retry').onclick = () => { dialog.close(); startVoiceTask(); };
+    $('#voice-transcript').onsubmit = event => {
+      event.preventDefault();
+      const input = new FormData(event.currentTarget).get('transcript');
+      dialog.close();
+      showVoiceTranscript('', input);
+    };
+    return;
+  }
+
+  const subjectName = subjects.find(item => item.id === draft.subjectId).name;
+  const { warnings, description, ...task } = draft;
+  show(`<form id="voice-confirm" class="voice-note">
+    <div class="modal-head"><h2>确认学习任务</h2><button type="button" data-close aria-label="关闭">×</button></div>
+    <p class="voice-task-title">${esc(task.title)}</p>
+    <dl><div><dt>科目</dt><dd>${esc(subjectName)}</dd></div><div><dt>开始日期</dt><dd>${esc(task.startDate)}</dd></div>
+    <div><dt>重复</dt><dd>${esc(repeatLabel(task.repeatRule))}</dd></div><div><dt>时长</dt><dd>${task.durationMinutes} 分钟</dd></div></dl>
+    ${warnings.length ? `<p class="hint">${esc(warnings.join('。'))}</p>` : ''}
+    <div class="task-form-actions"><button type="button" id="voice-redo">重新听写</button><button type="submit" class="primary">确认添加</button></div>
+  </form>`);
+  $('#voice-redo').onclick = () => { dialog.close(); startVoiceTask(); };
+  const form = $('#voice-confirm');
+  let added = false;
+  form.onsubmit = async event => {
+    event.preventDefault();
+    if (!canAddTask()) return toast('当前账号没有添加任务的权限');
+    const submit = form.querySelector('[type="submit"]');
+    if (submit.disabled) return;
+    submit.disabled = true;
+    if (!added) {
+      saveTask(data, { ...task, description: '', enabled: true, endDate: '', reminderTime: '' });
+      recordLog('add', task.title, task.subjectId, '语音添加 · ' + task.startDate);
+      added = true;
+    }
+    await persist();
+    if (storageFailed) {
+      submit.disabled = false;
+      return;
+    }
+    screen = 'tasks';
+    if (subject !== 'all') subject = task.subjectId;
+    date = task.startDate;
+    filter = 'all';
+    dialog.close();
+    render();
+  };
+}
+
+function edit(t) {
   if (t ? !canEditTask() : !canAddTask()) return;
   const initial = t || {
     subjectId: subject === 'all' ? 'chinese' : subject,
@@ -5229,13 +5341,7 @@ function edit(t, { voice = false } = {}) {
       <button type="button" data-close aria-label="关闭">✕</button>
     </div>
 
-    ${!t ? `<details class="speech-entry" ${voice ? 'open' : ''}><summary>🎙 语音／一句话安排</summary>
-      <p class="hint">一次安排一个任务。例如：明天开始，每周一三五读英语二十分钟。录音由浏览器语音服务处理，可能联网。</p>
-      <textarea id="speech-text" rows="2" maxlength="500" placeholder="说话或输入一句话"></textarea>
-      <div class="task-form-actions"><button type="button" id="speech-start">🎙 开始说话</button><button type="button" id="speech-parse">解析并填入</button></div>
-      <p id="speech-result" class="hint" role="status"></p>
-      <label>开始日期（可修改）<input type="date" name="speechDate" value="${esc(initial.startDate)}" required></label>
-    </details>` : ''}
+    ${!t ? `<label>开始日期<input type="date" name="speechDate" value="${esc(initial.startDate)}" required></label>` : ''}
     <label>任务名称
       <input name="title" required maxlength="100" value="${esc(initial.title)}" placeholder="例如：课外阅读 20 分钟">
     </label>
@@ -5279,38 +5385,6 @@ function edit(t, { voice = false } = {}) {
   };
   $('#repeat').onchange = update;
   update();
-
-  if (!t) {
-    const form=$('#task-form'),box=$('#speech-text'),note=$('#speech-result'),mic=$('#speech-start');
-    let recognition=null,recording=false;
-    const parse=()=>{
-      try{
-        const draft=parseTaskSpeech(box.value,today(),form.elements.subjectId.value);
-        form.elements.title.value=draft.title;form.elements.subjectId.value=draft.subjectId;
-        form.elements.durationMinutes.value=draft.durationMinutes;form.elements.speechDate.value=draft.startDate;
-        form.elements.description.value=draft.description;form.elements.repeat.value=draft.repeatRule.type;
-        form.querySelectorAll('[name="days"]').forEach(el=>el.checked=(draft.repeatRule.days||[]).includes(Number(el.value)));
-        form.elements.interval.value=draft.repeatRule.interval||2;update();
-        note.textContent='已填入，请核对下方字段后确认添加。'+draft.warnings.join('；');
-      }catch(e){note.textContent=e.message;}
-    };
-    $('#speech-parse').onclick=parse;
-    const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
-    if(!Speech||!window.isSecureContext){mic.disabled=true;note.textContent='当前环境不支持录音，可用键盘语音输入或直接打字，再点解析。';}
-    else mic.onclick=()=>{
-      if(recording){recognition.stop();return;}
-      recognition=new Speech();recognition.lang='zh-CN';recognition.interimResults=false;recognition.continuous=false;
-      recognition.onresult=e=>{if(form.isConnected&&dialog.open){box.value=e.results[0][0].transcript;parse();}};
-      recognition.onerror=e=>{note.textContent= e.error==='not-allowed'?'麦克风权限未允许，可改用文字输入。':'语音识别未完成，请重试或输入文字。';};
-      recognition.onend=()=>{recording=false;mic.textContent='🎙 开始说话';};
-      try{recognition.start();recording=true;mic.textContent='停止录音';note.textContent='正在听，请说出任务…';}catch{note.textContent='无法启动录音，请使用文字输入。';}
-    };
-    dialog.addEventListener('close',()=>{recognition?.abort();},{once:true});
-    if (voice) {
-      if (mic.disabled) box.focus();
-      else mic.click();
-    }
-  }
 
   $('#task-form').onsubmit = async e => {
     e.preventDefault();
