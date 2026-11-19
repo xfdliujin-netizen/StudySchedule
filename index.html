@@ -4265,7 +4265,7 @@ async function seedStarterTasks(silent = false) {
   const todayList = instances(data, d, false);
   if (todayList[0]) complete(data, todayList[0]);
   if (todayList[2]) complete(data, todayList[2]);
-  recordLog('add', '初始化语数英核心学习计划（5项）', 'all', '包含语文、数学、英语每日核心任务');
+  recordLog('add', '载入示例学习任务', 'all', '包含语文、数学、英语任务');
   safeSetStorage('lyc_study_seeded_v1', '1');
   if (!silent) toast('已载入 5 项语数英学习任务 🌟');
   await persist();
@@ -4523,7 +4523,7 @@ function reportsHTML() {
 
     <div class="report-kpis">
       <div class="kpi-card kpi-blue">
-        <div class="kpi-top"><span class="kpi-icon">🎯</span><span class="kpi-tag">核心指标</span></div>
+        <div class="kpi-top"><span class="kpi-icon">🎯</span></div>
         <strong>${st.rate}<small>%</small></strong>
         <span class="kpi-label">总计划完成率</span>
         <div class="kpi-mini-bar"><i style="width:${st.rate}%"></i></div>
@@ -4535,13 +4535,13 @@ function reportsHTML() {
         <em>共安排 ${st.total} 项学习任务</em>
       </div>
       <div class="kpi-card kpi-warm">
-        <div class="kpi-top"><span class="kpi-icon">⏳</span><span class="kpi-tag">${st.pending ? '继续加油' : '全部清零'}</span></div>
+        <div class="kpi-top"><span class="kpi-icon">⏳</span></div>
         <strong>${st.pending}<small> 项</small></strong>
         <span class="kpi-label">周期内待完成</span>
-        <em>${st.pending === 0 ? '无遗留任务' : ''}</em>
+        
       </div>
       <div class="kpi-card kpi-purple">
-        <div class="kpi-top"><span class="kpi-icon">🔥</span><span class="kpi-tag">打卡习惯</span></div>
+        <div class="kpi-top"><span class="kpi-icon">🔥</span></div>
         <strong>${st.activeDays}<small> / ${days}天</small></strong>
         <span class="kpi-label">活跃学习天数</span>
         <em>活跃度 ${Math.round((st.activeDays / days) * 100)}%</em>
@@ -4628,7 +4628,7 @@ function reportsHTML() {
         </label>
         <label class="perm-switch-card ${perms.canReport ? 'is-on' : ''}">
           <span class="perm-card-icon">📊</span>
-          <div class="perm-card-text"><strong>允许查看统计周报</strong><small>允许查看学习统计</small></div>
+          <div class="perm-card-text"><strong>允许查看统计周报</strong></div>
           <input type="checkbox" class="ios-switch" data-perm="canReport" ${perms.canReport ? 'checked' : ''}>
         </label>
       </div>
@@ -4903,7 +4903,7 @@ function render() {
           <div class="ipad-right">
             <div class="right-top-status-bar ${centerDrawerCollapsed ? 'always-show' : 'portrait-only'}">
               <button type="button" class="expand-center-banner" id="expand-center-btn">
-                <span>⇥ ${centerDrawerCollapsed ? '展开' : '日历与概览抽屉'} · ${esc(day)} (${date.slice(5)})</span>
+                <span>⇥ ${centerDrawerCollapsed ? '展开' : '日历与进度'} · ${esc(day)} (${date.slice(5)})</span>
                 <strong>已完成 ${view.done}/${view.total} 项 (${view.percent}%)</strong>
               </button>
             </div>

@@ -6,8 +6,11 @@
 #app .hero-banner{min-height:0;padding:5px 0 10px;border:0;border-bottom:1px solid #e2e8f0;background:none;box-shadow:none;border-radius:0}
 #app .hero-banner h1{font-size:20px;line-height:1.25;color:#17243a;letter-spacing:0}
 #app :is(.settings-hero,.reports-hero){background:#f3f6fb;color:#17243a;box-shadow:none;border:1px solid #dce3ec;border-radius:12px}
-#app .reports-hero :is(h1,.reports-hero-sub,.reports-hero-sub strong,.ring-inner strong,.ring-inner small){color:#17243a}
-#app .report-ring-track{stroke:#dbe3ef}
+#app .reports-hero :is(h1,.reports-hero-sub,.reports-hero-sub strong,.ring-center-text strong,.ring-center-text span){color:#17243a}
+#app .reports-hero .ring-track{stroke:#dbe3ef}
+#app .reports-hero .range-switch{background:#e7edf6;border-color:#dce3ec}
+#app .reports-hero .range-switch button{color:#334155}
+#app .reports-hero .range-switch button.selected{color:#244b97;box-shadow:none}
 #app :is(.nav-icon,.brand-logo){box-shadow:none}
 #app .mobile-nav{background:#fff;backdrop-filter:none;-webkit-backdrop-filter:none;border-color:#dce3ec;box-shadow:none}
 #app .day-tabs button.selected{box-shadow:none}
@@ -19,6 +22,5 @@
 #voice-fab{position:fixed;z-index:70;right:max(16px,env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom));display:grid;place-items:center;width:48px;height:48px;padding:0;border-radius:50%;background:#2758b7;color:#fff;box-shadow:0 3px 12px #183b6640}
 #voice-fab svg{width:22px;height:22px}
 #app .cards,#app :is(.settings,.reports-view){padding-bottom:70px}
-.speech-entry:not([open]){display:none}
 @media(max-width:700px){#voice-fab{bottom:calc(76px + env(safe-area-inset-bottom))}#app .hero-banner h1{font-size:16px}}
 
