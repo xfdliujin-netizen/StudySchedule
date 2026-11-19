@@ -125,6 +125,11 @@ body, #app[class] {
 }
 #voice-fab svg { width: 22px; height: 22px; }
 #voice-fab[aria-pressed="true"] { background: #973f39; outline: 3px solid #edc5b8; }
+#voice-fab[aria-pressed="true"]::before {
+  content: "正在听写"; position: absolute; right: 58px;
+  padding: 5px 9px; color: var(--ink); background: var(--paper);
+  border: 1px solid var(--paper-line); border-radius: 4px; font-size: 13px;
+}
 @media (max-width:700px) {
   #voice-fab { bottom: calc(76px + env(safe-area-inset-bottom)); }
   #app .hero-banner h1 { font-size: 19px; }
