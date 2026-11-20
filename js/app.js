@@ -742,7 +742,6 @@ function render(taskKey) {
                 <span class="weather-icon" aria-hidden="true">🌡️</span>
                 <span class="weather-temperature" aria-hidden="true" hidden></span>
               </button>
-              ${allowAdd ? '<button type="button" class="primary" id="add">添加任务</button>' : ''}
             </div>
           </div>
           <div class="subject-page-controls">
@@ -753,9 +752,10 @@ function render(taskKey) {
                 <input type="date" id="date" value="${esc(date)}" aria-label="选择任务日期">
               </label>
             </div>
-            <div class="subject-filters" aria-label="任务状态">
+            <div class="subject-filters" aria-label="任务操作">
               ${[['all','全部',view.total],['pending','待学习',view.pending],['done','已学习',view.done]].map(([id,label,count]) =>
                 `<button type="button" data-filter="${id}" aria-pressed="${filter === id}">${label} ${count}</button>`).join('')}
+              ${allowAdd ? '<button type="button" class="primary" id="add">添加任务</button>' : ''}
             </div>
           </div>
           ${lastTaskSyncNotice?.viewKey === viewKey ? `<p class="task-sync-notice" role="status">${esc(lastTaskSyncNotice.message)}</p>` : ''}

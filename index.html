@@ -3709,13 +3709,13 @@ dialog::backdrop {
 @media(max-width:700px){.subject-cover-art{right:26px;width:42px;top:3px;opacity:.09}.subject-column-overview .column-label>strong{letter-spacing:0}.subject-column-overview .compact-count{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.subject-column-overview{transition:none}.subject-column-overview:hover{transform:none}}
 </style>
-<link rel="stylesheet" href="css/planner.css?v=48">
+<link rel="stylesheet" href="css/planner.css?v=50">
 </head>
 <body>
   <div id="app"></div>
   <dialog id="editor"></dialog>
   <div id="toast" role="status" aria-live="polite"></div>
-  <script type="module" src="js/app.js?v=49"></script>
+  <script type="module" src="js/app.js?v=50"></script>
   <script>
   window.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() {
@@ -5061,7 +5061,6 @@ function render(taskKey) {
                 <span class="weather-icon" aria-hidden="true">🌡️</span>
                 <span class="weather-temperature" aria-hidden="true" hidden></span>
               </button>
-              ${allowAdd ? '<button type="button" class="primary" id="add">添加任务</button>' : ''}
             </div>
           </div>
           <div class="subject-page-controls">
@@ -5072,9 +5071,10 @@ function render(taskKey) {
                 <input type="date" id="date" value="${esc(date)}" aria-label="选择任务日期">
               </label>
             </div>
-            <div class="subject-filters" aria-label="任务状态">
+            <div class="subject-filters" aria-label="任务操作">
               ${[['all','全部',view.total],['pending','待学习',view.pending],['done','已学习',view.done]].map(([id,label,count]) =>
                 `<button type="button" data-filter="${id}" aria-pressed="${filter === id}">${label} ${count}</button>`).join('')}
+              ${allowAdd ? '<button type="button" class="primary" id="add">添加任务</button>' : ''}
             </div>
           </div>
           ${lastTaskSyncNotice?.viewKey === viewKey ? `<p class="task-sync-notice" role="status">${esc(lastTaskSyncNotice.message)}</p>` : ''}

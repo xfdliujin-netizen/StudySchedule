@@ -199,6 +199,9 @@ body, #app[class] {
 .subject-page-controls label { display: flex; align-items: center; gap: 6px; margin: 0; }
 .subject-page-controls input { width: auto; min-width: 0; margin: 0; }
 .subject-date-tabs, .subject-filters { display: flex; flex-wrap: wrap; gap: 3px; }
+.subject-filters { align-items: stretch; flex-wrap: nowrap; min-width: 0; }
+.subject-filters [data-filter] { min-width: 0; white-space: normal; }
+#app .subject-filters #add { margin-inline-start: auto; padding-inline: 10px; color: #fff; }
 .subject-page-controls button {
   background: transparent;
   border: 1px solid transparent;
@@ -231,11 +234,11 @@ body, #app[class] {
 .ledger-app .daily-chart { overflow-x: auto; }
 .ledger-app #voice-fab { bottom: calc(14px + env(safe-area-inset-bottom)); }
 
-.subject-page-heading { flex-wrap: wrap; }
+.subject-page-heading h1 { min-width: 0; }
 .subject-heading-actions {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-shrink: 0;
   gap: 4px;
   margin-left: auto;
 }
@@ -332,7 +335,8 @@ body, #app[class] {
 .ledger-app .report-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 8px; }
 .ledger-app .audit-row { padding: 6px 8px; }
 @media (max-width: 520px) {
-  .ledger-app .subject-page-heading .primary { padding: 7px 8px; }
+  .subject-filters [data-filter] { padding-inline: 4px; }
+  #app .subject-filters #add { padding-inline: 6px; }
   .subject-date-tabs {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr)) minmax(30px, .8fr);
