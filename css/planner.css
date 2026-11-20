@@ -105,6 +105,9 @@ body, #app[class] {
 #app .task p { color: var(--muted-ink); }
 #app :is(.reports-view,.settings) { padding-bottom: 68px; }
 #app .reports-hero :is(h1,.reports-hero-sub,.reports-hero-sub strong,.ring-center-text strong,.ring-center-text span) { color: var(--ink); }
+#app .settings-hero h1 { color: var(--ink); }
+#app .settings-hero .hero-sub { color: var(--muted-ink); }
+#app .settings-status-badge { color: var(--ink); background: #f2e9d5; border-color: var(--paper-line); }
 #app .reports-hero .ring-track { stroke: var(--paper-line); }
 #app .reports-hero .range-switch { background: var(--paper-edge); border-color: var(--paper-line); }
 #app .reports-hero .range-switch button { color: var(--ink); }
