@@ -3715,7 +3715,7 @@ dialog::backdrop {
   <div id="app"></div>
   <dialog id="editor"></dialog>
   <div id="toast" role="status" aria-live="polite"></div>
-  <script type="module" src="js/app.js?v=41"></script>
+  <script type="module" src="js/app.js?v=42"></script>
   <script>
   window.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() {
@@ -5482,7 +5482,10 @@ function bindSettings() {
           next = { owner, repo, token: fields.get('token').trim() };
     try {
       await client(next).test();
+      if (busy) return toast('正在同步，请稍后再保存连接设置');
       config = next;
+      retrySyncAt = 0;
+      syncFailures = 0;
       await write('config', config);
       base = (await read('base:' + config.owner + '/' + config.repo)) || emptyData();
       setupRealtimePush();
@@ -5494,7 +5497,10 @@ function bindSettings() {
     }
   };
   $('#clear-token').onclick = async () => {
-    config.token = '';
+    if (busy) return toast('正在同步，请稍后再清除连接');
+    config = { ...config, token: '' };
+    retrySyncAt = 0;
+    syncFailures = 0;
     await write('config', config);
     status = '本地模式';
     render();
@@ -5531,12 +5537,21 @@ function choose(group, id, l, r) {
 }
 
 function isEditing() {
-  return !currentUser || screen === 'settings' || dialog.open || document.activeElement?.matches('input,textarea,select,[contenteditable="true"]');
+  return !currentUser || dialog.open || document.activeElement?.matches('input,textarea,select,[contenteditable="true"]');
 }
 
-let lastAutoSync = 0;
+// Record order can differ across devices without changing the stored data.
+function sameSyncData(left, right) {
+  const canonical = (_key, value) => value && typeof value === 'object' && !Array.isArray(value)
+    ? Object.fromEntries(Object.keys(value).sort().map(key => [key, value[key]]))
+    : value;
+  return JSON.stringify(left, canonical) === JSON.stringify(right, canonical);
+}
+
+let lastAutoSync = 0, syncFailures = 0;
 
 function updateSyncStatus() {
+  for (const label of document.querySelectorAll('.settings-status-badge strong, .sync-status-line strong')) label.textContent = status;
   const button = $('#sync');
   if (button) button.innerHTML = `<span class="sync-dot ${status.includes('失败') ? 'err' : status.includes('已同步') ? 'ok' : ''}"></span><span>☁ ${esc(status)}</span>`;
 }
@@ -5617,16 +5632,22 @@ async function sync(options = {}) {
   if (busy) { pendingRemotePull = true; return; }
   if (!config.token || storageFailed) return;
   if (Date.now() < retrySyncAt) { pendingRemotePull = true; return; }
-  setupRealtimePush();
   if (!navigator.onLine) {
+    pendingRemotePull = true;
     status = '等待同步（离线）';
-    if (!quiet && !isEditing()) render();
+    updateSyncStatus();
     return;
   }
+  pendingRemotePull = false;
+  lastAutoSync = Date.now();
   busy = true;
+  const beforePull = data;
+  let changedLocally = false;
   status = '同步中';
   updateSyncStatus();
   try {
+    // MQTT is an optional notification channel; GitHub reads and writes stand on their own.
+    try { setupRealtimePush(); } catch { realtimeReady = false; }
     const api = client(config);
     let synced = false, pushed = false;
     for (let n = 0; n < 3; n++) {
@@ -5638,7 +5659,7 @@ async function sync(options = {}) {
       }
       const snapshot = structuredClone(data),
             merged = merge(base, snapshot, remote.data, choose);
-      if (JSON.stringify(merged) !== JSON.stringify(remote.data)) {
+      if (!sameSyncData(merged, remote.data)) {
         try {
           await api.push(merged, remote.sha);
           pushed = true;
@@ -5650,27 +5671,41 @@ async function sync(options = {}) {
           throw e;
         }
       }
-      data = merge(snapshot, data, merged, choose);
-      base = merged;
-      await write('data', data);
-      await write('base:' + config.owner + '/' + config.repo, base);
+      const incoming = merge(snapshot, data, merged, choose);
+      if (!sameSyncData(data, incoming)) {
+        data = incoming;
+        changedLocally = true;
+        await write('data', data);
+      }
+      if (!sameSyncData(base, merged)) {
+        await write('base:' + config.owner + '/' + config.repo, merged);
+        base = merged;
+      }
       synced = true;
       break;
     }
     if (!synced) throw Error('多设备正在修改，请稍后重试');
     retrySyncAt = 0;
-    if (JSON.stringify(data) !== JSON.stringify(base)) pendingRemotePull = true;
-    status = pendingRemotePull ? '等待上传最新修改' : '已同步';
-    if (pushed) notifyOtherDevices();
+    syncFailures = 0;
+    const waitingUpload = !sameSyncData(data, base);
+    if (waitingUpload) pendingRemotePull = true;
+    status = waitingUpload ? '等待上传最新修改' : pendingRemotePull ? '等待检查云端更新' : '已同步';
+    if (pushed) {
+      try { notifyOtherDevices(); } catch { pendingNotification = true; }
+    }
   } catch (e) {
     pendingRemotePull = true;
-    retrySyncAt = Date.now() + Math.max(10000, e.retryAfterMs || 0);
-    clearTimeout(retryTimer);retryTimer=setTimeout(()=>autoSync(true),Math.max(10000,e.retryAfterMs||0)+100);
+    syncFailures++;
+    const delay = Math.max(Math.min(120000, 10000 * 2 ** Math.min(syncFailures - 1, 4)), e.retryAfterMs || 0);
+    retrySyncAt = Date.now() + delay;
+    clearTimeout(retryTimer);
+    retryTimer = setTimeout(() => autoSync(true), Math.min(2147483647, delay + 100));
     status = '同步失败，将自动重试：' + e.message;
     if (!quiet) toast(e.message);
   } finally {
     busy = false;
-    if (!isEditing()) render();
+    if ((changedLocally || data !== beforePull) && screen !== 'settings' && !isEditing()) render();
+    updateSyncStatus();
     if (pendingRemotePull && !isEditing() && Date.now() >= retrySyncAt) {
       clearTimeout(retryTimer);retryTimer=setTimeout(()=>autoSync(true),300);
     }
@@ -5692,7 +5727,7 @@ async function sync(options = {}) {
     config = (await read('config')) || {};
     base = (await read('base:' + config.owner + '/' + config.repo)) || emptyData();
     verifySavedSession();
-    if (Object.keys(data.tasks || {}).length === 0 && !safeGetStorage('lyc_study_seeded_v1')) {
+    if (!config.token && Object.keys(data.tasks || {}).length === 0 && !safeGetStorage('lyc_study_seeded_v1')) {
       await seedStarterTasks(true);
     } else {
       render();
@@ -5719,12 +5754,15 @@ document.addEventListener('visibilitychange', () => {
 dialog.addEventListener('close',()=>{if(pendingRemotePull)autoSync(true);});
 window.addEventListener('focus',()=>{setupRealtimePush();pendingRemotePull=true;autoSync(true);});
 document.addEventListener('focusout',()=>{if(pendingRemotePull)setTimeout(()=>autoSync(true),0);});
-// Connection watchdog: only read GitHub periodically while push is disconnected.
-// Pending work is retried even when an editing dialog delayed its initial notification.
-setInterval(()=>{
- setupRealtimePush();
- if(pendingRemotePull||!realtimeReady)autoSync(true);
-},10000);
+// Push normally starts the pull. Check once a minute for missed notifications,
+ // or sooner when push is disconnected or a pending operation needs a retry.
+setInterval(() => {
+  try { setupRealtimePush(); } catch { realtimeReady = false; }
+  if (pendingNotification && realtimeReady) {
+    try { notifyOtherDevices(); } catch { pendingNotification = true; }
+  }
+  autoSync(pendingRemotePull || !realtimeReady);
+}, 10000);
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.protocol === 'http:')) { navigator.serviceWorker.register('./sw.js').catch(() => {}); }
         })();
       }
