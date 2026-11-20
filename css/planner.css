@@ -198,7 +198,7 @@ body, #app[class] {
 .subject-page-controls { display: grid; gap: 8px; margin: 12px 0 8px; }
 .subject-page-controls label { display: flex; align-items: center; gap: 6px; margin: 0; }
 .subject-page-controls input { width: auto; min-width: 0; margin: 0; }
-.subject-date-tabs, .subject-filters { display: flex; flex-wrap: wrap; gap: 3px; }
+.subject-filters { display: flex; gap: 3px; }
 .subject-filters { align-items: stretch; flex-wrap: nowrap; min-width: 0; }
 .subject-filters [data-filter] { min-width: 0; white-space: normal; }
 #app .subject-filters #add { margin-inline-start: auto; padding-inline: 10px; color: #fff; }
@@ -259,13 +259,45 @@ body, #app[class] {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.subject-date-tabs { align-items: stretch; gap: 5px; }
-.subject-date-tabs button { border-color: var(--paper-line); }
+.subject-date-tabs {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 5px;
+}
+.subject-date-strip {
+  display: flex;
+  min-width: 0;
+  gap: 4px;
+  padding: 2px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--paper-line) transparent;
+}
+.subject-date-strip button {
+  display: grid;
+  place-content: center;
+  gap: 2px;
+  flex: 0 0 50px;
+  min-height: 44px;
+  padding: 3px 1px;
+  border-color: var(--paper-line);
+  text-align: center;
+  line-height: 1.2;
+}
+.subject-date-strip small { font-size: 10px; font-weight: 400; }
+.subject-date-tabs #back-to-today {
+  min-height: 44px;
+  margin-top: 2px;
+  border-color: var(--paper-line);
+}
 .subject-date-tabs .subject-date-picker {
   position: relative;
   display: inline-grid;
   place-items: center;
-  min-height: 35px;
+  min-height: 44px;
+  margin-top: 2px;
   padding: 4px 8px;
   border: 1px solid var(--paper-line);
   border-radius: 4px;
@@ -337,18 +369,10 @@ body, #app[class] {
 @media (max-width: 520px) {
   .subject-filters [data-filter] { padding-inline: 4px; }
   #app .subject-filters #add { padding-inline: 6px; }
-  .subject-date-tabs {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr)) minmax(30px, .8fr);
-    gap: 3px;
-  }
-  .subject-date-tabs button, .subject-date-tabs .subject-date-picker {
-    min-width: 0;
-    min-height: 42px;
-    padding-inline: 0;
-    text-align: center;
-    font-size: clamp(11px, 3.2vw, 14px);
-  }
+  .subject-date-tabs { gap: 3px; }
+  .subject-date-strip button { flex-basis: 43px; }
+  .subject-date-tabs #back-to-today { padding-inline: 5px; }
+  .subject-date-tabs .subject-date-picker { padding-inline: 6px; }
   .date-picker-value { display: none; }
   .ledger-app :is(.settings-hero,.pin-panel-head,.perm-header) { flex-wrap: wrap; }
 }
