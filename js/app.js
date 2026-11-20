@@ -1,9 +1,10 @@
+import {dailySubjectContent} from './daily-learning.js';
 import {parseTaskSpeech} from './speech-task.js';
 window.__STUDY_PLANNER_BOOTED__ = true;
 import {allTodayDone, fireworks} from './celebration.js';
 import {learningView, nearbyDays, relativeDay} from './view-model.js';
 import {subjects, today, instances, repeatLabel, shiftDate} from './repeat-engine.js';
-import {openDB, read, write, emptyData, validate, defaultKidPerms, defaultPins} from './database.js';
+import {openDB, read, write, emptyData, validate, defaultKidPerms, defaultPins, normalizeLearningProfile} from './database.js';
 import {saveTask, deleteTask, complete, stamp} from './task-manager.js';
 import {client, merge, privateRepositories} from './github-sync.js';
 
@@ -506,50 +507,26 @@ function reportsHTML() {
 
 // ================= 4. 主界面渲染（左中右三段式 iOS 抽屉 + 手机端任务核心优先） =================
 
-// Daily learning snippets rotate by local calendar day, identically on every device.
-function dailySubjectContent(subjectId, day = today()) {
-  const library = {
-    chinese: [
-      ['欲穷千里目，更上一层楼。','王之涣《登鹳雀楼》'],
-      ['谁言寸草心，报得三春晖。','孟郊《游子吟》'],
-      ['春眠不觉晓，处处闻啼鸟。','孟浩然《春晓》'],
-      ['海内存知己，天涯若比邻。','王勃《送杜少府之任蜀州》'],
-      ['会当凌绝顶，一览众山小。','杜甫《望岳》'],
-      ['千里之行，始于足下。','《老子》'],
-      ['学而时习之，不亦说乎？','《论语·学而》'],
-      ['少壮不努力，老大徒伤悲。','汉乐府《长歌行》'],
-      ['读书破万卷，下笔如有神。','杜甫《奉赠韦左丞丈二十二韵》'],
-      ['但愿人长久，千里共婵娟。','苏轼《水调歌头》']
-    ],
-    math: [
-      ['长方形面积 = 长 × 宽','长 6 cm、宽 4 cm，面积是 24 cm²。'],
-      ['正方形周长 = 边长 × 4','边长 5 cm，周长是 20 cm。'],
-      ['三角形面积 = 底 × 高 ÷ 2','底 6 cm、对应高 4 cm，面积是 12 cm²。'],
-      ['平均数 = 总和 ÷ 个数','3、5、7 的平均数是 (3 + 5 + 7) ÷ 3 = 5。'],
-      ['路程 = 速度 × 时间','每小时走 4 km，走 2 小时的路程是 8 km。'],
-      ['平行四边形面积 = 底 × 高','底 5 cm、对应高 3 cm，面积是 15 cm²。'],
-      ['梯形面积 = (上底 + 下底) × 高 ÷ 2','上底 3 cm、下底 5 cm、高 4 cm，面积是 16 cm²。'],
-      ['长方体体积 = 长 × 宽 × 高','长 4 cm、宽 3 cm、高 2 cm，体积是 24 cm³。'],
-      ['a × (b + c) = a × b + a × c','乘法分配律：4 × (10 + 2) = 40 + 8。'],
-      ['圆的周长 = 2 × π × 半径','半径 3 cm，取 π ≈ 3.14，周长约 18.84 cm。']
-    ],
-    english: [
-      ['curious · 好奇的','I am curious about the stars.','我对星星很好奇。'],
-      ['brave · 勇敢的','Be brave and try again.','勇敢一点，再试一次。'],
-      ['share · 分享','I share my books with my friends.','我和朋友们分享我的书。'],
-      ['learn · 学习','I learn something new every day.','我每天都学到新东西。'],
-      ['kind · 友善的','Be kind to others.','友善地对待他人。'],
-      ['dream · 梦想','My dream is to be a teacher.','我的梦想是成为一名老师。'],
-      ['garden · 花园','There are flowers in the garden.','花园里有花。'],
-      ['practice · 练习','I practice English every day.','我每天练习英语。'],
-      ['help · 帮助','Can you help me, please?','请问你能帮助我吗？'],
-      ['smile · 微笑','Your smile makes me happy.','你的微笑让我开心。']
-    ]
+function dailyLearningHTML(content) {
+  if (!content) return '';
+  const english = content.ipa
+    ? `<p><strong lang="en">${esc(content.text)}</strong> <span class="daily-ipa">/${esc(content.ipa)}/</span> · ${esc(content.meaning)}
+        <button type="button" data-daily-speech="word">读单词</button></p>
+      <p lang="en">${esc(content.example)} <button type="button" lang="zh-CN" data-daily-speech="example">读例句</button></p>`
+    : `<p>${esc(content.text)}</p>`;
+  return `<details class="ledger-daily"><summary>${esc(content.title)}</summary>${english}${content.notes.map(note => `<small>${esc(note)}</small>`).join('')}</details>`;
+}
+
+function speakDailyEnglish(text) {
+  if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return toast('此浏览器不支持英语朗读');
+  window.speechSynthesis.cancel();
+  const speech = new window.SpeechSynthesisUtterance(text);
+  speech.lang = 'en-US';
+  speech.rate = 0.85;
+  speech.onerror = event => {
+    if (!['canceled', 'interrupted'].includes(event.error)) toast('无法播放，请检查系统的英语语音设置');
   };
-  const entries = library[subjectId];
-  if (!entries) return null;
-  const item = entries[Math.floor(Date.parse(day+'T00:00:00Z')/86400000)%entries.length];
-  return { title: {chinese:'📖 每日诗文',math:'🧮 每日公式',english:'🔤 每日英语'}[subjectId], text:item[0], notes:item.slice(1) };
+  window.speechSynthesis.speak(speech);
 }
 
 const weatherIcons = {
@@ -647,7 +624,7 @@ function render() {
   const availableSubjects = subjectList();
   const theme = availableSubjects.find(item => item.id === subject) || availableSubjects[0];
   subject = theme.id;
-  const dailyContent = dailySubjectContent(subject);
+  const dailyContent = dailySubjectContent(subject, todayDate, data.learningProfile);
   const view = learningView(data, subject, date);
   const rows = view.rows;
   const filteredRows = rows.filter(t => filter === 'all' || (filter === 'done' ? t.done : !t.done));
@@ -691,10 +668,11 @@ function render() {
                 `<button type="button" data-filter="${id}" aria-pressed="${filter === id}">${label} ${count}</button>`).join('')}
             </div>
           </div>
+          ${dailyLearningHTML(dailyContent)}
           <div class="subject-entries workspace">
             ${filteredRows.map(cardHTML).join('') || '<p class="ledger-empty">暂无符合条件的任务</p>'}
             ${allowEdit ? pausedHTML() : ''}
-            ${dailyContent ? `<details class="ledger-daily"><summary>${esc(dailyContent.title)}</summary><p>${esc(dailyContent.text)}</p>${dailyContent.notes.map(note => `<small>${esc(note)}</small>`).join('')}</details>` : ''}
+
           </div>
         </section>`}
     </main>
@@ -704,6 +682,9 @@ function render() {
   drawerCascadeAnim = false;
 
   bindWeather();
+  document.querySelectorAll('[data-daily-speech]').forEach(button => {
+    button.onclick = () => speakDailyEnglish(button.dataset.dailySpeech === 'word' ? dailyContent.text : dailyContent.example);
+  });
   updateVoiceButton();
   $('#voice-fab').onclick = () => {
     if (activeVoiceRecognition) activeVoiceRecognition.stop();
@@ -1114,6 +1095,7 @@ function settingsHTML() {
   const account = `<section class="panel settings-panel account-panel"><h2>账号</h2><p>当前账号：${esc(currentUser.name)}</p><button type="button" data-logout>切换账号</button></section>`;
   if (!isParent()) return `<section class="settings"><h1>设置</h1>${account}</section>`;
   const pins = data.pins || defaultPins();
+  const profile = normalizeLearningProfile(data.learningProfile);
   const perms = data.kidPerms || defaultKidPerms();
   return `<section class="settings single-stage-drawer ${drawerCascadeAnim ? 'ios-drawer-cascade' : ''}">
     <div class="settings-hero">
@@ -1129,6 +1111,21 @@ function settingsHTML() {
     </div>
 
     ${account}
+
+    <form id="learning-profile-form" class="panel settings-panel">
+      <h2>学习档案</h2>
+      <div class="learning-profile-fields">
+        <label>年级
+          <select name="grade">
+            <option value="0">未设置</option>
+            ${Array.from({length:12}, (_, i) => i + 1).map(grade => `<option value="${grade}" ${profile.grade === grade ? 'selected' : ''}>${grade <= 6 ? '小学 ' + grade + ' 年级' : grade <= 9 ? '初中 ' + (grade - 6) + ' 年级' : '高中 ' + (grade - 9) + ' 年级'}</option>`).join('')}
+          </select>
+        </label>
+        <label>地区<input name="region" maxlength="24" placeholder="例如：江苏苏州" value="${esc(profile.region)}"></label>
+      </div>
+      <p class="hint">用于选择每日诗文、公式和英语。地区填写省市即可。</p>
+      <button type="submit" class="primary">保存学习档案</button>
+    </form>
 
     <form id="subject-form" class="panel settings-panel">
       <h2>自定义科目</h2>
@@ -1233,6 +1230,15 @@ function settingsHTML() {
 
 function bindSettings() {
   if (!isParent()) return;
+  $('#learning-profile-form').onsubmit = async event => {
+    event.preventDefault();
+    if (!isParent()) return;
+    const fields = new FormData(event.currentTarget);
+    const grade = fields.get('grade'), region = fields.get('region');
+    data.learningProfile = normalizeLearningProfile({grade, region, updatedAt: Date.now()});
+    await persist();
+    if (!storageFailed) toast('学习档案已保存');
+  };
   document.querySelectorAll('[data-perm]').forEach(chk => {
     chk.onchange = async e => {
       if (!isParent()) return;

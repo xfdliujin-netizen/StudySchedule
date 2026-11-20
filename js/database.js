@@ -99,9 +99,20 @@ export function defaultPins() {
   };
 }
 
+export function normalizeLearningProfile(profile) {
+  const grade = Number(profile?.grade);
+  const updatedAt = Number(profile?.updatedAt);
+  return {
+    grade: Number.isInteger(grade) && grade >= 1 && grade <= 12 ? grade : 0,
+    region: typeof profile?.region === 'string' ? profile.region.trim().slice(0, 24) : '',
+    updatedAt: Number.isFinite(updatedAt) && updatedAt > 0 ? updatedAt : 0
+  };
+}
+
 export function emptyData() {
   return {
     tasks: {},
+    learningProfile: normalizeLearningProfile(),
     customSubjects: {},
     exceptions: {},
     completions: {},
@@ -114,6 +125,7 @@ export function emptyData() {
 export function validate(raw) {
   if (!raw || typeof raw !== 'object') return emptyData();
   return {
+    learningProfile: normalizeLearningProfile(raw.learningProfile),
     customSubjects: Object.fromEntries(Object.entries(raw.customSubjects || {}).filter(([id, item]) =>
       /^custom_[a-z0-9_-]+$/i.test(id) && typeof item?.name === 'string' && item.name.trim() && item.name.length <= 20 && typeof item.rev === 'string'
     ).map(([id, item]) => [id, { ...item, id, name: item.name.trim() }])),

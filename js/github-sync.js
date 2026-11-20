@@ -1,4 +1,4 @@
-import {emptyData,validate,defaultKidPerms,defaultPins} from './database.js';
+import {emptyData,validate,defaultKidPerms,defaultPins,normalizeLearningProfile} from './database.js';
 export async function privateRepositories(token){
  const found=[];
  for(let page=1;;page++){
@@ -33,6 +33,9 @@ export function merge(base,local,remote,choose){
  // 合并各账号登录密码设置（以最新修改时间为准）
  const lPin=local.pins||defaultPins(),rPin=remote.pins||defaultPins();
  result.pins=(lPin.updatedAt||0)>=(rPin.updatedAt||0)?lPin:rPin;
+ const localProfile = normalizeLearningProfile(local.learningProfile);
+ const remoteProfile = normalizeLearningProfile(remote.learningProfile);
+ result.learningProfile = localProfile.updatedAt >= remoteProfile.updatedAt ? localProfile : remoteProfile;
  return result;
 }
 const encode=s=>{const b=new TextEncoder().encode(s);let t='';for(const v of b)t+=String.fromCharCode(v);return btoa(t);};

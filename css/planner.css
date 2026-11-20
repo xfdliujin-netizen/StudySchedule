@@ -214,6 +214,12 @@ body, #app[class] {
 .subject-entries.workspace { display: block; border-top: 1px solid var(--paper-line); }
 .ledger-empty, .ledger-daily { color: var(--muted-ink); padding: 10px 3px; }
 .ledger-daily small { display: block; }
+.ledger-daily { border-top: 1px solid var(--paper-line); }
+.ledger-daily summary { cursor: pointer; }
+.ledger-daily p { margin: 6px 0; }
+.ledger-daily button { font-size: 12px; padding: 3px 7px; }
+.daily-ipa { color: var(--muted-ink); }
+.learning-profile-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
 #app.ledger-app :is(.reports-view,.settings) {
   height: auto; overflow: visible; max-width: 1000px;
   padding: clamp(8px, 2vw, 20px) clamp(8px, 2vw, 20px) 84px;
