@@ -557,6 +557,7 @@ const weatherIcons = {
   rain: ['🌧️', '雨'], snow: ['❄️', '雪'], storm: ['⛈️', '雷雨']
 };
 let weatherPending = false;
+let weatherAutoDay = '';
 
 function weatherKind(code) {
   if (code === 0) return 'clear';
@@ -617,9 +618,12 @@ function bindWeather() {
   button.onclick = refreshWeather;
   let cached;
   try { cached = JSON.parse(safeGetStorage('planner-weather')); } catch {}
-  if (cached?.day === today() || weatherPending) return;
+  const day = today();
+  if (cached?.day === day || weatherAutoDay === day || weatherPending) return;
   navigator.permissions?.query({name:'geolocation'}).then(result => {
-    if (result.state === 'granted' && button.isConnected) refreshWeather();
+    if (result.state !== 'granted' || !button.isConnected) return;
+    weatherAutoDay = day;
+    refreshWeather();
   }).catch(() => {});
 }
 
