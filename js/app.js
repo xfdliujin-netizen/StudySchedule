@@ -1619,6 +1619,7 @@ async function autoSync(force=false) {
 
 // A cloud update can arrive between pointerdown and click.
 let taskPointer = null;
+let taskPointerRelease;
 let syncedRenderPending = false;
 function refreshSyncedTasks() {
   if (!syncedRenderPending || taskPointer !== null || isEditing() || screen === 'settings') return;
@@ -1626,11 +1627,14 @@ function refreshSyncedTasks() {
   render();
 }
 document.addEventListener('pointerdown', event => {
-  if (event.isPrimary && event.target.closest?.('.task [data-action]')) taskPointer = event.pointerId;
+  if (event.isPrimary && event.target.closest?.('.task [data-action]')) {
+    clearTimeout(taskPointerRelease);
+    taskPointer = event.pointerId;
+  }
 }, true);
 function releaseTaskPointer(event) {
   if (event.pointerId !== taskPointer) return;
-  setTimeout(() => {
+  taskPointerRelease = setTimeout(() => {
     if (taskPointer === event.pointerId) taskPointer = null;
     refreshSyncedTasks();
   }, 80);
@@ -1759,7 +1763,7 @@ window.addEventListener('online', () => {
 });
 window.addEventListener('offline', () => {
   status = '等待同步（离线）';
-  if (!isEditing()) render();
+  updateSyncStatus();
 });
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) { setupRealtimePush();pendingRemotePull=true;autoSync(true); }

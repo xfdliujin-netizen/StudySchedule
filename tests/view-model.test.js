@@ -2,6 +2,17 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {learningView,nearbyDays,relativeDay} from '../js/view-model.js';
 import {emptyData} from '../js/database.js';
+test('overdue work completed today stays in today’s completed list until the next day', () => {
+ const data = emptyData();
+ data.tasks.t = {id:'t', subjectId:'chinese', title:'阅读', enabled:true, startDate:'2026-11-19', repeatRule:{type:'daily'}};
+ data.completions['t@2026-11-19'] = {status:true, completedAt:new Date(2026, 10, 20, 12).toISOString()};
+ const current = learningView(data, 'chinese', '2026-11-20', '2026-11-20');
+ assert.deepEqual(current.rows.map(row => [row.date, row.done]), [['2026-11-19',true], ['2026-11-20',false]]);
+ assert.equal(current.done, 1);
+ assert.equal(current.pending, 1);
+ assert.equal(learningView(data, 'chinese', '2026-11-21', '2026-11-21').done, 0);
+ assert.equal(learningView(data, 'chinese', '2026-11-19', '2026-11-20').done, 1);
+});
 test('subject counters exclude other subjects and use selected day',()=>{
  const d=emptyData();
  for(const [id,subjectId] of [['a','chinese'],['b','math'],['c','english']]) d.tasks[id]={id,subjectId,title:id,startDate:'2026-11-09',enabled:true,repeatRule:{type:'daily'}};

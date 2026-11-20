@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 test('realtime keeps hidden updates, catches up on reconnect and queues offline notifications',async()=>{
  const source=fs.readFileSync(new URL('../js/app.js',import.meta.url),'utf8');
- const block=source.slice(source.indexOf('const myDeviceId ='),source.indexOf('async function sync(options'));
+ const block=source.slice(source.indexOf('const myDeviceId ='),source.indexOf('// A cloud update can arrive'));
  const events={},publishes=[];let pulls=0;
  const client={connected:true,on:(e,fn)=>events[e]=fn,subscribe:(t,o,cb)=>{assert.equal(o.qos,1);cb(null,[{qos:1}]);},publish:(t,m,o,cb)=>{publishes.push(o);cb();}};
  const context=vm.createContext({window:{mqtt:{connect:()=>client}},config:{owner:'o',repo:'r',token:'test'},navigator:{onLine:true},document:{hidden:false},isEditing:()=>false,busy:false,storageFailed:false,lastAutoSync:0,sync:async()=>{pulls++;},setTimeout,clearTimeout});
