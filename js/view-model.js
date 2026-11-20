@@ -1,5 +1,15 @@
 import {instances, shiftDate, today} from './repeat-engine.js';
 
+export function dateStripDays(selected, now = today()) {
+  return Array.from({length: 29}, (_, index) => {
+    const date = shiftDate(selected, index - 14);
+    const distance = Math.round((Date.parse(date) - Date.parse(now)) / 86400000);
+    const label = ['前天', '昨天', '今天', '明天', '后天'][distance + 2] || '';
+    const monthDay = date.slice(5).replace('-', '/');
+    return {date, label, monthDay};
+  });
+}
+
 
 export function syncTaskNotice(before, after, subject, date) {
   const oldRows = learningView(before, subject, date).rows;

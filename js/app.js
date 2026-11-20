@@ -2,7 +2,7 @@ import {dailySubjectContent} from './daily-learning.js';
 import {parseTaskSpeech} from './speech-task.js';
 window.__STUDY_PLANNER_BOOTED__ = true;
 import {allTodayDone, fireworks} from './celebration.js';
-import {learningView, nearbyDays, relativeDay, syncTaskNotice} from './view-model.js';
+import {learningView, dateStripDays, relativeDay, syncTaskNotice} from './view-model.js';
 import {subjects, today, instances, repeatLabel, shiftDate} from './repeat-engine.js';
 import {openDB, read, write, emptyData, validate, defaultKidPerms, defaultPins, normalizeLearningProfile} from './database.js';
 import {saveTask, deleteTask, complete, stamp} from './task-manager.js';
@@ -652,6 +652,14 @@ function bindWeather() {
   }).catch(() => {});
 }
 
+function revealSelectedDate(strip) {
+  const selected = strip?.querySelector('button[aria-pressed="true"]');
+  if (!selected) return;
+  const viewport = strip.getBoundingClientRect();
+  const item = selected.getBoundingClientRect();
+  strip.scrollLeft += item.left - viewport.left + (item.width - strip.clientWidth) / 2;
+}
+
 function captureTaskViewport(main, preferredKey) {
   if (!main) return null;
   const cards = [...main.querySelectorAll('[data-task-row]')];
@@ -713,6 +721,7 @@ function render(taskKey) {
   const previousMain = $('.planner-content');
   const sameView = previousMain?.dataset.viewKey === viewKey;
   const scrollTop = sameView ? previousMain.scrollTop : 0;
+  const dateScroll = sameView ? previousMain.querySelector('.subject-date-strip')?.scrollLeft : undefined;
   const viewport = sameView && screen === 'tasks' ? captureTaskViewport(previousMain, taskKey) : null;
   syncedRenderPending = false;
   $('#app').className = 'ledger-app';
@@ -745,8 +754,14 @@ function render(taskKey) {
             </div>
           </div>
           <div class="subject-page-controls">
-            <div class="subject-date-tabs" aria-label="快捷日期">
-              ${nearbyDays(data).map(d => `<button type="button" data-date="${d.date}" aria-pressed="${date === d.date}">${d.label}</button>`).join('')}
+            <div class="subject-date-tabs" aria-label="任务日期">
+              <button type="button" id="back-to-today" aria-label="回到今天">回今天</button>
+              <div class="subject-date-strip" role="group" aria-label="滑动选择日期">
+                ${dateStripDays(date, todayDate).map(item => `<button type="button" data-date="${item.date}" aria-label="${item.date}${item.label ? ' ' + item.label : ''}" aria-pressed="${date === item.date}">
+                  <span>${item.label || item.monthDay}</span>
+                  ${item.label ? `<small>${item.monthDay}</small>` : ''}
+                </button>`).join('')}
+              </div>
               <label class="subject-date-picker">
                 <span aria-hidden="true">📅 <span class="date-picker-value">${esc(date.slice(5).replace('-', '/'))}</span></span>
                 <input type="date" id="date" value="${esc(date)}" aria-label="选择任务日期">
@@ -774,6 +789,9 @@ function render(taskKey) {
 
   const main = $('.planner-content');
   main.dataset.viewKey = viewKey;
+  const dateStrip = main.querySelector('.subject-date-strip');
+  if (dateStrip && dateScroll !== undefined) dateStrip.scrollLeft = dateScroll;
+  else revealSelectedDate(dateStrip);
   restoreTaskViewport(main, viewport, scrollTop);
   bindWeather();
   document.querySelectorAll('[data-daily-speech]').forEach(button => {
@@ -807,6 +825,14 @@ function render(taskKey) {
       render();
     };
   });
+
+  const backToToday = $('#back-to-today');
+  if (backToToday) backToToday.onclick = () => {
+    if (date === today()) return revealSelectedDate($('.subject-date-strip'));
+    date = today();
+    filter = 'all';
+    render();
+  };
 
   document.querySelectorAll('[data-date]').forEach(b => {
     b.onclick = () => {

@@ -3709,13 +3709,13 @@ dialog::backdrop {
 @media(max-width:700px){.subject-cover-art{right:26px;width:42px;top:3px;opacity:.09}.subject-column-overview .column-label>strong{letter-spacing:0}.subject-column-overview .compact-count{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.subject-column-overview{transition:none}.subject-column-overview:hover{transform:none}}
 </style>
-<link rel="stylesheet" href="css/planner.css?v=50">
+<link rel="stylesheet" href="css/planner.css?v=51">
 </head>
 <body>
   <div id="app"></div>
   <dialog id="editor"></dialog>
   <div id="toast" role="status" aria-live="polite"></div>
-  <script type="module" src="js/app.js?v=50"></script>
+  <script type="module" src="js/app.js?v=51"></script>
   <script>
   window.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() {
@@ -3765,6 +3765,16 @@ function relativeDay(date, now = today()) {
   if (date === shiftDate(now, 1)) return '明日';
   if (date === shiftDate(now, 2)) return '后日';
   return `${Number(date.slice(5, 7))}月${Number(date.slice(8))}日`;
+}
+
+function dateStripDays(selected, now = today()) {
+  return Array.from({length: 29}, (_, index) => {
+    const date = shiftDate(selected, index - 14);
+    const distance = Math.round((Date.parse(date) - Date.parse(now)) / 86400000);
+    const label = ['前天', '昨天', '今天', '明天', '后天'][distance + 2] || '';
+    const monthDay = date.slice(5).replace('-', '/');
+    return {date, label, monthDay};
+  });
 }
 
 function nearbyDays(data, now = today()) {
@@ -4971,6 +4981,14 @@ function bindWeather() {
   }).catch(() => {});
 }
 
+function revealSelectedDate(strip) {
+  const selected = strip?.querySelector('button[aria-pressed="true"]');
+  if (!selected) return;
+  const viewport = strip.getBoundingClientRect();
+  const item = selected.getBoundingClientRect();
+  strip.scrollLeft += item.left - viewport.left + (item.width - strip.clientWidth) / 2;
+}
+
 function captureTaskViewport(main, preferredKey) {
   if (!main) return null;
   const cards = [...main.querySelectorAll('[data-task-row]')];
@@ -5032,6 +5050,7 @@ function render(taskKey) {
   const previousMain = $('.planner-content');
   const sameView = previousMain?.dataset.viewKey === viewKey;
   const scrollTop = sameView ? previousMain.scrollTop : 0;
+  const dateScroll = sameView ? previousMain.querySelector('.subject-date-strip')?.scrollLeft : undefined;
   const viewport = sameView && screen === 'tasks' ? captureTaskViewport(previousMain, taskKey) : null;
   syncedRenderPending = false;
   $('#app').className = 'ledger-app';
@@ -5064,8 +5083,14 @@ function render(taskKey) {
             </div>
           </div>
           <div class="subject-page-controls">
-            <div class="subject-date-tabs" aria-label="快捷日期">
-              ${nearbyDays(data).map(d => `<button type="button" data-date="${d.date}" aria-pressed="${date === d.date}">${d.label}</button>`).join('')}
+            <div class="subject-date-tabs" aria-label="任务日期">
+              <button type="button" id="back-to-today" aria-label="回到今天">回今天</button>
+              <div class="subject-date-strip" role="group" aria-label="滑动选择日期">
+                ${dateStripDays(date, todayDate).map(item => `<button type="button" data-date="${item.date}" aria-label="${item.date}${item.label ? ' ' + item.label : ''}" aria-pressed="${date === item.date}">
+                  <span>${item.label || item.monthDay}</span>
+                  ${item.label ? `<small>${item.monthDay}</small>` : ''}
+                </button>`).join('')}
+              </div>
               <label class="subject-date-picker">
                 <span aria-hidden="true">📅 <span class="date-picker-value">${esc(date.slice(5).replace('-', '/'))}</span></span>
                 <input type="date" id="date" value="${esc(date)}" aria-label="选择任务日期">
@@ -5093,6 +5118,9 @@ function render(taskKey) {
 
   const main = $('.planner-content');
   main.dataset.viewKey = viewKey;
+  const dateStrip = main.querySelector('.subject-date-strip');
+  if (dateStrip && dateScroll !== undefined) dateStrip.scrollLeft = dateScroll;
+  else revealSelectedDate(dateStrip);
   restoreTaskViewport(main, viewport, scrollTop);
   bindWeather();
   document.querySelectorAll('[data-daily-speech]').forEach(button => {
@@ -5126,6 +5154,14 @@ function render(taskKey) {
       render();
     };
   });
+
+  const backToToday = $('#back-to-today');
+  if (backToToday) backToToday.onclick = () => {
+    if (date === today()) return revealSelectedDate($('.subject-date-strip'));
+    date = today();
+    filter = 'all';
+    render();
+  };
 
   document.querySelectorAll('[data-date]').forEach(b => {
     b.onclick = () => {
