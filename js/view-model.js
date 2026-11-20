@@ -1,5 +1,20 @@
 import {instances, shiftDate, today} from './repeat-engine.js';
 
+
+export function syncTaskNotice(before, after, subject, date) {
+  const oldRows = learningView(before, subject, date).rows;
+  const newRows = new Set(learningView(after, subject, date).rows.map(item => item.key));
+  const removed = oldRows.filter(item => item.date === date && !newRows.has(item.key));
+  if (!removed.length) return '';
+  const item = removed[0];
+  const task = after.tasks[item.id];
+  const exception = after.exceptions[item.key];
+  let reason = '安排已变更';
+  if (task?.deleted || exception?.deleted) reason = '已删除';
+  else if (task && !task.enabled) reason = '已暂停';
+  else if ((exception?.override?.subjectId ?? task?.subjectId) !== item.subjectId) reason = '已变更科目';
+  return `云端更新：「${item.title}」${reason}${removed.length > 1 ? `，另有 ${removed.length - 1} 条任务移出当前列表` : ''}。`;
+}
 export function relativeDay(date, now = today()) {
   if (date === now) return '今日';
   if (date === shiftDate(now, -1)) return '昨日';

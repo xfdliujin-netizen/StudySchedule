@@ -2,7 +2,7 @@ import {dailySubjectContent} from './daily-learning.js';
 import {parseTaskSpeech} from './speech-task.js';
 window.__STUDY_PLANNER_BOOTED__ = true;
 import {allTodayDone, fireworks} from './celebration.js';
-import {learningView, nearbyDays, relativeDay} from './view-model.js';
+import {learningView, nearbyDays, relativeDay, syncTaskNotice} from './view-model.js';
 import {subjects, today, instances, repeatLabel, shiftDate} from './repeat-engine.js';
 import {openDB, read, write, emptyData, validate, defaultKidPerms, defaultPins, normalizeLearningProfile} from './database.js';
 import {saveTask, deleteTask, complete, stamp} from './task-manager.js';
@@ -723,6 +723,7 @@ function render() {
                 `<button type="button" data-filter="${id}" aria-pressed="${filter === id}">${label} ${count}</button>`).join('')}
             </div>
           </div>
+          ${lastTaskSyncNotice?.viewKey === viewKey ? `<p class="task-sync-notice" role="status">${esc(lastTaskSyncNotice.message)}</p>` : ''}
           ${dailyLearningHTML(dailyContent)}
           <div class="subject-entries workspace">
             ${filteredRows.map(cardHTML).join('') || '<p class="ledger-empty">暂无符合条件的任务</p>'}
@@ -839,9 +840,11 @@ function render() {
           }
           const wasDone = allTodayDone(data);
           complete(data, t);
+          const revealCompleted = !t.done && filter === 'pending';
+          if (revealCompleted) filter = 'all';
           persist().then(() => {
             if (!storageFailed && !wasDone && t.date === today() && allTodayDone(data)) fireworks();
-            else if (!storageFailed && !t.done) toast(filter === 'pending' ? '任务已完成，可在「已学习」查看' : '任务已完成');
+            if (!storageFailed && !t.done) toast(revealCompleted ? '任务已完成，已切到「全部」保留卡片' : '任务已完成');
           });
         }
         if (allowEdit && b.dataset.action === 'edit') edit(t);
@@ -1621,6 +1624,7 @@ async function autoSync(force=false) {
 let taskPointer = null;
 let taskPointerRelease;
 let syncedRenderPending = false;
+let lastTaskSyncNotice = null;
 function refreshSyncedTasks() {
   if (!syncedRenderPending || taskPointer !== null || isEditing() || screen === 'settings') return;
   syncedRenderPending = false;
@@ -1689,6 +1693,10 @@ async function sync(options = {}) {
       }
       const incoming = merge(snapshot, data, merged, choose);
       if (!sameSyncData(data, incoming)) {
+        if (screen === 'tasks') {
+          const message = syncTaskNotice(data, incoming, subject, date);
+          if (message) lastTaskSyncNotice = {viewKey: 'tasks:' + subject + ':' + date, message};
+        }
         data = incoming;
         changedLocally = true;
         await write('data', data);

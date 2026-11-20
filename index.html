@@ -3709,13 +3709,13 @@ dialog::backdrop {
 @media(max-width:700px){.subject-cover-art{right:26px;width:42px;top:3px;opacity:.09}.subject-column-overview .column-label>strong{letter-spacing:0}.subject-column-overview .compact-count{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.subject-column-overview{transition:none}.subject-column-overview:hover{transform:none}}
 </style>
-<link rel="stylesheet" href="css/planner.css?v=47">
+<link rel="stylesheet" href="css/planner.css?v=48">
 </head>
 <body>
   <div id="app"></div>
   <dialog id="editor"></dialog>
   <div id="toast" role="status" aria-live="polite"></div>
-  <script type="module" src="js/app.js?v=47"></script>
+  <script type="module" src="js/app.js?v=48"></script>
   <script>
   window.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() {
@@ -3890,6 +3890,21 @@ async function write(key, val) {
       resolve();
     }
   });
+}
+
+function syncTaskNotice(before, after, subject, date) {
+  const oldRows = learningView(before, subject, date).rows;
+  const newRows = new Set(learningView(after, subject, date).rows.map(item => item.key));
+  const removed = oldRows.filter(item => item.date === date && !newRows.has(item.key));
+  if (!removed.length) return '';
+  const item = removed[0];
+  const task = after.tasks[item.id];
+  const exception = after.exceptions[item.key];
+  let reason = '安排已变更';
+  if (task?.deleted || exception?.deleted) reason = '已删除';
+  else if (task && !task.enabled) reason = '已暂停';
+  else if ((exception?.override?.subjectId ?? task?.subjectId) !== item.subjectId) reason = '已变更科目';
+  return `云端更新：「${item.title}」${reason}${removed.length > 1 ? `，另有 ${removed.length - 1} 条任务移出当前列表` : ''}。`;
 }
 
 function defaultKidPerms() {
@@ -5027,6 +5042,7 @@ function render() {
                 `<button type="button" data-filter="${id}" aria-pressed="${filter === id}">${label} ${count}</button>`).join('')}
             </div>
           </div>
+          ${lastTaskSyncNotice?.viewKey === viewKey ? `<p class="task-sync-notice" role="status">${esc(lastTaskSyncNotice.message)}</p>` : ''}
           ${dailyLearningHTML(dailyContent)}
           <div class="subject-entries workspace">
             ${filteredRows.map(cardHTML).join('') || '<p class="ledger-empty">暂无符合条件的任务</p>'}
@@ -5143,9 +5159,11 @@ function render() {
           }
           const wasDone = allTodayDone(data);
           complete(data, t);
+          const revealCompleted = !t.done && filter === 'pending';
+          if (revealCompleted) filter = 'all';
           persist().then(() => {
             if (!storageFailed && !wasDone && t.date === today() && allTodayDone(data)) fireworks();
-            else if (!storageFailed && !t.done) toast(filter === 'pending' ? '任务已完成，可在「已学习」查看' : '任务已完成');
+            if (!storageFailed && !t.done) toast(revealCompleted ? '任务已完成，已切到「全部」保留卡片' : '任务已完成');
           });
         }
         if (allowEdit && b.dataset.action === 'edit') edit(t);
@@ -5953,6 +5971,7 @@ async function autoSync(force=false) {
 let taskPointer = null;
 let taskPointerRelease;
 let syncedRenderPending = false;
+let lastTaskSyncNotice = null;
 function refreshSyncedTasks() {
   if (!syncedRenderPending || taskPointer !== null || isEditing() || screen === 'settings') return;
   syncedRenderPending = false;
@@ -6021,6 +6040,10 @@ async function sync(options = {}) {
       }
       const incoming = merge(snapshot, data, merged, choose);
       if (!sameSyncData(data, incoming)) {
+        if (screen === 'tasks') {
+          const message = syncTaskNotice(data, incoming, subject, date);
+          if (message) lastTaskSyncNotice = {viewKey: 'tasks:' + subject + ':' + date, message};
+        }
         data = incoming;
         changedLocally = true;
         await write('data', data);

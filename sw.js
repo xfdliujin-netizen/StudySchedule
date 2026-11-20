@@ -1,4 +1,4 @@
-const CACHE = 'study-planner-v47';
+const CACHE = 'study-planner-v48';
 const FILES = [
   './js/daily-learning.js',
   './css/planner.css',
