@@ -117,6 +117,13 @@ const regionEnglish = {
   city: ['museum', 'mjuˈziəm', '博物馆', 'Let’s visit the museum this weekend.', '我们这周末去博物馆吧。']
 };
 
+const advancedRegionEnglish = {
+  coastal: ['coastline', 'ˈkoʊstlaɪn', '海岸线', 'The coastline changes slowly over time.', '海岸线会随着时间慢慢变化。'],
+  river: ['waterway', 'ˈwɔtərweɪ', '水道', 'This waterway connects several towns.', '这条水道连接着几个城镇。'],
+  mountain: ['altitude', 'ˈæltəˌtud', '海拔', 'The air is cooler at a higher altitude.', '海拔越高，空气越凉。'],
+  city: ['heritage', 'ˈhɛrɪtɪdʒ', '文化遗产', 'The museum helps preserve our cultural heritage.', '博物馆有助于保护我们的文化遗产。']
+};
+
 export function dailySubjectContent(subjectId, day, profile = {}) {
   const grade = Number(profile?.grade) || 0;
   const region = String(profile?.region || '');
@@ -127,7 +134,9 @@ export function dailySubjectContent(subjectId, day, profile = {}) {
   const month = Number(day.slice(5, 7));
   // September–October and February–March favor foundational items.
   const earlyTerm = [2, 3, 9, 10].includes(month);
-  const pool = earlyTerm ? entries.slice(0, 3) : entries;
+  const bandStart = [1, 3, 5, 7, 10][bandIndex];
+  const span = grade ? Math.min(entries.length, 2 + (grade - bandStart) + (earlyTerm ? 0 : 1)) : 3;
+  const pool = entries.slice(0, span);
   const offset = grade + [...region].reduce((sum, char) => sum + char.codePointAt(0), 0);
   const localDay = region && (dayIndex + offset) % 7 === 0;
   let entry = pool[((dayIndex + offset) % pool.length + pool.length) % pool.length];
@@ -143,11 +152,11 @@ export function dailySubjectContent(subjectId, day, profile = {}) {
       : `试一试：用今天的算式数一数或量一量「${region}」身边的事物。`);
     return {title:'每日公式', text:entry[0], notes};
   }
-  if (localDay && grade <= 6) {
+  if (localDay) {
     const topic = /沿海|江苏|浙江|福建|广东|海南|山东|辽宁|上海|天津|广西|香港|澳门|台湾/.test(region) ? 'coastal'
       : /四川|贵州|云南|重庆|西藏|青海|山西/.test(region) ? 'mountain'
       : /湖北|湖南|江西|安徽|河南|黑龙江|吉林/.test(region) ? 'river' : 'city';
-    entry = regionEnglish[topic];
+    if (!grade || grade >= 3) entry = (grade >= 7 ? advancedRegionEnglish : regionEnglish)[topic];
   }
   const [word, ipa, meaning, example, translation] = entry;
   return {title:'每日英语', text:word, ipa, meaning, example, notes:[translation]};
