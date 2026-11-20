@@ -239,7 +239,22 @@ body, #app[class] {
   margin-left: auto;
 }
 .subject-heading-actions time { color: var(--muted-ink); font-size: 12px; white-space: nowrap; }
-#planner-weather { background: transparent; min-width: 27px; padding: 4px; }
+#planner-weather {
+  display: inline-grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 32px;
+  padding: 3px 4px;
+  background: transparent;
+  line-height: 1.15;
+}
+.weather-temperature {
+  color: var(--muted-ink);
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
 .subject-date-tabs { align-items: center; }
 .subject-date-tabs .subject-date-picker {
   position: relative;

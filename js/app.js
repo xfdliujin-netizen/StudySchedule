@@ -591,8 +591,13 @@ function paintWeather(message = '') {
   let cached;
   try { cached = JSON.parse(safeGetStorage('planner-weather')); } catch {}
   const condition = cached?.day === today() ? weatherIcons[cached.kind] : null;
-  const label = message || (condition ? '今日天气：' + condition[1] + ' · Open-Meteo' : '点击启用本地天气 · 约略位置用于 Open-Meteo 查询');
-  button.textContent = weatherPending ? '…' : (condition?.[0] || '🌡️');
+  const temperature = condition && Number.isFinite(cached.min) && Number.isFinite(cached.max)
+    ? `${Math.round(cached.min)}–${Math.round(cached.max)} °C` : '';
+  const label = message || (condition ? ['今日天气：' + condition[1], temperature, 'Open-Meteo'].filter(Boolean).join(' · ') : '点击启用本地天气 · 约略位置用于 Open-Meteo 查询');
+  button.querySelector('.weather-icon').textContent = weatherPending && !condition ? '…' : (condition?.[0] || '🌡️');
+  const temperatureLine = button.querySelector('.weather-temperature');
+  temperatureLine.textContent = temperature;
+  temperatureLine.hidden = !temperature;
   button.title = label;
   button.setAttribute('aria-label', label);
   button.disabled = weatherPending;
@@ -609,15 +614,18 @@ async function refreshWeather() {
       navigator.geolocation.getCurrentPosition(resolve, reject, {timeout: 10000, maximumAge: 3600000}));
     const query = new URLSearchParams({
       latitude: coords.latitude.toFixed(1), longitude: coords.longitude.toFixed(1),
-      daily: 'weather_code', timezone: 'auto', forecast_days: '2'
+      daily: 'weather_code,temperature_2m_min,temperature_2m_max', temperature_unit: 'celsius', timezone: 'auto', forecast_days: '2'
     });
     const response = await fetch('https://api.open-meteo.com/v1/forecast?' + query, {signal: AbortSignal.timeout(10000)});
     if (!response.ok) throw Error('天气获取失败');
     const {daily} = await response.json();
     const day = today();
-    const kind = weatherKind(daily?.weather_code?.[daily?.time?.indexOf(day)]);
+    const dayIndex = daily?.time?.indexOf(day) ?? -1;
+    const kind = weatherKind(daily?.weather_code?.[dayIndex]);
     if (!kind) throw Error('缺少今日天气');
-    safeSetStorage('planner-weather', JSON.stringify({day, kind}));
+    const min = daily?.temperature_2m_min?.[dayIndex];
+    const max = daily?.temperature_2m_max?.[dayIndex];
+    safeSetStorage('planner-weather', JSON.stringify({day, kind, min, max}));
   } catch (error) {
     message = error?.code === 1 ? '定位未授权，无法显示本地天气' : '暂未获取到天气，可点击重试';
   } finally {
@@ -635,7 +643,8 @@ function bindWeather() {
   let cached;
   try { cached = JSON.parse(safeGetStorage('planner-weather')); } catch {}
   const day = today();
-  if (cached?.day === day || weatherAutoDay === day || weatherPending) return;
+  const hasTodayTemperature = cached?.day === day && Number.isFinite(cached.min) && Number.isFinite(cached.max);
+  if (hasTodayTemperature || weatherAutoDay === day || weatherPending) return;
   navigator.permissions?.query({name:'geolocation'}).then(result => {
     if (result.state !== 'granted' || !button.isConnected) return;
     weatherAutoDay = day;
@@ -690,7 +699,10 @@ function render() {
             <h1>${esc(theme.name)}</h1>
             <div class="subject-heading-actions">
               <time datetime="${todayDate}">${todayDate.slice(5).replace('-', '/')} ${todayLabel}</time>
-              <button type="button" id="planner-weather" aria-label="启用本地天气">🌡️</button>
+              <button type="button" id="planner-weather" aria-label="启用本地天气">
+                <span class="weather-icon" aria-hidden="true">🌡️</span>
+                <span class="weather-temperature" aria-hidden="true" hidden></span>
+              </button>
               ${allowAdd ? '<button type="button" class="primary" id="add">添加任务</button>' : ''}
             </div>
           </div>
