@@ -102,6 +102,7 @@ export function defaultPins() {
 export function emptyData() {
   return {
     tasks: {},
+    customSubjects: {},
     exceptions: {},
     completions: {},
     logs: {},
@@ -113,6 +114,9 @@ export function emptyData() {
 export function validate(raw) {
   if (!raw || typeof raw !== 'object') return emptyData();
   return {
+    customSubjects: Object.fromEntries(Object.entries(raw.customSubjects || {}).filter(([id, item]) =>
+      /^custom_[a-z0-9_-]+$/i.test(id) && typeof item?.name === 'string' && item.name.trim() && item.name.length <= 20 && typeof item.rev === 'string'
+    ).map(([id, item]) => [id, { ...item, id, name: item.name.trim() }])),
     tasks: (raw.tasks && typeof raw.tasks === 'object') ? raw.tasks : {},
     exceptions: (raw.exceptions && typeof raw.exceptions === 'object') ? raw.exceptions : {},
     completions: (raw.completions && typeof raw.completions === 'object') ? raw.completions : {},

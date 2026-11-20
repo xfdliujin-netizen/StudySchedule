@@ -3709,13 +3709,13 @@ dialog::backdrop {
 @media(max-width:700px){.subject-cover-art{right:26px;width:42px;top:3px;opacity:.09}.subject-column-overview .column-label>strong{letter-spacing:0}.subject-column-overview .compact-count{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.subject-column-overview{transition:none}.subject-column-overview:hover{transform:none}}
 </style>
-<link rel="stylesheet" href="css/planner.css?v=37">
+<link rel="stylesheet" href="css/planner.css?v=38">
 </head>
 <body>
   <div id="app"></div>
   <dialog id="editor"></dialog>
   <div id="toast" role="status" aria-live="polite"></div>
-  <script type="module" src="js/app.js?v=37"></script>
+  <script type="module" src="js/app.js?v=38"></script>
   <script>
   window.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() {
@@ -3763,7 +3763,7 @@ function nearbyDays(data, now = today()) {
   });
 }
 
-function learningView(data, subject = 'all', date = today(), now = today()) {
+function learningView(data, subject = 'chinese', date = today(), now = today()) {
   const allRows = instances(data, date, date === now);
   const rows = subject === 'all'
     ? allRows
@@ -3890,6 +3890,7 @@ function defaultPins() {
 function emptyData() {
   return {
     tasks: {},
+    customSubjects: {},
     exceptions: {},
     completions: {},
     logs: {},
@@ -3901,6 +3902,9 @@ function emptyData() {
 function validate(raw) {
   if (!raw || typeof raw !== 'object') return emptyData();
   return {
+    customSubjects: Object.fromEntries(Object.entries(raw.customSubjects || {}).filter(([id, item]) =>
+      /^custom_[a-z0-9_-]+$/i.test(id) && typeof item?.name === 'string' && item.name.trim() && item.name.length <= 20 && typeof item.rev === 'string'
+    ).map(([id, item]) => [id, { ...item, id, name: item.name.trim() }])),
     tasks: (raw.tasks && typeof raw.tasks === 'object') ? raw.tasks : {},
     exceptions: (raw.exceptions && typeof raw.exceptions === 'object') ? raw.exceptions : {},
     completions: (raw.completions && typeof raw.completions === 'object') ? raw.completions : {},
@@ -3982,7 +3986,7 @@ async function privateRepositories(token){
 }
 function merge(base,local,remote,choose){
  const result=emptyData();
- for(const group of ['tasks','exceptions','completions']){
+ for(const group of ['tasks','exceptions','completions','customSubjects']){
   for(const id of new Set([...Object.keys(local[group]||{}),...Object.keys(remote[group]||{})])){
    const b=base[group]?.[id],l=local[group]?.[id],r=remote[group]?.[id];
    if(!l)result[group][id]=r;
@@ -4144,7 +4148,6 @@ let data = emptyData(),
 let currentUser = null;
 // 控制 iPad / 桌面端左中右三段式 iOS 抽屉动效与收展状态
 let drawerCascadeAnim = true;
-let centerDrawerCollapsed = false;
 
 function getAccountPin(username) {
   const custom = data?.pins?.[username];
@@ -4180,7 +4183,7 @@ const canViewReports = () => isParent() || Boolean(data.kidPerms?.canReport);
 function recordLog(action, taskTitle, subjectId, detail = '') {
   if (!data.logs) data.logs = {};
   const id = 'log_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
-  const subObj = subjects.find(s => s.id === subjectId);
+  const subObj = subjectList().find(s => s.id === subjectId);
   data.logs[id] = {
     id,
     action, // 'add' | 'edit' | 'delete'
@@ -4299,12 +4302,9 @@ async function persist() {
 }
 
 // ================= 各页面专属视觉主题与特色配置 =================
-const themes = {
-  all: { name: '首页', icon: '⌂' },
-  chinese: { name: '语文', icon: '文' },
-  math: { name: '数学', icon: 'π' },
-  english: { name: '英语', icon: 'Aa' }
-};
+function subjectList() {
+  return [...subjects, ...Object.values(data.customSubjects || {})];
+}
 
 // ================= 2. 登录界面渲染与事件 =================
 function loginHTML() {
@@ -4423,11 +4423,7 @@ function computeStats(daysCount) {
   const dates = [];
   for (let i = daysCount - 1; i >= 0; i--) dates.push(shiftDate(end, -i));
   let total = 0, done = 0, activeDays = 0, totalMinutes = 0, doneMinutes = 0;
-  const bySub = {
-    chinese: { name: '语文', icon: '文', tag: '诗书积累', total: 0, done: 0, minutes: 0, color: '#d97706' },
-    math:    { name: '数学', icon: 'π',  tag: '逻辑思维', total: 0, done: 0, minutes: 0, color: '#7c3aed' },
-    english: { name: '英语', icon: 'Aa', tag: '世界对话', total: 0, done: 0, minutes: 0, color: '#059669' }
-  };
+  const bySub = Object.fromEntries(subjectList().map(item => [item.id, { ...item, total: 0, done: 0, minutes: 0 }]));
   const daily = [];
   for (const d of dates) {
     const items = instances(data, d, false);
@@ -4482,9 +4478,6 @@ function reportsHTML() {
   const allLogs = Object.values(data.logs || {}).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
   const filteredLogs = allLogs.filter(l => logFilter === 'all' || l.action === logFilter);
 
-  const ringRadius = 42;
-  const ringCircum = +(2 * Math.PI * ringRadius).toFixed(1);
-  const ringOffset = +(ringCircum * (1 - st.rate / 100)).toFixed(1);
 
   const actionLabels = {
     add:    { text: '添加任务', cls: 'log-add',  icon: '➕' },
@@ -4503,32 +4496,9 @@ function reportsHTML() {
           <button type="button" data-range="month" class="${reportRange === 'month' ? 'selected' : ''}">🗓️ 近 30 天月报</button>
         </div>
       </div>
-      <div class="reports-hero-ring" aria-label="周期总完成率 ${st.rate}%">
-        <svg viewBox="0 0 108 108" class="ring-svg">
-          <defs>
-            <linearGradient id="reportRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#38bdf8"/>
-              <stop offset="50%" stop-color="#818cf8"/>
-              <stop offset="100%" stop-color="#34d399"/>
-            </linearGradient>
-          </defs>
-          <circle cx="54" cy="54" r="${ringRadius}" class="ring-track"/>
-          <circle cx="54" cy="54" r="${ringRadius}" class="ring-fill" stroke="url(#reportRingGrad)" stroke-dasharray="${ringCircum}" stroke-dashoffset="${ringOffset}"/>
-        </svg>
-        <div class="ring-center-text">
-          <strong>${st.rate}<small>%</small></strong>
-          <span>综合达成</span>
-        </div>
-      </div>
     </div>
 
     <div class="report-kpis">
-      <div class="kpi-card kpi-blue">
-        <div class="kpi-top"><span class="kpi-icon">🎯</span></div>
-        <strong>${st.rate}<small>%</small></strong>
-        <span class="kpi-label">总计划完成率</span>
-        <div class="kpi-mini-bar"><i style="width:${st.rate}%"></i></div>
-      </div>
       <div class="kpi-card kpi-green">
         <div class="kpi-top"><span class="kpi-icon">✅</span><span class="kpi-tag">约 ${st.doneMinutes} 分钟</span></div>
         <strong>${st.done}<small> 项</small></strong>
@@ -4545,7 +4515,6 @@ function reportsHTML() {
         <div class="kpi-top"><span class="kpi-icon">🔥</span></div>
         <strong>${st.activeDays}<small> / ${days}天</small></strong>
         <span class="kpi-label">活跃学习天数</span>
-        <em>活跃度 ${Math.round((st.activeDays / days) * 100)}%</em>
       </div>
     </div>
 
@@ -4553,23 +4522,20 @@ function reportsHTML() {
       <section class="panel report-panel">
         <div class="report-panel-head">
           <div>
-            <h2>📚 三大学科完成度与学时分布</h2>
-            <p>直观对比语、数、英各科执行力与投入时长</p>
+            <h2>📚 各科完成数与学时</h2>
           </div>
-          <span class="panel-chip">三科均衡</span>
         </div>
         <div class="sub-bars">
           ${Object.entries(st.bySub).map(([id, s]) => {
             const p = s.total ? Math.round((s.done / s.total) * 100) : 0;
             return `<div class="sub-bar-card sub-card-${id}">
               <div class="sub-bar-head">
-                <span class="nav-icon icon-${id}">${s.icon}</span>
+                <span class="nav-icon icon-${id}">${esc(s.icon || "·")}</span>
                 <div class="sub-bar-title">
-                  <strong>${s.name} <em>${s.tag}</em></strong>
+                  <strong>${esc(s.name)}</strong>
                   <small>已完成 <b>${s.done}</b> / ${s.total} 项 · 累计专注 ${s.minutes} 分钟</small>
                 </div>
                 <div class="sub-bar-pct-wrap">
-                  <b class="sub-bar-pct">${p}%</b>
                   <small>${s.total - s.done ? `剩 ${s.total - s.done} 项` : '已满格'}</small>
                 </div>
               </div>
@@ -4583,16 +4549,13 @@ function reportsHTML() {
         <div class="report-panel-head">
           <div>
             <h2>📈 每日打卡趋势图（${reportRange === 'week' ? '近 7 天' : '最近 14 天'}）</h2>
-            <p>柱高代表当日完成率，绿色代表当日 100% 满格达成</p>
           </div>
-          <span class="panel-chip">每日能量</span>
         </div>
         <div class="daily-chart">
           ${chartDays.map(d => {
             const stateCls = d.total === 0 ? 'is-empty' : d.rate === 100 ? 'is-full' : d.done > 0 ? 'is-partial' : 'is-zero';
             return `<div class="chart-col ${d.isToday ? 'is-today' : ''}">
-              <span class="chart-rate-lbl">${d.total ? d.rate + '%' : '-'}</span>
-              <div class="chart-bar-wrap" title="${d.date}: 完成 ${d.done}/${d.total} 项 (${d.rate}%)">
+              <div class="chart-bar-wrap" title="${d.date}: 完成 ${d.done}/${d.total} 项">
                 <div class="chart-bar ${stateCls}" style="height:${Math.max(d.total ? 12 : 6, d.rate)}%"></div>
               </div>
               <strong>${d.done}/${d.total}</strong>
@@ -4721,251 +4684,56 @@ function render() {
     bindLogin();
     return;
   }
-  const parentMode = isParent();
   const allowAdd = canAddTask(),
         allowEdit = canEditTask(),
         allowDel = canDeleteTask(),
         allowRep = canViewReports();
 
-  if (!parentMode && screen === 'settings') screen = 'tasks';
   if (!allowRep && screen === 'reports') screen = 'tasks';
 
-  const theme = themes[subject];
+  const availableSubjects = subjectList();
+  const theme = availableSubjects.find(item => item.id === subject) || availableSubjects[0];
+  subject = theme.id;
   const dailyContent = dailySubjectContent(subject);
   const view = learningView(data, subject, date);
   const rows = view.rows;
-  const day = relativeDay(date);
-  const home = subject === 'all';
   const filteredRows = rows.filter(t => filter === 'all' || (filter === 'done' ? t.done : !t.done));
-
-  $('#app').className = `theme-${screen === 'settings' || screen === 'reports' ? 'all' : subject} screen-${screen} role-${currentUser.role}`;
-
-  // 圆环进度参数（供中栏小组件使用）
-  const rRadius = 32;
-  const rCircum = +(2 * Math.PI * rRadius).toFixed(1);
-  const rOffset = +(rCircum * (1 - view.percent / 100)).toFixed(1);
-
+  $('#app').className = 'ledger-app';
   $('#app').innerHTML = `
-  <aside class="app-sidebar" aria-label="主导航侧栏">
-    <div class="sidebar-brand-head">
-      <a class="brand" href="#" id="brand-home">
-        <span class="brand-logo">✦</span>
-        <div class="brand-text">
-          <strong>小小学习家</strong>
-
-        </div>
-      </a>
-    </div>
-
-    <nav aria-label="学习导航">
-      ${Object.entries(themes).map(([id, s]) => {
-        const n = id === 'all' ? learningView(data, 'all', date).pending : learningView(data, id, date).pending;
-        const isActive = subject === id && screen === 'tasks';
-        return `<button type="button" data-sub="${id}" class="${isActive ? 'active' : ''}">
-          <span class="nav-icon icon-${id}">${s.icon}</span>
-          <span class="nav-label-group">
-            <strong>${s.name}</strong>
-
-          </span>
-          ${n ? `<b class="${id === 'all' ? 'badge-soft' : ''}">${n}</b>` : ''}
-        </button>`;
-      }).join('')}
-      ${allowRep ? `<button type="button" id="nav-reports" class="${screen === 'reports' ? 'active' : ''}">
-        <span class="nav-icon icon-reports">📊</span>
-        <span class="nav-label-group">
-          <strong>学习统计</strong>
-
-        </span>
-      </button>` : ''}
-      ${parentMode ? `<button type="button" id="settings" class="${screen === 'settings' ? 'active' : ''}">
-        <span class="nav-icon icon-settings">⚙</span>
-        <span class="nav-label-group">
-          <strong>设置与同步</strong>
-
-        </span>
-      </button>` : ''}
-    </nav>
-
-    ${screen === 'tasks' ? `<div class="drawer-stage-control">
-      <button type="button" id="sidebar-drawer-toggle" class="drawer-pill-btn" title="展开或收起中间概览抽屉">
-        <span>${centerDrawerCollapsed ? '⇥ 展开日历与进度' : '⇤ 收起日历与进度'}</span>
-      </button>
-    </div>` : ''}
-
-    <div class="aside-bottom">
-      <div class="sidebar-user-box">
-        <span class="user-avatar-circle">${esc(currentUser.avatar || currentUser.name.slice(0, 1))}</span>
-        <div class="user-box-info">
-          <strong>${esc(currentUser.name)}</strong>
-          <small>${esc(currentUser.badge)}</small>
-        </div>
-        <button type="button" class="switch-user-btn" data-logout title="切换登录账号">切换</button>
-      </div>
-      <button type="button" id="sync" class="sidebar-sync-btn" title="点击立即同步">
-        <span class="sync-dot ${status.includes('失败') ? 'err' : status.includes('已同步') ? 'ok' : ''}"></span>
-        <span>☁ ${esc(status)}</span>
-      </button>
-    </div>
-  </aside>
-
-  <main>
-    ${screen === 'settings'
-      ? settingsHTML()
-      : screen === 'reports'
-        ? reportsHTML()
-        : `<div class="ipad-shell ${centerDrawerCollapsed ? 'center-collapsed' : ''} ${drawerCascadeAnim ? 'ios-drawer-cascade' : ''}">
-          <button type="button" class="drawer-edge-handle" id="toggle-center-drawer" aria-label="${centerDrawerCollapsed ? '展开概览抽屉' : '收起概览抽屉'}" title="${centerDrawerCollapsed ? '拉开概览抽屉' : '收起概览抽屉'}">
-            <span>${centerDrawerCollapsed ? '›' : '‹'}</span>
-          </button>
-          <!-- 第二段：中间概览与日历抽屉 (Stage 2 Center Drawer) -->
-          <div class="ipad-center">
-
-            <!-- 顶部紧凑主题横幅（手机端自动融合成轻量状态条） -->
-            <section class="hero-banner hero-${home ? 'home' : subject}">
-              <div class="hero-content">
-                <div class="hero-badges">
-
-                  <span class="mobile-inline-progress">${esc(day)} ${view.done}/${view.total} · ${view.percent}%</span>
-                </div>
-                <h1>${home ? '刘诣辰的学习计划' : `${theme.name}<span>学习计划</span>`}</h1>
-
-              </div>
-              <div class="hero-right-actions">
-                <button type="button" class="mobile-account-chip" data-logout title="点击切换账号">
-                  <span class="user-dot"></span>
-                  <span>${esc(currentUser.name)}</span>
-                  <small>切换</small>
-                </button>
-                ${parentMode ? `<button type="button" id="mobile-settings" class="mobile-icon-chip" aria-label="设置">⚙</button>` : ''}
-              </div>
-
-            </section>
-
-            <!-- 中栏核心组件 1：五日学习日历滑块 -->
-            <section class="day-planner widget-card" aria-label="日期计划">
-              <div class="planner-heading">
-                <h2>📅 ${home ? '学习日历' : theme.name + '日历'}</h2>
-                <label class="date" aria-label="选择日期">
-                  <input type="date" id="date" value="${date}" aria-label="查看日期">
-                </label>
-              </div>
-              <div class="day-tabs">
-                ${nearbyDays(data).map(d => {
-                  const dotCls = d.total === 0 ? 'dot-none' : d.pending === 0 ? 'dot-done' : 'dot-pending';
-                  return `<button type="button" data-date="${d.date}" class="${d.date === date ? 'selected' : ''}" aria-pressed="${d.date === date}">
-                    <span>${d.label}</span>
-                    <small>${Number(d.date.slice(5, 7))}/${Number(d.date.slice(8))}</small>
-                    <i class="day-dot ${dotCls}"></i>
-                  </button>`;
-                }).join('')}
-              </div>
-            </section>
-
-            <!-- 中栏核心组件 2：iOS 环形进度 + 待学/已学筛选舱 -->
-            <section class="stats widget-card" aria-label="${home ? '全部科目' : theme.name}统计">
-              <div class="stat progress">
-                <div class="progress-ring-box">
-                  <svg viewBox="0 0 80 80" class="mini-ring-svg">
-                    <circle cx="40" cy="40" r="${rRadius}" class="mini-ring-track"/>
-                    <circle cx="40" cy="40" r="${rRadius}" class="mini-ring-fill" stroke-dasharray="${rCircum}" stroke-dashoffset="${rOffset}"/>
-                  </svg>
-                  <strong class="mini-ring-pct">${view.percent}<small>%</small></strong>
-                </div>
-                <div class="progress-meta-text">
-                  <span>${esc(day)}完成度 <b>${view.done}/${view.total} 项</b></span>
-                  <div class="track"><i style="width:${view.percent}%"></i></div>
-                  <small>⏱ 预计总时长 ${view.totalMinutes} 分钟</small>
-                </div>
-              </div>
-              <button type="button" class="stat warm ${filter === 'pending' ? 'stat-active' : ''}" data-filter="pending">
-                <span class="stat-label">🔥 待学习</span>
-                <strong>${view.pending}<small> 项</small></strong>
-              </button>
-              <button type="button" class="stat green ${filter === 'done' ? 'stat-active' : ''}" data-filter="done">
-                <span class="stat-label">✅ 已学习</span>
-                <strong>${view.done}<small> 项</small></strong>
-              </button>
-            </section>
-
-            <!-- 中栏核心组件 3：各页面专属特色学习锦囊（填补中栏结构，手机端自动隐藏不占空间） -->
-            ${dailyContent ? `<section class="subject-feature-widget widget-card daily-feature">
-              <div class="feature-head">
-                <strong>${esc(dailyContent.title)}</strong>
-                <span class="feature-tag">${today().slice(5).replace('-', '/')}</span>
-              </div>
-              <p>${esc(dailyContent.text)}</p>
-              <div class="feature-pills">
-                ${dailyContent.notes.map(t => `<span class="daily-note">${esc(t)}</span>`).join('')}
-              </div>
-            </section>` : ''}
+    <aside class="planner-tabs" aria-label="学习导航">
+      <nav aria-label="科目">
+        ${subjectList().map(item => `<button type="button" data-sub="${esc(item.id)}" ${screen === 'tasks' && subject === item.id ? 'aria-current="page"' : ''}>${esc(item.name)}</button>`).join('')}
+      </nav>
+      <nav class="planner-tabs-footer" aria-label="管理">
+        ${allowRep ? `<button type="button" id="nav-reports" ${screen === 'reports' ? 'aria-current="page"' : ''}>看板</button>` : ''}
+        <button type="button" id="settings" ${screen === 'settings' ? 'aria-current="page"' : ''}>设置</button>
+      </nav>
+    </aside>
+    <main class="planner-content">
+      ${screen === 'settings' ? settingsHTML() : screen === 'reports' ? reportsHTML() : `
+        <section class="subject-page" aria-label="${esc(theme.name)}学习任务">
+          <div class="subject-page-heading">
+            <h1>${esc(theme.name)}</h1>
+            ${allowAdd ? '<button type="button" class="primary" id="add">添加任务</button>' : ''}
           </div>
-
-          <!-- 第三段：右侧核心学习任务抽屉 (Stage 3 Primary Task Drawer) -->
-          <div class="ipad-right">
-            <div class="right-top-status-bar ${centerDrawerCollapsed ? 'always-show' : 'portrait-only'}">
-              <button type="button" class="expand-center-banner" id="expand-center-btn">
-                <span>⇥ ${centerDrawerCollapsed ? '展开' : '日历与进度'} · ${esc(day)} (${date.slice(5)})</span>
-                <strong>已完成 ${view.done}/${view.total} 项 (${view.percent}%)</strong>
-              </button>
+          <div class="subject-page-controls">
+            <label>日期<input type="date" id="date" value="${esc(date)}"></label>
+            <div class="subject-date-tabs" aria-label="快捷日期">
+              ${nearbyDays(data).map(d => `<button type="button" data-date="${d.date}" aria-pressed="${date === d.date}">${d.label}</button>`).join('')}
             </div>
-
-            
-
-            <section class="workspace ${home ? 'home-workspace' : 'subject-workspace'} workspace-${subject}">
-              <div class="task-heading-bar"><div class="section-head">
-                <div class="section-title-group">
-                  <div class="section-title-row">
-                    <h2>${home ? `${esc(day)}学习任务` : `${esc(day)}${theme.name}学习任务`}</h2>
-                    <span class="task-count-pill">${filteredRows.length} 项</span>
-                  </div>
-
-                </div>
-                <div class="section-head-actions">
-                  ${allowAdd ? `<button type="button" class="primary add-task-btn" id="add">＋ 添加任务</button>` : ''}
-                </div>
-              </div>
-
-              <div class="toolbar">
-                <div class="filters" role="tablist" aria-label="任务状态筛选">
-                  ${[
-                    ['all', `全部 (${view.total})`],
-                    ['pending', `待学习 (${view.pending})`],
-                    ['done', `已学习 (${view.done})`]
-                  ].map(([id, name]) => `<button type="button" data-filter="${id}" class="${filter === id ? 'selected' : ''}">${name}</button>`).join('')}
-                </div>
-                
-              </div>
-
-              </div>
-              <div class="cards">
-                ${home ? homeBoard(data, date, cardHTML, filter) : filteredRows.map((t, idx) => cardHTML(t, idx)).join('') || `
-                  <div class="empty">
-                    <span class="empty-symbol">${theme.icon}</span>
-                    <h3>${filter === 'done' ? '暂无已完成任务' : filter === 'pending' ? `暂无待学习任务` : `暂无${esc(day)}${home ? '' : theme.name}学习任务`}</h3>
-                    ${allowAdd && Object.keys(data.tasks || {}).length === 0 ? `<button type="button" class="primary seed-btn" id="seed-tasks">载入示例任务</button>` : ''}
-                  </div>
-                `}
-              </div>
-
-              ${allowEdit ? pausedHTML() : ''}
-            </section>
+            <div class="subject-filters" aria-label="任务状态">
+              ${[['all','全部',view.total],['pending','待学习',view.pending],['done','已学习',view.done]].map(([id,label,count]) =>
+                `<button type="button" data-filter="${id}" aria-pressed="${filter === id}">${label} ${count}</button>`).join('')}
+            </div>
           </div>
-        </div>`
-    }
-  </main>
-
-  <button type="button" id="voice-fab" aria-label="语音添加任务" title="语音添加任务"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11v1a7 7 0 0 0 14 0v-1M12 19v3m-3 0h6"/></svg></button>
-
-  <nav class="mobile-nav" aria-label="底部导航">
-    ${Object.entries(themes).map(([id, s]) => `<button type="button" data-sub="${id}" class="${subject === id && screen === 'tasks' ? 'active' : ''}">
-      <span class="nav-icon icon-${id}">${s.icon}</span>
-      <small>${s.name}</small>
-    </button>`).join('')}
-    ${allowRep ? `<button type="button" id="mobile-reports" class="${screen === 'reports' ? 'active' : ''}">
-      <span class="nav-icon">📊</span>
-      <small>看板</small>
-    </button>` : ''}
-  </nav>`;
+          <div class="subject-entries workspace">
+            ${filteredRows.map(cardHTML).join('') || '<p class="ledger-empty">暂无符合条件的任务</p>'}
+            ${allowEdit ? pausedHTML() : ''}
+            ${dailyContent ? `<details class="ledger-daily"><summary>${esc(dailyContent.title)}</summary><p>${esc(dailyContent.text)}</p>${dailyContent.notes.map(note => `<small>${esc(note)}</small>`).join('')}</details>` : ''}
+          </div>
+        </section>`}
+    </main>
+    <button type="button" id="voice-fab" aria-label="语音添加任务" title="语音添加任务"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11v1a7 7 0 0 0 14 0v-1M12 19v3m-3 0h6"/></svg></button>`;
 
   // 动画播放一次后复位标志，避免普通勾选时整栏重跳
   drawerCascadeAnim = false;
@@ -4980,17 +4748,9 @@ function render() {
   document.querySelectorAll('[data-logout]').forEach(b => (b.onclick = logout));
 
   const switchSubject = newSub => {
-    if (screen === 'tasks' && subject === newSub && window.innerWidth > 700) {
-      centerDrawerCollapsed = !centerDrawerCollapsed;
-      drawerCascadeAnim = true;
-      render();
-      return;
-    }
     subject = newSub;
     screen = 'tasks';
     filter = 'all';
-    centerDrawerCollapsed = false;
-    drawerCascadeAnim = true;
     render();
   };
 
@@ -4998,12 +4758,6 @@ function render() {
     b.onclick = () => switchSubject(b.dataset.sub);
   });
 
-  if ($('#brand-home')) {
-    $('#brand-home').onclick = e => {
-      e.preventDefault();
-      switchSubject('all');
-    };
-  }
 
   document.querySelectorAll('[data-filter]').forEach(b => {
     b.onclick = () => {
@@ -5021,21 +4775,9 @@ function render() {
     };
   });
 
-  document.querySelectorAll('.mobile-nav [data-sub]').forEach(b => {
-    const id = b.dataset.sub;
-    if (id !== 'all') {
-      const n = learningView(data, id, date).pending;
-      if (n) {
-        const badge = document.createElement('b');
-        badge.className = 'mobile-badge';
-        badge.textContent = n;
-        b.append(badge);
-      }
-    }
-  });
+
 
   const openSettings = () => {
-    if (!isParent()) return;
     screen = 'settings';
     drawerCascadeAnim = true;
     render();
@@ -5048,21 +4790,8 @@ function render() {
   };
 
   if ($('#settings')) $('#settings').onclick = openSettings;
-  if ($('#mobile-settings')) $('#mobile-settings').onclick = openSettings;
   if ($('#nav-reports')) $('#nav-reports').onclick = openReports;
-  if ($('#mobile-reports')) $('#mobile-reports').onclick = openReports;
   if ($('#sync')) $('#sync').onclick = sync;
-  if ($('#seed-tasks')) $('#seed-tasks').onclick = () => seedStarterTasks(false);
-
-  // 中栏抽屉收展控制
-  const toggleCenterDrawer = () => {
-    centerDrawerCollapsed = !centerDrawerCollapsed;
-    drawerCascadeAnim = true;
-    render();
-  };
-  if ($('#toggle-center-drawer')) $('#toggle-center-drawer').onclick = toggleCenterDrawer;
-  if ($('#sidebar-drawer-toggle')) $('#sidebar-drawer-toggle').onclick = toggleCenterDrawer;
-  if ($('#expand-center-btn')) $('#expand-center-btn').onclick = toggleCenterDrawer;
 
   if (screen === 'settings') {
     bindSettings();
@@ -5260,7 +4989,9 @@ function showVoiceTranscript(message, transcript = '') {
   let draft;
   if (transcript) {
     try {
-      draft = parseTaskSpeech(transcript, today(), subject === 'all' ? 'chinese' : subject);
+      const custom = Object.values(data.customSubjects || {}).filter(item => transcript.includes(item.name)).sort((a, b) => b.name.length - a.name.length)[0];
+      draft = parseTaskSpeech(transcript, today(), subject);
+      if (custom) draft.subjectId = custom.id;
       if (draft.title.length > 100) throw Error('任务名称请控制在 100 字以内。');
     } catch (error) {
       message = error.message;
@@ -5284,7 +5015,7 @@ function showVoiceTranscript(message, transcript = '') {
     return;
   }
 
-  const subjectName = subjects.find(item => item.id === draft.subjectId).name;
+  const subjectName = subjectList().find(item => item.id === draft.subjectId)?.name || '语文';
   const { warnings, description, ...task } = draft;
   show(`<form id="voice-confirm" class="voice-note">
     <div class="modal-head"><h2>确认学习任务</h2><button type="button" data-close aria-label="关闭">×</button></div>
@@ -5314,7 +5045,7 @@ function showVoiceTranscript(message, transcript = '') {
       return;
     }
     screen = 'tasks';
-    if (subject !== 'all') subject = task.subjectId;
+    subject = task.subjectId;
     date = task.startDate;
     filter = 'all';
     dialog.close();
@@ -5325,7 +5056,7 @@ function showVoiceTranscript(message, transcript = '') {
 function edit(t) {
   if (t ? !canEditTask() : !canAddTask()) return;
   const initial = t || {
-    subjectId: subject === 'all' ? 'chinese' : subject,
+    subjectId: subject,
     title: '',
     description: '',
     startDate: date,
@@ -5347,7 +5078,7 @@ function edit(t) {
     </label>
     <div class="form-row two-cols">
       <label>所属科目
-        <select name="subjectId">${subjects.map(s => `<option value="${s.id}" ${s.id === initial.subjectId ? 'selected' : ''}>${s.name}</option>`).join('')}</select>
+        <select name="subjectId">${subjectList().map(s => `<option value="${s.id}" ${s.id === initial.subjectId ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select>
       </label>
       <label>预计时长（分钟）
         <input name="durationMinutes" type="number" min="1" max="240" step="1" value="${Number(initial.durationMinutes) || 20}">
@@ -5454,6 +5185,8 @@ function remove(t) {
 }
 
 function settingsHTML() {
+  const account = `<section class="panel settings-panel"><h2>账号</h2><p>当前账号：${esc(currentUser.name)}</p><button type="button" data-logout>切换账号</button></section>`;
+  if (!isParent()) return `<section class="settings"><h1>设置</h1>${account}</section>`;
   const pins = data.pins || defaultPins();
   return `<section class="settings single-stage-drawer ${drawerCascadeAnim ? 'ios-drawer-cascade' : ''}">
     <div class="settings-hero">
@@ -5468,6 +5201,13 @@ function settingsHTML() {
       </div>
     </div>
 
+    ${account}
+    <form id="subject-form" class="panel settings-panel">
+      <h2>自定义科目</h2>
+      <ul class="settings-subjects">${subjectList().map(item => `<li>${esc(item.name)}</li>`).join('')}</ul>
+      <label>科目名称<input name="subjectName" required maxlength="20" placeholder="例如：科学"></label>
+      <button type="submit" class="primary">添加科目</button>
+    </form>
     <form id="pin-form" class="panel settings-panel">
       <div class="pin-panel-head">
         <div>
@@ -5498,7 +5238,6 @@ function settingsHTML() {
 
     <form id="config" class="panel settings-panel">
       <h2>☁ 连接 GitHub 私有云仓库</h2>
-      <p class="hint">连接诊断版 12（支持在线改密 + 动态权限 + 审计日志 + MQTT 秒级推送）</p>
       <p role="status" class="sync-status-line">当前状态：<strong>${esc(status)}</strong></p>
       <label>GitHub 个人访问令牌 (Fine-grained Token)
         <input name="token" type="password" required autocomplete="off" value="${esc(config.token || '')}" placeholder="github_pat_...">
@@ -5514,6 +5253,7 @@ function settingsHTML() {
       </label>
       <p class="hint">仅需授权指定私有数据仓库的 Contents 读写权限。Token 仅保存在本设备本地，不进入云端同步与 JSON 备份文件。</p>
       <div class="buttons">
+        <button type="button" id="sync">立即同步</button>
         <button class="primary">保存并测试连接</button>
         <button type="button" id="clear-token" class="danger">清除本机 Token</button>
       </div>
@@ -5533,6 +5273,18 @@ function settingsHTML() {
 }
 
 function bindSettings() {
+  if (!isParent()) return;
+  $('#subject-form').onsubmit = async event => {
+    event.preventDefault();
+    const name = new FormData(event.currentTarget).get('subjectName').trim();
+    if (!name || name.length > 20) return toast('请输入 1 到 20 字的科目名称');
+    if (subjectList().some(item => item.name.toLowerCase() === name.toLowerCase())) return toast('该科目已存在');
+    if (['首页', '看板', '设置'].includes(name)) return toast('请使用其他科目名称');
+    const revision = stamp();
+    const id = 'custom_' + revision.rev;
+    (data.customSubjects ||= {})[id] = { id, name, ...revision };
+    await persist();
+  };
   const pinForm = $('#pin-form'), toggleBtn = $('#toggle-pin-view');
   if (toggleBtn && pinForm) {
     let showPlain = false;
