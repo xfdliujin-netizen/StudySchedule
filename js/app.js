@@ -676,6 +676,10 @@ function render() {
   const view = learningView(data, subject, date);
   const rows = view.rows;
   const filteredRows = rows.filter(t => filter === 'all' || (filter === 'done' ? t.done : !t.done));
+  const viewKey = screen + (screen === 'tasks' ? ':' + subject + ':' + date : '');
+  const previousMain = $('.planner-content');
+  const scrollTop = previousMain?.dataset.viewKey === viewKey ? previousMain.scrollTop : 0;
+  syncedRenderPending = false;
   $('#app').className = 'ledger-app';
   $('#app').innerHTML = `
     <aside class="planner-tabs" aria-label="学习导航">
@@ -710,7 +714,7 @@ function render() {
             <div class="subject-date-tabs" aria-label="快捷日期">
               ${nearbyDays(data).map(d => `<button type="button" data-date="${d.date}" aria-pressed="${date === d.date}">${d.label}</button>`).join('')}
               <label class="subject-date-picker">
-                <span aria-hidden="true">▦ <span class="date-picker-value">${esc(date.slice(5).replace('-', '/'))}</span></span>
+                <span aria-hidden="true">📅 <span class="date-picker-value">${esc(date.slice(5).replace('-', '/'))}</span></span>
                 <input type="date" id="date" value="${esc(date)}" aria-label="选择任务日期">
               </label>
             </div>
@@ -732,6 +736,9 @@ function render() {
   // 动画播放一次后复位标志，避免普通勾选时整栏重跳
   drawerCascadeAnim = false;
 
+  const main = $('.planner-content');
+  main.dataset.viewKey = viewKey;
+  main.scrollTop = scrollTop;
   bindWeather();
   document.querySelectorAll('[data-daily-speech]').forEach(button => {
     button.onclick = () => speakDailyEnglish(button.dataset.dailySpeech === 'word' ? dailyContent.text : dailyContent.example);
@@ -819,14 +826,22 @@ function render() {
     }
     document.querySelectorAll('[data-action]').forEach(b => {
       b.onclick = () => {
-        const t = rows.find(item => item.key === b.dataset.key);
-        if (!t) return;
+        const shown = rows.find(item => item.key === b.dataset.key);
+        const t = learningView(data, subject, date).rows.find(item => item.key === b.dataset.key);
+        if (!shown || !t) {
+          render();
+          return toast('这条任务已在其他设备更新，列表已刷新');
+        }
         if (b.dataset.action === 'complete') {
+          if (shown.done !== t.done) {
+            render();
+            return toast(t.done ? '这条任务已在其他设备完成' : '这条任务已在其他设备恢复待学习');
+          }
           const wasDone = allTodayDone(data);
           complete(data, t);
           persist().then(() => {
             if (!storageFailed && !wasDone && t.date === today() && allTodayDone(data)) fireworks();
-            else if (!t.done) toast('任务已完成');
+            else if (!storageFailed && !t.done) toast(filter === 'pending' ? '任务已完成，可在「已学习」查看' : '任务已完成');
           });
         }
         if (allowEdit && b.dataset.action === 'edit') edit(t);
@@ -858,7 +873,7 @@ function cardHTML(t, idx = 0) {
       </div>
       ${t.description ? `<p>${esc(t.description)}</p>` : ''}
       <div class="meta">
-        <span>${esc(t.date.slice(5).replace('-', '/'))}</span>
+        <span>${t.date < date ? '补做 · ' : ''}${esc(t.date.slice(5).replace('-', '/'))}</span>
         <span>${mins} 分钟</span>
         ${t.reminderTime ? `<span>⏰ ${esc(t.reminderTime)}</span>` : ''}
         <span>${esc(repeatLabel(t.repeatRule))}</span>
@@ -1602,6 +1617,28 @@ async function autoSync(force=false) {
   await sync({quiet:true});
 }
 
+// A cloud update can arrive between pointerdown and click.
+let taskPointer = null;
+let syncedRenderPending = false;
+function refreshSyncedTasks() {
+  if (!syncedRenderPending || taskPointer !== null || isEditing() || screen === 'settings') return;
+  syncedRenderPending = false;
+  render();
+}
+document.addEventListener('pointerdown', event => {
+  if (event.isPrimary && event.target.closest?.('.task [data-action]')) taskPointer = event.pointerId;
+}, true);
+function releaseTaskPointer(event) {
+  if (event.pointerId !== taskPointer) return;
+  setTimeout(() => {
+    if (taskPointer === event.pointerId) taskPointer = null;
+    refreshSyncedTasks();
+  }, 80);
+}
+document.addEventListener('pointerup', releaseTaskPointer, true);
+document.addEventListener('pointercancel', releaseTaskPointer, true);
+window.addEventListener('blur', () => { taskPointer = null; refreshSyncedTasks(); });
+
 async function sync(options = {}) {
   const quiet = options.quiet === true;
   if (busy) { pendingRemotePull = true; return; }
@@ -1679,7 +1716,8 @@ async function sync(options = {}) {
     if (!quiet) toast(e.message);
   } finally {
     busy = false;
-    if ((changedLocally || data !== beforePull) && screen !== 'settings' && !isEditing()) render();
+    if (changedLocally || data !== beforePull) syncedRenderPending = true;
+    refreshSyncedTasks();
     updateSyncStatus();
     if (pendingRemotePull && !isEditing() && Date.now() >= retrySyncAt) {
       clearTimeout(retryTimer);retryTimer=setTimeout(()=>autoSync(true),300);
@@ -1726,9 +1764,9 @@ window.addEventListener('offline', () => {
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) { setupRealtimePush();pendingRemotePull=true;autoSync(true); }
 });
-dialog.addEventListener('close',()=>{if(pendingRemotePull)autoSync(true);});
+dialog.addEventListener('close',()=>{refreshSyncedTasks();if(pendingRemotePull)autoSync(true);});
 window.addEventListener('focus',()=>{setupRealtimePush();pendingRemotePull=true;autoSync(true);});
-document.addEventListener('focusout',()=>{if(pendingRemotePull)setTimeout(()=>autoSync(true),0);});
+document.addEventListener('focusout',()=>{setTimeout(()=>{refreshSyncedTasks();if(pendingRemotePull)autoSync(true);},0);});
 // Push normally starts the pull. Check once a minute for missed notifications,
 // or sooner when push is disconnected or a pending operation needs a retry.
 setInterval(() => {

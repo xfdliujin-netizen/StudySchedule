@@ -19,7 +19,7 @@ export function nearbyDays(data, now = today()) {
   ];
   return offsets.map(([diff, label]) => {
     const d = shiftDate(now, diff);
-    const all = instances(data, d, d === now);
+    const all = instances(data, d, d === now, d === now ? now : null);
     const done = all.filter(item => item.done).length;
     return {
       date: d,
@@ -32,7 +32,7 @@ export function nearbyDays(data, now = today()) {
 }
 
 export function learningView(data, subject = 'all', date = today(), now = today()) {
-  const allRows = instances(data, date, date === now);
+  const allRows = instances(data, date, date === now, date === now ? now : null);
   const rows = subject === 'all'
     ? allRows
     : allRows.filter(item => item.subjectId === subject);
