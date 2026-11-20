@@ -1363,12 +1363,13 @@ function bindSettings() {
           next = { owner, repo, token: fields.get('token').trim() };
     try {
       await client(next).test();
+      const nextBase = (await read('base:' + next.owner + '/' + next.repo)) || emptyData();
       if (busy) return toast('正在同步，请稍后再保存连接设置');
       config = next;
+      base = nextBase;
       retrySyncAt = 0;
       syncFailures = 0;
       await write('config', config);
-      base = (await read('base:' + config.owner + '/' + config.repo)) || emptyData();
       setupRealtimePush();
       toast('连接成功');
       await sync();
@@ -1636,7 +1637,7 @@ dialog.addEventListener('close',()=>{if(pendingRemotePull)autoSync(true);});
 window.addEventListener('focus',()=>{setupRealtimePush();pendingRemotePull=true;autoSync(true);});
 document.addEventListener('focusout',()=>{if(pendingRemotePull)setTimeout(()=>autoSync(true),0);});
 // Push normally starts the pull. Check once a minute for missed notifications,
- // or sooner when push is disconnected or a pending operation needs a retry.
+// or sooner when push is disconnected or a pending operation needs a retry.
 setInterval(() => {
   try { setupRealtimePush(); } catch { realtimeReady = false; }
   if (pendingNotification && realtimeReady) {
