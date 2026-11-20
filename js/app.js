@@ -474,7 +474,7 @@ function reportsHTML() {
           </div>
         </div>
         <div class="sub-bars">
-          ${Object.entries(st.bySub).map(([id, s]) => {
+          ${Object.entries(st.bySub).filter(([, item]) => subjectVisible(item) || item.total > 0).map(([id, s]) => {
             const p = s.total ? Math.round((s.done / s.total) * 100) : 0;
             return `<div class="sub-bar-card sub-card-${id}">
               <div class="sub-bar-head">

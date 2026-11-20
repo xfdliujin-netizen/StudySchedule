@@ -273,6 +273,30 @@ body, #app[class] {
 .ledger-app .settings-panel label { margin: 6px 0; }
 .ledger-app .settings-panel :is(input:not([type="checkbox"]), select) { padding: 5px 8px; }
 .ledger-app .settings-subjects { margin: 3px 0; }
+.ledger-app .subject-management { grid-column: 1 / -1; }
+.subject-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 10px;
+  margin: 5px 0;
+  min-width: 0;
+  padding: 4px 7px;
+  border: 1px solid var(--paper-line);
+}
+.subject-options legend { padding: 0 4px; color: var(--muted-ink); font-size: 12px; }
+.ledger-app .settings-panel .subject-options label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 2px;
+  margin: 0;
+  min-height: 30px;
+  cursor: pointer;
+}
+.subject-options input { margin: 0; accent-color: var(--pen); }
+.custom-subject-form { display: flex; align-items: end; gap: 7px; margin-top: 6px; }
+.ledger-app .settings-panel .custom-subject-form label { flex: 1; min-width: 0; margin: 0; }
+.no-subjects { margin: 16px; }
 .ledger-app .account-panel { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 8px; }
 .ledger-app .account-panel :is(h2,p) { margin: 0; }
 .ledger-app .account-panel button { margin-left: auto; }
