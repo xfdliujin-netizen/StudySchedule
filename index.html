@@ -3709,13 +3709,13 @@ dialog::backdrop {
 @media(max-width:700px){.subject-cover-art{right:26px;width:42px;top:3px;opacity:.09}.subject-column-overview .column-label>strong{letter-spacing:0}.subject-column-overview .compact-count{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.subject-column-overview{transition:none}.subject-column-overview:hover{transform:none}}
 </style>
-<link rel="stylesheet" href="css/planner.css?v=38">
+<link rel="stylesheet" href="css/planner.css?v=39">
 </head>
 <body>
   <div id="app"></div>
   <dialog id="editor"></dialog>
   <div id="toast" role="status" aria-live="polite"></div>
-  <script type="module" src="js/app.js?v=38"></script>
+  <script type="module" src="js/app.js?v=39"></script>
   <script>
   window.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() {
@@ -4474,7 +4474,6 @@ function reportsHTML() {
   const days = reportRange === 'week' ? 7 : 30;
   const st = computeStats(days);
   const chartDays = reportRange === 'week' ? st.daily : st.daily.slice(-14);
-  const perms = data.kidPerms || defaultKidPerms();
   const allLogs = Object.values(data.logs || {}).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
   const filteredLogs = allLogs.filter(l => logFilter === 'all' || l.action === logFilter);
 
@@ -4565,38 +4564,6 @@ function reportsHTML() {
         </div>
       </section>
     </div>
-
-    ${isParent() ? `<section class="panel perm-panel">
-      <div class="perm-header">
-        <div>
-          <h2>🛡️ 宝宝账号（刘诣辰）权限动态控制中心</h2>
-          <p>爸爸妈妈可随时开启或关闭孩子的对应操作权限，修改后实时同步至所有设备（设置与同步中心始终仅限父母访问）。</p>
-        </div>
-        ${perms.updatedAt ? `<small class="perm-meta">最近由 ${esc(perms.updatedBy)} 更新于 ${esc(new Date(perms.updatedAt).toLocaleString('zh-CN'))}</small>` : ''}
-      </div>
-      <div class="perm-grid">
-        <label class="perm-switch-card ${perms.canAdd ? 'is-on' : ''}">
-          <span class="perm-card-icon">➕</span>
-          <div class="perm-card-text"><strong>允许添加新任务</strong><small>开启后宝宝可自主新增学习计划</small></div>
-          <input type="checkbox" class="ios-switch" data-perm="canAdd" ${perms.canAdd ? 'checked' : ''}>
-        </label>
-        <label class="perm-switch-card ${perms.canEdit ? 'is-on' : ''}">
-          <span class="perm-card-icon">✏️</span>
-          <div class="perm-card-text"><strong>允许编辑修改任务</strong><small>开启后宝宝可修改任务内容与暂停计划</small></div>
-          <input type="checkbox" class="ios-switch" data-perm="canEdit" ${perms.canEdit ? 'checked' : ''}>
-        </label>
-        <label class="perm-switch-card ${perms.canDelete ? 'is-on' : ''}">
-          <span class="perm-card-icon">🗑️</span>
-          <div class="perm-card-text"><strong>允许删除任务</strong><small>开启后宝宝任务卡上将显示删除按钮</small></div>
-          <input type="checkbox" class="ios-switch" data-perm="canDelete" ${perms.canDelete ? 'checked' : ''}>
-        </label>
-        <label class="perm-switch-card ${perms.canReport ? 'is-on' : ''}">
-          <span class="perm-card-icon">📊</span>
-          <div class="perm-card-text"><strong>允许查看统计周报</strong></div>
-          <input type="checkbox" class="ios-switch" data-perm="canReport" ${perms.canReport ? 'checked' : ''}>
-        </label>
-      </div>
-    </section>` : ''}
 
     <section class="panel audit-panel">
       <div class="audit-head">
@@ -4702,7 +4669,12 @@ function render() {
   $('#app').innerHTML = `
     <aside class="planner-tabs" aria-label="学习导航">
       <nav aria-label="科目">
-        ${subjectList().map(item => `<button type="button" data-sub="${esc(item.id)}" ${screen === 'tasks' && subject === item.id ? 'aria-current="page"' : ''}>${esc(item.name)}</button>`).join('')}
+        ${subjectList().map(item => {
+          const pending = learningView(data, item.id, date).pending;
+          return `<button type="button" class="planner-subject-tab" data-sub="${esc(item.id)}" ${screen === 'tasks' && subject === item.id ? 'aria-current="page"' : ''}>
+            <span>${esc(item.name)}</span><span class="subject-pending-number" aria-label="${pending} 项未完成">${pending}</span>
+          </button>`;
+        }).join('')}
       </nav>
       <nav class="planner-tabs-footer" aria-label="管理">
         ${allowRep ? `<button type="button" id="nav-reports" ${screen === 'reports' ? 'aria-current="page"' : ''}>看板</button>` : ''}
@@ -4806,18 +4778,6 @@ function render() {
       b.onclick = () => {
         logFilter = b.dataset.logFilter;
         render();
-      };
-    });
-    document.querySelectorAll('[data-perm]').forEach(chk => {
-      chk.onchange = async e => {
-        if (!isParent()) return;
-        const key = e.target.dataset.perm;
-        if (!data.kidPerms) data.kidPerms = defaultKidPerms();
-        data.kidPerms[key] = e.target.checked;
-        data.kidPerms.updatedAt = Date.now();
-        data.kidPerms.updatedBy = currentUser.name;
-        toast(`已${e.target.checked ? '开启' : '关闭'}宝宝对应权限`);
-        await persist();
       };
     });
   } else {
@@ -5188,6 +5148,7 @@ function settingsHTML() {
   const account = `<section class="panel settings-panel"><h2>账号</h2><p>当前账号：${esc(currentUser.name)}</p><button type="button" data-logout>切换账号</button></section>`;
   if (!isParent()) return `<section class="settings"><h1>设置</h1>${account}</section>`;
   const pins = data.pins || defaultPins();
+  const perms = data.kidPerms || defaultKidPerms();
   return `<section class="settings single-stage-drawer ${drawerCascadeAnim ? 'ios-drawer-cascade' : ''}">
     <div class="settings-hero">
       <div>
@@ -5202,6 +5163,38 @@ function settingsHTML() {
     </div>
 
     ${account}
+    <section class="panel perm-panel settings-panel">
+      <div class="perm-header">
+        <div>
+          <h2>孩子账号权限</h2>
+          <p>修改后通过现有同步设置更新到其他设备。</p>
+        </div>
+        ${perms.updatedAt ? `<small class="perm-meta">最近由 ${esc(perms.updatedBy)} 更新于 ${esc(new Date(perms.updatedAt).toLocaleString('zh-CN'))}</small>` : ''}
+      </div>
+      <div class="perm-grid">
+        <label class="perm-switch-card ${perms.canAdd ? 'is-on' : ''}">
+          <span class="perm-card-icon">➕</span>
+          <div class="perm-card-text"><strong>允许添加新任务</strong><small>开启后宝宝可自主新增学习计划</small></div>
+          <input type="checkbox" class="ios-switch" data-perm="canAdd" ${perms.canAdd ? 'checked' : ''}>
+        </label>
+        <label class="perm-switch-card ${perms.canEdit ? 'is-on' : ''}">
+          <span class="perm-card-icon">✏️</span>
+          <div class="perm-card-text"><strong>允许编辑修改任务</strong><small>开启后宝宝可修改任务内容与暂停计划</small></div>
+          <input type="checkbox" class="ios-switch" data-perm="canEdit" ${perms.canEdit ? 'checked' : ''}>
+        </label>
+        <label class="perm-switch-card ${perms.canDelete ? 'is-on' : ''}">
+          <span class="perm-card-icon">🗑️</span>
+          <div class="perm-card-text"><strong>允许删除任务</strong><small>开启后宝宝任务卡上将显示删除按钮</small></div>
+          <input type="checkbox" class="ios-switch" data-perm="canDelete" ${perms.canDelete ? 'checked' : ''}>
+        </label>
+        <label class="perm-switch-card ${perms.canReport ? 'is-on' : ''}">
+          <span class="perm-card-icon">📊</span>
+          <div class="perm-card-text"><strong>允许查看统计周报</strong></div>
+          <input type="checkbox" class="ios-switch" data-perm="canReport" ${perms.canReport ? 'checked' : ''}>
+        </label>
+      </div>
+    </section>
+
     <form id="subject-form" class="panel settings-panel">
       <h2>自定义科目</h2>
       <ul class="settings-subjects">${subjectList().map(item => `<li>${esc(item.name)}</li>`).join('')}</ul>
@@ -5274,6 +5267,18 @@ function settingsHTML() {
 
 function bindSettings() {
   if (!isParent()) return;
+  document.querySelectorAll('[data-perm]').forEach(chk => {
+    chk.onchange = async e => {
+      if (!isParent()) return;
+      const key = e.target.dataset.perm;
+      if (!data.kidPerms) data.kidPerms = defaultKidPerms();
+      data.kidPerms[key] = e.target.checked;
+      data.kidPerms.updatedAt = Date.now();
+      data.kidPerms.updatedBy = currentUser.name;
+      toast(`已${e.target.checked ? '开启' : '关闭'}宝宝对应权限`);
+      await persist();
+    };
+  });
   $('#subject-form').onsubmit = async event => {
     event.preventDefault();
     const name = new FormData(event.currentTarget).get('subjectName').trim();

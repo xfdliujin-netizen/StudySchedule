@@ -161,6 +161,19 @@ body, #app[class] {
   overflow-wrap: anywhere;
 }
 .planner-tabs button[aria-current="page"] { background: #e4d8be; box-shadow: inset 3px 0 var(--pen); }
+.planner-tabs .planner-subject-tab {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 4px;
+}
+.planner-subject-tab > span:first-child { min-width: 0; }
+.subject-pending-number {
+  flex: none;
+  color: #a02f33;
+  font: italic 700 17px/1 "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+  transform: rotate(-7deg);
+}
 #app .planner-content {
   margin: 0;
   padding: 0;
