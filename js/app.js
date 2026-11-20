@@ -552,6 +552,77 @@ function dailySubjectContent(subjectId, day = today()) {
   return { title: {chinese:'📖 每日诗文',math:'🧮 每日公式',english:'🔤 每日英语'}[subjectId], text:item[0], notes:item.slice(1) };
 }
 
+const weatherIcons = {
+  clear: ['☀️', '晴'], cloud: ['☁️', '多云'], fog: ['🌫️', '雾'],
+  rain: ['🌧️', '雨'], snow: ['❄️', '雪'], storm: ['⛈️', '雷雨']
+};
+let weatherPending = false;
+
+function weatherKind(code) {
+  if (code === 0) return 'clear';
+  if ([1, 2, 3].includes(code)) return 'cloud';
+  if ([45, 48].includes(code)) return 'fog';
+  if ([71, 73, 75, 77, 85, 86].includes(code)) return 'snow';
+  if (code >= 95) return 'storm';
+  if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return 'rain';
+  return null;
+}
+
+function paintWeather(message = '') {
+  const button = $('#planner-weather');
+  if (!button) return;
+  let cached;
+  try { cached = JSON.parse(safeGetStorage('planner-weather')); } catch {}
+  const condition = cached?.day === today() ? weatherIcons[cached.kind] : null;
+  const label = message || (condition ? '今日天气：' + condition[1] + ' · Open-Meteo' : '点击启用本地天气 · 约略位置用于 Open-Meteo 查询');
+  button.textContent = weatherPending ? '…' : (condition?.[0] || '🌡️');
+  button.title = label;
+  button.setAttribute('aria-label', label);
+  button.disabled = weatherPending;
+}
+
+async function refreshWeather() {
+  if (weatherPending) return;
+  if (!navigator.geolocation) return toast('此浏览器无法定位，暂不能显示本地天气');
+  weatherPending = true;
+  paintWeather('正在获取本地天气');
+  let message = '';
+  try {
+    const {coords} = await new Promise((resolve, reject) =>
+      navigator.geolocation.getCurrentPosition(resolve, reject, {timeout: 10000, maximumAge: 3600000}));
+    const query = new URLSearchParams({
+      latitude: coords.latitude.toFixed(1), longitude: coords.longitude.toFixed(1),
+      daily: 'weather_code', timezone: 'auto', forecast_days: '2'
+    });
+    const response = await fetch('https://api.open-meteo.com/v1/forecast?' + query, {signal: AbortSignal.timeout(10000)});
+    if (!response.ok) throw Error('天气获取失败');
+    const {daily} = await response.json();
+    const day = today();
+    const kind = weatherKind(daily?.weather_code?.[daily?.time?.indexOf(day)]);
+    if (!kind) throw Error('缺少今日天气');
+    safeSetStorage('planner-weather', JSON.stringify({day, kind}));
+  } catch (error) {
+    message = error?.code === 1 ? '定位未授权，无法显示本地天气' : '暂未获取到天气，可点击重试';
+  } finally {
+    weatherPending = false;
+    paintWeather(message);
+    if (message) toast(message);
+  }
+}
+
+function bindWeather() {
+  const button = $('#planner-weather');
+  if (!button) return;
+  paintWeather();
+  button.onclick = refreshWeather;
+  let cached;
+  try { cached = JSON.parse(safeGetStorage('planner-weather')); } catch {}
+  if (cached?.day === today() || weatherPending) return;
+  navigator.permissions?.query({name:'geolocation'}).then(result => {
+    if (result.state === 'granted' && button.isConnected) refreshWeather();
+  }).catch(() => {});
+}
+
 function render() {
   verifySavedSession();
   if (!currentUser) {
@@ -567,6 +638,8 @@ function render() {
 
   if (!allowRep && screen === 'reports') screen = 'tasks';
 
+  const todayDate = today();
+  const todayLabel = new Intl.DateTimeFormat('zh-CN', {weekday:'short'}).format(new Date(todayDate + 'T12:00:00'));
   const availableSubjects = subjectList();
   const theme = availableSubjects.find(item => item.id === subject) || availableSubjects[0];
   subject = theme.id;
@@ -595,12 +668,19 @@ function render() {
         <section class="subject-page" aria-label="${esc(theme.name)}学习任务">
           <div class="subject-page-heading">
             <h1>${esc(theme.name)}</h1>
-            ${allowAdd ? '<button type="button" class="primary" id="add">添加任务</button>' : ''}
+            <div class="subject-heading-actions">
+              <time datetime="${todayDate}">${todayDate.slice(5).replace('-', '/')} ${todayLabel}</time>
+              <button type="button" id="planner-weather" aria-label="启用本地天气">🌡️</button>
+              ${allowAdd ? '<button type="button" class="primary" id="add">添加任务</button>' : ''}
+            </div>
           </div>
           <div class="subject-page-controls">
-            <label>日期<input type="date" id="date" value="${esc(date)}"></label>
             <div class="subject-date-tabs" aria-label="快捷日期">
               ${nearbyDays(data).map(d => `<button type="button" data-date="${d.date}" aria-pressed="${date === d.date}">${d.label}</button>`).join('')}
+              <label class="subject-date-picker">
+                <span aria-hidden="true">▦ <span class="date-picker-value">${esc(date.slice(5).replace('-', '/'))}</span></span>
+                <input type="date" id="date" value="${esc(date)}" aria-label="选择任务日期">
+              </label>
             </div>
             <div class="subject-filters" aria-label="任务状态">
               ${[['all','全部',view.total],['pending','待学习',view.pending],['done','已学习',view.done]].map(([id,label,count]) =>
@@ -619,6 +699,7 @@ function render() {
   // 动画播放一次后复位标志，避免普通勾选时整栏重跳
   drawerCascadeAnim = false;
 
+  bindWeather();
   updateVoiceButton();
   $('#voice-fab').onclick = () => {
     if (activeVoiceRecognition) activeVoiceRecognition.stop();
@@ -1026,7 +1107,7 @@ function remove(t) {
 }
 
 function settingsHTML() {
-  const account = `<section class="panel settings-panel"><h2>账号</h2><p>当前账号：${esc(currentUser.name)}</p><button type="button" data-logout>切换账号</button></section>`;
+  const account = `<section class="panel settings-panel account-panel"><h2>账号</h2><p>当前账号：${esc(currentUser.name)}</p><button type="button" data-logout>切换账号</button></section>`;
   if (!isParent()) return `<section class="settings"><h1>设置</h1>${account}</section>`;
   const pins = data.pins || defaultPins();
   const perms = data.kidPerms || defaultKidPerms();
@@ -1044,6 +1125,13 @@ function settingsHTML() {
     </div>
 
     ${account}
+
+    <form id="subject-form" class="panel settings-panel">
+      <h2>自定义科目</h2>
+      <ul class="settings-subjects">${subjectList().map(item => `<li>${esc(item.name)}</li>`).join('')}</ul>
+      <label>科目名称<input name="subjectName" required maxlength="20" placeholder="例如：科学"></label>
+      <button type="submit" class="primary">添加科目</button>
+    </form>
     <section class="panel perm-panel settings-panel">
       <div class="perm-header">
         <div>
@@ -1075,13 +1163,6 @@ function settingsHTML() {
         </label>
       </div>
     </section>
-
-    <form id="subject-form" class="panel settings-panel">
-      <h2>自定义科目</h2>
-      <ul class="settings-subjects">${subjectList().map(item => `<li>${esc(item.name)}</li>`).join('')}</ul>
-      <label>科目名称<input name="subjectName" required maxlength="20" placeholder="例如：科学"></label>
-      <button type="submit" class="primary">添加科目</button>
-    </form>
     <form id="pin-form" class="panel settings-panel">
       <div class="pin-panel-head">
         <div>
