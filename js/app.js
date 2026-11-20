@@ -196,7 +196,7 @@ function toast(message) {
 }
 
 let syncTimer;
-async function persist() {
+async function persist(taskKey) {
   try {
     await write('data', data);
     storageFailed = false;
@@ -208,7 +208,7 @@ async function persist() {
     status = '保存失败';
     toast('本机存储失败，请立即导出备份，避免关闭页面。');
   }
-  render();
+  render(taskKey);
 }
 
 // ================= 各页面专属视觉主题与特色配置 =================
@@ -553,7 +553,7 @@ function dailyLearningHTML(content) {
         <button type="button" data-daily-speech="word">读单词</button></p>
       <p lang="en">${esc(content.example)} <button type="button" lang="zh-CN" data-daily-speech="example">读例句</button></p>`
     : `<p>${esc(content.text)}</p>`;
-  return `<details class="ledger-daily"><summary>${esc(content.title)}</summary>${english}${content.notes.map(note => `<small>${esc(note)}</small>`).join('')}</details>`;
+  return `<details class="ledger-daily" data-task-section="daily"><summary>${esc(content.title)}</summary>${english}${content.notes.map(note => `<small>${esc(note)}</small>`).join('')}</details>`;
 }
 
 function speakDailyEnglish(text) {
@@ -652,7 +652,40 @@ function bindWeather() {
   }).catch(() => {});
 }
 
-function render() {
+function captureTaskViewport(main, preferredKey) {
+  if (!main) return null;
+  const cards = [...main.querySelectorAll('[data-task-row]')];
+  const viewportTop = main.getBoundingClientRect().top;
+  const visible = cards.filter(card => card.getBoundingClientRect().bottom > viewportTop);
+  const preferred = cards.find(card => card.dataset.taskRow === preferredKey);
+  const anchors = [...new Set([preferred || visible[0], ...visible.slice(0, 3)].filter(Boolean))].map(card => ({
+    key: card.dataset.taskRow,
+    top: card.getBoundingClientRect().top - viewportTop
+  }));
+  return {
+    anchors,
+    openSections: [...main.querySelectorAll('details[data-task-section][open]')].map(item => item.dataset.taskSection)
+  };
+}
+
+function restoreTaskViewport(main, viewport, scrollTop) {
+  if (viewport) {
+    for (const item of main.querySelectorAll('details[data-task-section]')) {
+      item.open = viewport.openSections.includes(item.dataset.taskSection);
+    }
+    const cards = [...main.querySelectorAll('[data-task-row]')];
+    const viewportTop = main.getBoundingClientRect().top;
+    for (const anchor of viewport.anchors) {
+      const card = cards.find(item => item.dataset.taskRow === anchor.key);
+      if (!card) continue;
+      main.scrollTop += card.getBoundingClientRect().top - viewportTop - anchor.top;
+      return;
+    }
+  }
+  main.scrollTop = scrollTop;
+}
+
+function render(taskKey) {
   verifySavedSession();
   if (!currentUser) {
     $('#app').className = 'theme-all';
@@ -678,7 +711,9 @@ function render() {
   const filteredRows = rows.filter(t => filter === 'all' || (filter === 'done' ? t.done : !t.done));
   const viewKey = screen + (screen === 'tasks' ? ':' + subject + ':' + date : '');
   const previousMain = $('.planner-content');
-  const scrollTop = previousMain?.dataset.viewKey === viewKey ? previousMain.scrollTop : 0;
+  const sameView = previousMain?.dataset.viewKey === viewKey;
+  const scrollTop = sameView ? previousMain.scrollTop : 0;
+  const viewport = sameView && screen === 'tasks' ? captureTaskViewport(previousMain, taskKey) : null;
   syncedRenderPending = false;
   $('#app').className = 'ledger-app';
   $('#app').innerHTML = `
@@ -739,7 +774,7 @@ function render() {
 
   const main = $('.planner-content');
   main.dataset.viewKey = viewKey;
-  main.scrollTop = scrollTop;
+  restoreTaskViewport(main, viewport, scrollTop);
   bindWeather();
   document.querySelectorAll('[data-daily-speech]').forEach(button => {
     button.onclick = () => speakDailyEnglish(button.dataset.dailySpeech === 'word' ? dailyContent.text : dailyContent.example);
@@ -842,7 +877,7 @@ function render() {
           complete(data, t);
           const revealCompleted = !t.done && filter === 'pending';
           if (revealCompleted) filter = 'all';
-          persist().then(() => {
+          persist(t.key).then(() => {
             if (!storageFailed && !wasDone && t.date === today() && allTodayDone(data)) fireworks();
             if (!storageFailed && !t.done) toast(revealCompleted ? '任务已完成，已切到「全部」保留卡片' : '任务已完成');
           });
@@ -862,7 +897,7 @@ function render() {
 function cardHTML(t, idx = 0) {
   const allowEdit = canEditTask(), allowDel = canDeleteTask();
   const mins = Number(t.durationMinutes) || 20;
-  return `<article class="task task-${esc(t.subjectId)} ${t.done ? 'completed' : ''}" style="--card-idx:${Math.min(idx, 8)}">
+  return `<article data-task-row="${esc(t.key)}" class="task task-${esc(t.subjectId)} ${t.done ? 'completed' : ''}" style="--card-idx:${Math.min(idx, 8)}">
     <button type="button" class="check" data-action="complete" data-key="${esc(t.key)}" aria-label="${t.done ? '撤销完成' : '完成任务'}">
       <span>${t.done ? '✓' : ''}</span>
     </button>
@@ -889,7 +924,7 @@ function cardHTML(t, idx = 0) {
 function pausedHTML() {
   const tasks = Object.values(data.tasks).filter(t => !t.deleted && (!t.enabled || t.startDate > date) && (subject === 'all' || t.subjectId === subject));
   return tasks.length
-    ? `<details class="plans"><summary>⏸ 暂停 / 未来计划（${tasks.length} 项）</summary><div class="plans-list">${tasks.map(t => `<p><span><strong>${esc(t.title)}</strong> · ${t.enabled ? t.startDate + ' 开始' : '已暂停'}</span> <button type="button" data-resume="${esc(t.id)}">管理计划</button></p>`).join('')}</div></details>`
+    ? `<details class="plans" data-task-section="plans"><summary>⏸ 暂停 / 未来计划（${tasks.length} 项）</summary><div class="plans-list">${tasks.map(t => `<p><span><strong>${esc(t.title)}</strong> · ${t.enabled ? t.startDate + ' 开始' : '已暂停'}</span> <button type="button" data-resume="${esc(t.id)}">管理计划</button></p>`).join('')}</div></details>`
     : '';
 }
 
