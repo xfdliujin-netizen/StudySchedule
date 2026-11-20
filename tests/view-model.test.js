@@ -1,7 +1,21 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {learningView,nearbyDays,relativeDay} from '../js/view-model.js';
+import {learningView,nearbyDays,relativeDay,syncTaskNotice} from '../js/view-model.js';
 import {emptyData} from '../js/database.js';
+import {merge} from '../js/github-sync.js';
+import {complete} from '../js/task-manager.js';
+test('completing a task keeps it in All, while a synced deletion produces a clear reason', () => {
+ const day = '2026-11-20', base = emptyData();
+ base.tasks.t = {id:'t', title:'口算', subjectId:'math', enabled:true, startDate:day, repeatRule:{type:'once'}, rev:'initial'};
+ const local = structuredClone(base);
+ complete(local, learningView(local, 'math', day, day).rows[0]);
+ assert.equal(learningView(local, 'math', day, day).rows[0].done, true);
+ assert.equal(syncTaskNotice(base, local, 'math', day), '');
+ const remote = structuredClone(base);
+ remote.exceptions['t@' + day] = {deleted:true, rev:'deleted'};
+ const incoming = merge(base, local, remote);
+ assert.match(syncTaskNotice(local, incoming, 'math', day), /口算.*已删除/);
+});
 test('overdue work completed today stays in today’s completed list until the next day', () => {
  const data = emptyData();
  data.tasks.t = {id:'t', subjectId:'chinese', title:'阅读', enabled:true, startDate:'2026-11-19', repeatRule:{type:'daily'}};

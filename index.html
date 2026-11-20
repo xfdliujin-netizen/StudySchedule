@@ -3903,7 +3903,7 @@ function syncTaskNotice(before, after, subject, date) {
   let reason = '安排已变更';
   if (task?.deleted || exception?.deleted) reason = '已删除';
   else if (task && !task.enabled) reason = '已暂停';
-  else if ((exception?.override?.subjectId ?? task?.subjectId) !== item.subjectId) reason = '已变更科目';
+  else if (task && (exception?.override?.subjectId ?? task.subjectId) !== item.subjectId) reason = '已变更科目';
   return `云端更新：「${item.title}」${reason}${removed.length > 1 ? `，另有 ${removed.length - 1} 条任务移出当前列表` : ''}。`;
 }
 
