@@ -255,7 +255,8 @@ body, #app[class] {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.subject-date-tabs { align-items: center; }
+.subject-date-tabs { align-items: stretch; gap: 5px; }
+.subject-date-tabs button { border-color: var(--paper-line); }
 .subject-date-tabs .subject-date-picker {
   position: relative;
   display: inline-grid;
@@ -331,8 +332,18 @@ body, #app[class] {
 .ledger-app .audit-row { padding: 6px 8px; }
 @media (max-width: 520px) {
   .ledger-app .subject-page-heading .primary { padding: 7px 8px; }
-  .subject-date-tabs button { padding-inline: 4px; }
-  .subject-date-tabs .subject-date-picker { padding-inline: 5px; }
+  .subject-date-tabs {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) minmax(30px, .8fr);
+    gap: 3px;
+  }
+  .subject-date-tabs button, .subject-date-tabs .subject-date-picker {
+    min-width: 0;
+    min-height: 42px;
+    padding-inline: 0;
+    text-align: center;
+    font-size: clamp(11px, 3.2vw, 14px);
+  }
   .date-picker-value { display: none; }
   .ledger-app :is(.settings-hero,.pin-panel-head,.perm-header) { flex-wrap: wrap; }
 }

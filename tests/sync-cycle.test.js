@@ -19,6 +19,7 @@ test('sync skips uploads when record order differs and still pulls changes in se
     busy: false, storageFailed: false, pendingRemotePull: false, retrySyncAt: 0,
     lastAutoSync: 0, syncFailures: 0, screen: 'settings',
     isEditing: () => false, updateSyncStatus() {}, setupRealtimePush() {},
+    syncedRenderPending: false, refreshSyncedTasks() {},
     render() { assert.fail('Settings should not be replaced during a pull'); },
     client: () => ({pull: async () => ({data: remote}), push: async () => assert.fail('Unchanged data should not upload')}),
     write: async () => {}
