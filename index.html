@@ -3709,13 +3709,13 @@ dialog::backdrop {
 @media(max-width:700px){.subject-cover-art{right:26px;width:42px;top:3px;opacity:.09}.subject-column-overview .column-label>strong{letter-spacing:0}.subject-column-overview .compact-count{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.subject-column-overview{transition:none}.subject-column-overview:hover{transform:none}}
 </style>
-<link rel="stylesheet" href="css/planner.css?v=43">
+<link rel="stylesheet" href="css/planner.css?v=44">
 </head>
 <body>
   <div id="app"></div>
   <dialog id="editor"></dialog>
   <div id="toast" role="status" aria-live="polite"></div>
-  <script type="module" src="js/app.js?v=43"></script>
+  <script type="module" src="js/app.js?v=44"></script>
   <script>
   window.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() {
@@ -3897,11 +3897,19 @@ function normalizeLearningProfile(profile) {
   };
 }
 
+function normalizeSubjectVisibility(raw) {
+  return Object.fromEntries(Object.entries(raw || {}).filter(([id, item]) =>
+    /^[a-z][a-z0-9_-]*$/i.test(id) && typeof item?.visible === 'boolean' &&
+    typeof item.rev === 'string' && typeof item.updatedAt === 'string'
+  ).map(([id, {visible, rev, updatedAt}]) => [id, {visible, rev, updatedAt}]));
+}
+
 function emptyData() {
   return {
     tasks: {},
     learningProfile: normalizeLearningProfile(),
     customSubjects: {},
+    subjectVisibility: {},
     exceptions: {},
     completions: {},
     logs: {},
@@ -3914,6 +3922,7 @@ function validate(raw) {
   if (!raw || typeof raw !== 'object') return emptyData();
   return {
     learningProfile: normalizeLearningProfile(raw.learningProfile),
+    subjectVisibility: normalizeSubjectVisibility(raw.subjectVisibility),
     customSubjects: Object.fromEntries(Object.entries(raw.customSubjects || {}).filter(([id, item]) =>
       /^custom_[a-z0-9_-]+$/i.test(id) && typeof item?.name === 'string' && item.name.trim() && item.name.length <= 20 && typeof item.rev === 'string'
     ).map(([id, item]) => [id, { ...item, id, name: item.name.trim() }])),
@@ -3998,7 +4007,7 @@ async function privateRepositories(token){
 }
 function merge(base,local,remote,choose){
  const result=emptyData();
- for(const group of ['tasks','exceptions','completions','customSubjects']){
+ for(const group of ['tasks','exceptions','completions','customSubjects','subjectVisibility']){
   for(const id of new Set([...Object.keys(local[group]||{}),...Object.keys(remote[group]||{})])){
    const b=base[group]?.[id],l=local[group]?.[id],r=remote[group]?.[id];
    if(!l)result[group][id]=r;
@@ -4317,8 +4326,47 @@ async function persist() {
 }
 
 // ================= 各页面专属视觉主题与特色配置 =================
+const presetSubjectGroups = [
+  ['各学段通用', [
+    ['art', '艺术'], ['music', '音乐'], ['fine_arts', '美术'], ['physical_education', '体育与健康'],
+    ['labor', '劳动'], ['practice', '综合实践活动'], ['local_curriculum', '地方课程'], ['school_curriculum', '校本课程']
+  ]],
+  ['小学与初中', [
+    ['morality', '道德与法治'], ['science', '科学'], ['information_science', '信息科技']
+  ]],
+  ['初中与高中', [
+    ['history', '历史'], ['geography', '地理'], ['physics', '物理'], ['chemistry', '化学'], ['biology', '生物学']
+  ]],
+  ['高中课程', [
+    ['politics', '思想政治'], ['information_technology', '信息技术'], ['general_technology', '通用技术'],
+    ['science_lab', '理科实验'], ['mental_health', '心理健康教育']
+  ]],
+  ['外语选项', [
+    ['japanese', '日语'], ['russian', '俄语'], ['german', '德语'], ['french', '法语'], ['spanish', '西班牙语']
+  ]]
+];
+
+function presetSubjects() {
+  return [
+    ...subjects.map(subject => ({ ...subject, group: '各学段通用', defaultVisible: true })),
+    ...presetSubjectGroups.flatMap(([group, entries]) =>
+      entries.map(([id, name]) => ({id, name, group, defaultVisible: false})))
+  ];
+}
+
 function subjectList() {
-  return [...subjects, ...Object.values(data.customSubjects || {})];
+  return [
+    ...presetSubjects(),
+    ...Object.values(data.customSubjects || {}).map(item => ({...item, group: '自定义', defaultVisible: true}))
+  ];
+}
+
+function subjectVisible(item) {
+  return data.subjectVisibility?.[item.id]?.visible ?? item.defaultVisible;
+}
+
+function visibleSubjects() {
+  return subjectList().filter(subjectVisible);
 }
 
 // ================= 2. 登录界面渲染与事件 =================
@@ -4890,9 +4938,9 @@ function render() {
 
   const todayDate = today();
   const todayLabel = new Intl.DateTimeFormat('zh-CN', {weekday:'short'}).format(new Date(todayDate + 'T12:00:00'));
-  const availableSubjects = subjectList();
+  const availableSubjects = visibleSubjects();
   const theme = availableSubjects.find(item => item.id === subject) || availableSubjects[0];
-  subject = theme.id;
+  if (theme) subject = theme.id;
   const dailyContent = dailySubjectContent(subject, todayDate, data.learningProfile);
   const view = learningView(data, subject, date);
   const rows = view.rows;
@@ -4901,7 +4949,7 @@ function render() {
   $('#app').innerHTML = `
     <aside class="planner-tabs" aria-label="学习导航">
       <nav aria-label="科目">
-        ${subjectList().map(item => {
+        ${availableSubjects.map(item => {
           const pending = learningView(data, item.id, date).pending;
           return `<button type="button" class="planner-subject-tab" data-sub="${esc(item.id)}" ${screen === 'tasks' && subject === item.id ? 'aria-current="page"' : ''}>
             <span>${esc(item.name)}</span><span class="subject-pending-number" aria-label="${pending} 项未完成">${pending}</span>
@@ -4914,7 +4962,7 @@ function render() {
       </nav>
     </aside>
     <main class="planner-content">
-      ${screen === 'settings' ? settingsHTML() : screen === 'reports' ? reportsHTML() : `
+      ${screen === 'settings' ? settingsHTML() : screen === 'reports' ? reportsHTML() : !theme ? '<p class="ledger-empty no-subjects">请在设置中选择要显示的科目。</p>' : `
         <section class="subject-page" aria-label="${esc(theme.name)}学习任务">
           <div class="subject-page-heading">
             <h1>${esc(theme.name)}</h1>
@@ -5136,6 +5184,7 @@ function parseTaskSpeech(text, baseDate, fallbackSubject='chinese') {
 
 function startVoiceTask() {
   if (!canAddTask()) return toast('当前账号没有添加任务的权限');
+  if (!visibleSubjects().length) return toast('请先在设置中显示要安排任务的科目');
   if (dialog.open || activeVoiceRecognition) return;
   const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!Speech || !window.isSecureContext) {
@@ -5193,9 +5242,13 @@ function showVoiceTranscript(message, transcript = '') {
   let draft;
   if (transcript) {
     try {
-      const custom = Object.values(data.customSubjects || {}).filter(item => transcript.includes(item.name)).sort((a, b) => b.name.length - a.name.length)[0];
+      const named = subjectList().filter(item => transcript.includes(item.name)).sort((a, b) => b.name.length - a.name.length)[0];
       draft = parseTaskSpeech(transcript, today(), subject);
-      if (custom) draft.subjectId = custom.id;
+      if (named) {
+        draft.subjectId = named.id;
+        draft.warnings = draft.warnings.filter(warning => !warning.startsWith('科目未明确'));
+      }
+      if (!visibleSubjects().some(item => item.id === draft.subjectId)) throw Error('请先在设置中显示这个科目。');
       if (draft.title.length > 100) throw Error('任务名称请控制在 100 字以内。');
     } catch (error) {
       message = error.message;
@@ -5235,6 +5288,7 @@ function showVoiceTranscript(message, transcript = '') {
   form.onsubmit = async event => {
     event.preventDefault();
     if (!canAddTask()) return toast('当前账号没有添加任务的权限');
+    if (!visibleSubjects().some(item => item.id === task.subjectId)) return toast('请先在设置中显示这个科目');
     const submit = form.querySelector('[type="submit"]');
     if (submit.disabled) return;
     submit.disabled = true;
@@ -5259,8 +5313,9 @@ function showVoiceTranscript(message, transcript = '') {
 
 function edit(t) {
   if (t ? !canEditTask() : !canAddTask()) return;
+  if (!t && !visibleSubjects().length) return;
   const initial = t || {
-    subjectId: subject,
+    subjectId: visibleSubjects().some(item => item.id === subject) ? subject : visibleSubjects()[0]?.id,
     title: '',
     description: '',
     startDate: date,
@@ -5282,7 +5337,7 @@ function edit(t) {
     </label>
     <div class="form-row two-cols">
       <label>所属科目
-        <select name="subjectId">${subjectList().map(s => `<option value="${s.id}" ${s.id === initial.subjectId ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select>
+        <select name="subjectId">${subjectList().filter(s => subjectVisible(s) || s.id === initial.subjectId).map(s => `<option value="${s.id}" ${s.id === initial.subjectId ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select>
       </label>
       <label>预计时长（分钟）
         <input name="durationMinutes" type="number" min="1" max="240" step="1" value="${Number(initial.durationMinutes) || 20}">
@@ -5388,6 +5443,19 @@ function remove(t) {
   };
 }
 
+function subjectGroupsHTML() {
+  const groups = new Map();
+  for (const item of subjectList()) {
+    const group = groups.get(item.group) || [];
+    group.push(item);
+    groups.set(item.group, group);
+  }
+  return [...groups].map(([name, items]) => `<fieldset class="subject-options">
+    <legend>${esc(name)}</legend>
+    ${items.map(item => `<label><input type="checkbox" data-subject-visible="${esc(item.id)}" ${subjectVisible(item) ? 'checked' : ''}> ${esc(item.name)}</label>`).join('')}
+  </fieldset>`).join('');
+}
+
 function settingsHTML() {
   const account = `<section class="panel settings-panel account-panel"><h2>账号</h2><p>当前账号：${esc(currentUser.name)}</p><button type="button" data-logout>切换账号</button></section>`;
   if (!isParent()) return `<section class="settings"><h1>设置</h1>${account}</section>`;
@@ -5424,12 +5492,15 @@ function settingsHTML() {
       <button type="submit" class="primary">保存学习档案</button>
     </form>
 
-    <form id="subject-form" class="panel settings-panel">
-      <h2>自定义科目</h2>
-      <ul class="settings-subjects">${subjectList().map(item => `<li>${esc(item.name)}</li>`).join('')}</ul>
-      <label>科目名称<input name="subjectName" required maxlength="20" placeholder="例如：科学"></label>
-      <button type="submit" class="primary">添加科目</button>
-    </form>
+    <section class="panel settings-panel subject-management">
+      <h2>科目管理</h2>
+      <p class="hint">勾选要显示在左侧的科目。隐藏后，原有任务和记录仍会保留。</p>
+      ${subjectGroupsHTML()}
+      <form id="subject-form" class="custom-subject-form">
+        <label>自定义科目<input name="subjectName" required maxlength="20" placeholder="输入科目名称"></label>
+        <button type="submit" class="primary">添加并显示</button>
+      </form>
+    </section>
     <section class="panel perm-panel settings-panel">
       <div class="perm-header">
         <div>
@@ -5548,6 +5619,17 @@ function bindSettings() {
       await persist();
     };
   });
+  document.querySelectorAll('[data-subject-visible]').forEach(input => {
+    input.onchange = async () => {
+      if (!isParent()) return;
+      const id = input.dataset.subjectVisible;
+      if (!subjectList().some(item => item.id === id)) return;
+      (data.subjectVisibility ||= {})[id] = {visible: input.checked, ...stamp()};
+      const position = $('.planner-content').scrollTop;
+      await persist();
+      if (screen === 'settings') $('.planner-content').scrollTop = position;
+    };
+  });
   $('#subject-form').onsubmit = async event => {
     event.preventDefault();
     const name = new FormData(event.currentTarget).get('subjectName').trim();
@@ -5557,7 +5639,9 @@ function bindSettings() {
     const revision = stamp();
     const id = 'custom_' + revision.rev;
     (data.customSubjects ||= {})[id] = { id, name, ...revision };
+    const position = $('.planner-content').scrollTop;
     await persist();
+    if (screen === 'settings') $('.planner-content').scrollTop = position;
   };
   const pinForm = $('#pin-form'), toggleBtn = $('#toggle-pin-view');
   if (toggleBtn && pinForm) {

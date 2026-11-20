@@ -109,11 +109,19 @@ export function normalizeLearningProfile(profile) {
   };
 }
 
+function normalizeSubjectVisibility(raw) {
+  return Object.fromEntries(Object.entries(raw || {}).filter(([id, item]) =>
+    /^[a-z][a-z0-9_-]*$/i.test(id) && typeof item?.visible === 'boolean' &&
+    typeof item.rev === 'string' && typeof item.updatedAt === 'string'
+  ).map(([id, {visible, rev, updatedAt}]) => [id, {visible, rev, updatedAt}]));
+}
+
 export function emptyData() {
   return {
     tasks: {},
     learningProfile: normalizeLearningProfile(),
     customSubjects: {},
+    subjectVisibility: {},
     exceptions: {},
     completions: {},
     logs: {},
@@ -126,6 +134,7 @@ export function validate(raw) {
   if (!raw || typeof raw !== 'object') return emptyData();
   return {
     learningProfile: normalizeLearningProfile(raw.learningProfile),
+    subjectVisibility: normalizeSubjectVisibility(raw.subjectVisibility),
     customSubjects: Object.fromEntries(Object.entries(raw.customSubjects || {}).filter(([id, item]) =>
       /^custom_[a-z0-9_-]+$/i.test(id) && typeof item?.name === 'string' && item.name.trim() && item.name.length <= 20 && typeof item.rev === 'string'
     ).map(([id, item]) => [id, { ...item, id, name: item.name.trim() }])),

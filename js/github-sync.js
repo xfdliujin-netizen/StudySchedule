@@ -11,7 +11,7 @@ export async function privateRepositories(token){
 }
 export function merge(base,local,remote,choose){
  const result=emptyData();
- for(const group of ['tasks','exceptions','completions','customSubjects']){
+ for(const group of ['tasks','exceptions','completions','customSubjects','subjectVisibility']){
   for(const id of new Set([...Object.keys(local[group]||{}),...Object.keys(remote[group]||{})])){
    const b=base[group]?.[id],l=local[group]?.[id],r=remote[group]?.[id];
    if(!l)result[group][id]=r;
