@@ -3715,7 +3715,7 @@ dialog::backdrop {
   <div id="app"></div>
   <dialog id="editor"></dialog>
   <div id="toast" role="status" aria-live="polite"></div>
-  <script type="module" src="js/app.js?v=51"></script>
+  <script type="module" src="js/app.js?v=52"></script>
   <script>
   window.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() {
@@ -3728,16 +3728,42 @@ const dayNumber=d=>Date.parse(d+'T00:00:00Z')/86400000;
 const shiftDate=(d,n)=>new Date((dayNumber(d)+n)*86400000).toISOString().slice(0,10);
 function occurs(t,date){if(t.deleted||!t.enabled||date<t.startDate||(t.endDate&&date>t.endDate))return false;const r=t.repeatRule;return r.type==='daily'||(r.type==='once'&&date===t.startDate)||(r.type==='weekly'&&r.days.includes(new Date(date+'T00:00:00Z').getUTCDay()))||(r.type==='interval'&&(dayNumber(date)-dayNumber(t.startDate))%r.interval===0);}
 const key=(id,date)=>`${id}@${date}`;
+function taskDeletionBounds(data, task) {
+  let cursor = task;
+  let terminatedFrom = '';
+  let deleted = false;
+  const ids = new Set();
+  while (cursor && !ids.has(cursor.id)) {
+    ids.add(cursor.id);
+    deleted ||= Boolean(cursor.deleted);
+    if (cursor.terminatedFrom && (!terminatedFrom || cursor.terminatedFrom < terminatedFrom)) {
+      terminatedFrom = cursor.terminatedFrom;
+    }
+    cursor = cursor.splitFrom ? data.tasks[cursor.splitFrom] : null;
+  }
+  return {deleted, terminatedFrom, ids};
+}
+
 function instances(data, date, overdue = true, includeCompletedOn = null) {
   const rows = [];
   for (const task of Object.values(data.tasks)) {
-    if (task.deleted || !task.enabled) continue;
+    const deletion = taskDeletionBounds(data, task);
+    if (deletion.deleted || !task.enabled) continue;
     const start = overdue ? task.startDate : date;
     for (let scheduled = start; scheduled <= date; scheduled = shiftDate(scheduled, 1)) {
+      if (deletion.terminatedFrom && scheduled >= deletion.terminatedFrom) break;
       const taskKey = key(task.id, scheduled);
       const exception = data.exceptions[taskKey];
       const withinPlan = scheduled >= task.startDate && (!task.endDate || scheduled <= task.endDate);
       if (exception?.deleted || !(occurs(task, scheduled) || (exception?.override && withinPlan))) continue;
+      let inheritedDeletion = false;
+      for (const id of deletion.ids) {
+        if (id !== task.id && data.exceptions[key(id, scheduled)]?.deleted) {
+          inheritedDeletion = true;
+          break;
+        }
+      }
+      if (inheritedDeletion) continue;
       const completion = data.completions[taskKey];
       let completedOn = null;
       if (includeCompletedOn && completion?.completedAt) {
@@ -4019,6 +4045,7 @@ function saveTask(data, values, original, date, scope = 'future') {
       ...values,
       id,
       startDate: values.startDate < date ? date : values.startDate,
+      splitFrom: prior.id,
       createdAt: now,
       ...stamp()
     };
@@ -4030,7 +4057,12 @@ function saveTask(data, values, original, date, scope = 'future') {
 function deleteTask(data, id, date, scope) {
   const t = data.tasks[id];
   if (scope === 'day') data.exceptions[key(id, date)] = { deleted: true, ...stamp() };
-  else if (scope === 'future') data.tasks[id] = { ...t, endDate: shiftDate(date, -1), ...stamp() };
+  else if (scope === 'future') {
+    const terminatedFrom = t.terminatedFrom && t.terminatedFrom < date ? t.terminatedFrom : date;
+    const lastDay = shiftDate(terminatedFrom, -1);
+    const endDate = t.endDate && t.endDate < lastDay ? t.endDate : lastDay;
+    data.tasks[id] = { ...t, endDate, terminatedFrom, ...stamp() };
+  }
   else data.tasks[id] = { ...t, deleted: true, ...stamp() };
 }
 
@@ -4059,13 +4091,37 @@ async function privateRepositories(token){
 function merge(base,local,remote,choose){
  const result=emptyData();
  for(const group of ['tasks','exceptions','completions','customSubjects','subjectVisibility']){
-  for(const id of new Set([...Object.keys(local[group]||{}),...Object.keys(remote[group]||{})])){
+  const ids = new Set([...Object.keys(local[group]||{}),...Object.keys(remote[group]||{})]);
+  if (group === 'tasks' || group === 'exceptions') {
+   for (const [id, record] of Object.entries(base[group] || {})) if (record?.deleted) ids.add(id);
+  }
+  for(const id of ids){
    const b=base[group]?.[id],l=local[group]?.[id],r=remote[group]?.[id];
-   if(!l)result[group][id]=r;
-   else if(!r||l.rev===r.rev||r.rev===b?.rev)result[group][id]=l;
-   else if(l.rev===b?.rev)result[group][id]=r;
-   else if(group==='completions')result[group][id]=(l.updatedAt>r.updatedAt?l:r);
-   else {const selection=choose?.(group,id,l,r);if(!selection)throw Error('存在冲突，请选择保留的版本后再同步');result[group][id]=selection;}
+   // There is no restore operation for task or occurrence deletions.
+   if (group === 'tasks' || group === 'exceptions') {
+    const tombstone = [l, r, b].find(record => record?.deleted);
+    if (tombstone) {
+     result[group][id] = tombstone;
+     continue;
+    }
+   }
+   let selected;
+   if(!l)selected=r;
+   else if(!r||l.rev===r.rev||r.rev===b?.rev)selected=l;
+   else if(l.rev===b?.rev)selected=r;
+   else if(group==='completions')selected=(l.updatedAt>r.updatedAt?l:r);
+   else {
+    selected=choose?.(group,id,l,r);
+    if(!selected)throw Error('存在冲突，请选择保留的版本后再同步');
+   }
+   if (group === 'tasks') {
+    const terminatedFrom = [l?.terminatedFrom, r?.terminatedFrom, b?.terminatedFrom].filter(Boolean).sort()[0];
+    const splitFrom = selected.splitFrom || b?.splitFrom || l?.splitFrom || r?.splitFrom;
+    if (terminatedFrom || splitFrom) selected = {
+     ...selected, ...(terminatedFrom ? {terminatedFrom} : {}), ...(splitFrom ? {splitFrom} : {})
+    };
+   }
+   result[group][id]=selected;
   }
  }
  // 合并增删改审计日志（保留最近 300 条）
@@ -5277,7 +5333,11 @@ function cardHTML(t, idx = 0) {
 }
 
 function pausedHTML() {
-  const tasks = Object.values(data.tasks).filter(t => !t.deleted && (!t.enabled || t.startDate > date) && (subject === 'all' || t.subjectId === subject));
+  const tasks = Object.values(data.tasks).filter(t => {
+    if (t.subjectId !== subject || (t.enabled && t.startDate <= date)) return false;
+    const bounds = taskDeletionBounds(data, t);
+    return !bounds.deleted && (!bounds.terminatedFrom || t.startDate < bounds.terminatedFrom);
+  });
   return tasks.length
     ? `<details class="plans" data-task-section="plans"><summary>⏸ 暂停 / 未来计划（${tasks.length} 项）</summary><div class="plans-list">${tasks.map(t => `<p><span><strong>${esc(t.title)}</strong> · ${t.enabled ? t.startDate + ' 开始' : '已暂停'}</span> <button type="button" data-resume="${esc(t.id)}">管理计划</button></p>`).join('')}</div></details>`
     : '';

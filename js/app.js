@@ -3,7 +3,7 @@ import {parseTaskSpeech} from './speech-task.js';
 window.__STUDY_PLANNER_BOOTED__ = true;
 import {allTodayDone, fireworks} from './celebration.js';
 import {learningView, dateStripDays, relativeDay, syncTaskNotice} from './view-model.js';
-import {subjects, today, instances, repeatLabel, shiftDate} from './repeat-engine.js';
+import {subjects, today, instances, repeatLabel, shiftDate, taskDeletionBounds} from './repeat-engine.js';
 import {openDB, read, write, emptyData, validate, defaultKidPerms, defaultPins, normalizeLearningProfile} from './database.js';
 import {saveTask, deleteTask, complete, stamp} from './task-manager.js';
 import {client, merge, privateRepositories} from './github-sync.js';
@@ -948,7 +948,11 @@ function cardHTML(t, idx = 0) {
 }
 
 function pausedHTML() {
-  const tasks = Object.values(data.tasks).filter(t => !t.deleted && (!t.enabled || t.startDate > date) && (subject === 'all' || t.subjectId === subject));
+  const tasks = Object.values(data.tasks).filter(t => {
+    if (t.subjectId !== subject || (t.enabled && t.startDate <= date)) return false;
+    const bounds = taskDeletionBounds(data, t);
+    return !bounds.deleted && (!bounds.terminatedFrom || t.startDate < bounds.terminatedFrom);
+  });
   return tasks.length
     ? `<details class="plans" data-task-section="plans"><summary>⏸ 暂停 / 未来计划（${tasks.length} 项）</summary><div class="plans-list">${tasks.map(t => `<p><span><strong>${esc(t.title)}</strong> · ${t.enabled ? t.startDate + ' 开始' : '已暂停'}</span> <button type="button" data-resume="${esc(t.id)}">管理计划</button></p>`).join('')}</div></details>`
     : '';

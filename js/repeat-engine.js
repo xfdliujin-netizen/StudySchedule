@@ -4,16 +4,42 @@ export const dayNumber=d=>Date.parse(d+'T00:00:00Z')/86400000;
 export const shiftDate=(d,n)=>new Date((dayNumber(d)+n)*86400000).toISOString().slice(0,10);
 export function occurs(t,date){if(t.deleted||!t.enabled||date<t.startDate||(t.endDate&&date>t.endDate))return false;const r=t.repeatRule;return r.type==='daily'||(r.type==='once'&&date===t.startDate)||(r.type==='weekly'&&r.days.includes(new Date(date+'T00:00:00Z').getUTCDay()))||(r.type==='interval'&&(dayNumber(date)-dayNumber(t.startDate))%r.interval===0);}
 export const key=(id,date)=>`${id}@${date}`;
+export function taskDeletionBounds(data, task) {
+  let cursor = task;
+  let terminatedFrom = '';
+  let deleted = false;
+  const ids = new Set();
+  while (cursor && !ids.has(cursor.id)) {
+    ids.add(cursor.id);
+    deleted ||= Boolean(cursor.deleted);
+    if (cursor.terminatedFrom && (!terminatedFrom || cursor.terminatedFrom < terminatedFrom)) {
+      terminatedFrom = cursor.terminatedFrom;
+    }
+    cursor = cursor.splitFrom ? data.tasks[cursor.splitFrom] : null;
+  }
+  return {deleted, terminatedFrom, ids};
+}
+
 export function instances(data, date, overdue = true, includeCompletedOn = null) {
   const rows = [];
   for (const task of Object.values(data.tasks)) {
-    if (task.deleted || !task.enabled) continue;
+    const deletion = taskDeletionBounds(data, task);
+    if (deletion.deleted || !task.enabled) continue;
     const start = overdue ? task.startDate : date;
     for (let scheduled = start; scheduled <= date; scheduled = shiftDate(scheduled, 1)) {
+      if (deletion.terminatedFrom && scheduled >= deletion.terminatedFrom) break;
       const taskKey = key(task.id, scheduled);
       const exception = data.exceptions[taskKey];
       const withinPlan = scheduled >= task.startDate && (!task.endDate || scheduled <= task.endDate);
       if (exception?.deleted || !(occurs(task, scheduled) || (exception?.override && withinPlan))) continue;
+      let inheritedDeletion = false;
+      for (const id of deletion.ids) {
+        if (id !== task.id && data.exceptions[key(id, scheduled)]?.deleted) {
+          inheritedDeletion = true;
+          break;
+        }
+      }
+      if (inheritedDeletion) continue;
       const completion = data.completions[taskKey];
       let completedOn = null;
       if (includeCompletedOn && completion?.completedAt) {

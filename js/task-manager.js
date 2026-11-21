@@ -28,6 +28,7 @@ export function saveTask(data, values, original, date, scope = 'future') {
       ...values,
       id,
       startDate: values.startDate < date ? date : values.startDate,
+      splitFrom: prior.id,
       createdAt: now,
       ...stamp()
     };
@@ -39,7 +40,12 @@ export function saveTask(data, values, original, date, scope = 'future') {
 export function deleteTask(data, id, date, scope) {
   const t = data.tasks[id];
   if (scope === 'day') data.exceptions[key(id, date)] = { deleted: true, ...stamp() };
-  else if (scope === 'future') data.tasks[id] = { ...t, endDate: shiftDate(date, -1), ...stamp() };
+  else if (scope === 'future') {
+    const terminatedFrom = t.terminatedFrom && t.terminatedFrom < date ? t.terminatedFrom : date;
+    const lastDay = shiftDate(terminatedFrom, -1);
+    const endDate = t.endDate && t.endDate < lastDay ? t.endDate : lastDay;
+    data.tasks[id] = { ...t, endDate, terminatedFrom, ...stamp() };
+  }
   else data.tasks[id] = { ...t, deleted: true, ...stamp() };
 }
 

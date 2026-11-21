@@ -12,13 +12,37 @@ export async function privateRepositories(token){
 export function merge(base,local,remote,choose){
  const result=emptyData();
  for(const group of ['tasks','exceptions','completions','customSubjects','subjectVisibility']){
-  for(const id of new Set([...Object.keys(local[group]||{}),...Object.keys(remote[group]||{})])){
+  const ids = new Set([...Object.keys(local[group]||{}),...Object.keys(remote[group]||{})]);
+  if (group === 'tasks' || group === 'exceptions') {
+   for (const [id, record] of Object.entries(base[group] || {})) if (record?.deleted) ids.add(id);
+  }
+  for(const id of ids){
    const b=base[group]?.[id],l=local[group]?.[id],r=remote[group]?.[id];
-   if(!l)result[group][id]=r;
-   else if(!r||l.rev===r.rev||r.rev===b?.rev)result[group][id]=l;
-   else if(l.rev===b?.rev)result[group][id]=r;
-   else if(group==='completions')result[group][id]=(l.updatedAt>r.updatedAt?l:r);
-   else {const selection=choose?.(group,id,l,r);if(!selection)throw Error('存在冲突，请选择保留的版本后再同步');result[group][id]=selection;}
+   // There is no restore operation for task or occurrence deletions.
+   if (group === 'tasks' || group === 'exceptions') {
+    const tombstone = [l, r, b].find(record => record?.deleted);
+    if (tombstone) {
+     result[group][id] = tombstone;
+     continue;
+    }
+   }
+   let selected;
+   if(!l)selected=r;
+   else if(!r||l.rev===r.rev||r.rev===b?.rev)selected=l;
+   else if(l.rev===b?.rev)selected=r;
+   else if(group==='completions')selected=(l.updatedAt>r.updatedAt?l:r);
+   else {
+    selected=choose?.(group,id,l,r);
+    if(!selected)throw Error('存在冲突，请选择保留的版本后再同步');
+   }
+   if (group === 'tasks') {
+    const terminatedFrom = [l?.terminatedFrom, r?.terminatedFrom, b?.terminatedFrom].filter(Boolean).sort()[0];
+    const splitFrom = selected.splitFrom || b?.splitFrom || l?.splitFrom || r?.splitFrom;
+    if (terminatedFrom || splitFrom) selected = {
+     ...selected, ...(terminatedFrom ? {terminatedFrom} : {}), ...(splitFrom ? {splitFrom} : {})
+    };
+   }
+   result[group][id]=selected;
   }
  }
  // 合并增删改审计日志（保留最近 300 条）
