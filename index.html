@@ -4099,7 +4099,10 @@ function merge(base,local,remote,choose){
    const b=base[group]?.[id],l=local[group]?.[id],r=remote[group]?.[id];
    // There is no restore operation for task or occurrence deletions.
    if (group === 'tasks' || group === 'exceptions') {
-    const tombstone = [l, r, b].find(record => record?.deleted);
+    const tombstone = [l, r, b].filter(record => record?.deleted).sort((a, b) =>
+     String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')) ||
+     String(b.rev || '').localeCompare(String(a.rev || ''))
+    )[0];
     if (tombstone) {
      result[group][id] = tombstone;
      continue;
